@@ -10,7 +10,7 @@
 :root {
   --bg: #5a6270;
   --bg-card: #ffffff;
-  --bg-nav: #1a2332;
+  --bg-nav: #2a2d33;
   --text: #1a2332;
   --text-light: #64748b;
   --text-on-dark: #f1f5f9;
@@ -447,7 +447,7 @@ body {
   left: 0;
   bottom: 0;
   width: var(--nav-width);
-  background: linear-gradient(180deg, #1a2332 0%, #162029 100%);
+  background: linear-gradient(180deg, #2a2d33 0%, #232528 100%);
   border-right: 1px solid rgba(255,255,255,0.05);
   padding: 0.75rem 0;
   overflow-y: auto;
