@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACM Activity Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-row">
+        <div class="top-bar-left">
+          <a href="index.html" id="backToProjects" class="back-to-projects" title="Back to Projects">&#8592;</a>
+          <h1 class="project-name" id="projectName" title="Click to edit">ACM Project</h1>
+          <span class="client-name" id="clientName" title="Click to edit"></span>
+        </div>
+        <div class="top-bar-right" id="statusBar">
+          <!-- Status summary rendered by JS -->
+        </div>
+        <div class="top-bar-actions">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search activities, todos, questions..." autocomplete="off">
+            <button class="search-clear" id="searchClear" title="Clear search">&times;</button>
+          </div>
+          <div class="filter-controls">
+            <select id="filterStatus">
+              <option value="">All Statuses</option>
+              <option value="not_started">Not Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="blocked">Blocked</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <button class="btn-icon" id="settingsBtn" title="Project Settings">&#9881;</button>
+        </div>
+      </div>
+      <div class="top-bar-row now-doing-row" id="nowDoingRow" style="display:none;">
+        <div class="now-doing-content" id="nowDoing"></div>
+        <button class="now-doing-toggle" id="nowDoingToggle" style="display:none;">+</button>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <!-- Navigation Panel -->
+      <nav class="nav-panel" id="navPanel">
+        <!-- Phase buttons rendered by JS -->
+      </nav>
+
+      <!-- Content Area -->
+      <main class="content-area">
+        <!-- Dual Timeline Track -->
+        <section class="timelines-container" id="timelinesContainer">
+          <div class="timeline-track" data-timeline-type="technical">
+            <div class="timeline-header">
+              <span class="timeline-title">Technical Implementation</span>
+              <button class="btn-small timeline-add" data-timeline-type="technical" title="Add milestone">+ Milestone</button>
+            </div>
+            <div class="timeline-bar" id="timelineBarTechnical"></div>
+          </div>
+          <div class="timeline-track" data-timeline-type="acm">
+            <div class="timeline-header">
+              <span class="timeline-title">Adoption &amp; Change Management</span>
+              <button class="btn-small timeline-add" data-timeline-type="acm" title="Add milestone">+ Milestone</button>
+            </div>
+            <div class="timeline-bar" id="timelineBarAcm"></div>
+          </div>
+        </section>
+
+        <!-- What's Next Banner -->
+        <section class="whats-next" id="whatsNext" style="display:none;">
+          <!-- Rendered by JS -->
+        </section>
+
+        <!-- Activity Phases -->
+        <div id="phasesContainer">
+          <!-- Phase sections and activity cards rendered by JS -->
+        </div>
+      </main>
+    </div>
+
+    <!-- Sync indicator -->
+    <div class="sync-indicator" id="syncIndicator" style="display:none;">
+      <span class="sync-dot"></span>
+      <span class="sync-text">Saving...</span>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal" style="display:none;">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Project Settings</h2>
+          <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label>Project Name<input type="text" id="cfgProjectName"></label>
+          <label>Client Name<input type="text" id="cfgClientName"></label>
+          <label>Consultant Name<input type="text" id="cfgConsultantName"></label>
+          <label>Start Date<input type="date" id="cfgStartDate"></label>
+          <label>End Date<input type="date" id="cfgEndDate"></label>
+          <label>Total Project Duration
+            <div class="duration-setting">
+              <input type="number" id="cfgDurationValue" min="0" step="1" placeholder="e.g. 80">
+              <select id="cfgDurationUnit">
+                <option value="hours">Hours</option>
+                <option value="days">Days</option>
+              </select>
+            </div>
+            <span class="field-hint" id="durationHint" style="display:none;">1 day = 8 hours</span>
+          </label>
+          <label>API URL<input type="text" id="cfgApiUrl" placeholder="https://script.google.com/macros/s/.../exec"></label>
+          <div class="modal-actions">
+            <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Milestone Edit Modal -->
+    <div class="modal-overlay" id="milestoneModal" style="display:none;">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2 id="milestoneModalTitle">Add Milestone</h2>
+          <button class="modal-close" onclick="closeModal('milestoneModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label>Milestone Name<input type="text" id="msName"></label>
+          <label>Timeline
+            <select id="msTimelineType">
+              <option value="technical">Technical Implementation</option>
+              <option value="acm">Adoption &amp; Change Management</option>
+            </select>
+          </label>
+          <label>Date<input type="date" id="msDate"></label>
+          <label>Status
+            <select id="msStatus">
+              <option value="planned">Planned</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="delayed">Delayed</option>
+            </select>
+          </label>
+          <label>Notes<textarea id="msNotes" rows="3"></textarea></label>
+          <div class="modal-actions">
+            <button class="btn-primary" id="msSaveBtn" onclick="saveMilestone()">Save</button>
+            <button class="btn-danger" id="msDeleteBtn" onclick="deleteMilestoneAction()" style="display:none;">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <p>Loading dashboard...</p>
+    </div>
+  </div>
+
+  <script src="seed-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

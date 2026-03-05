@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACM Dashboard — Seed Data</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 2rem; max-width: 900px; margin: 0 auto; background: #f5f5f5; color: #333; }
+    h1 { margin-bottom: 1rem; }
+    .step { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .step h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .step p { font-size: 0.9rem; color: #666; margin-bottom: 0.75rem; }
+    label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+    input[type="text"] { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; margin-bottom: 0.75rem; }
+    button { padding: 0.6rem 1.5rem; background: #1a73e8; color: white; border: none; border-radius: 4px; font-size: 0.95rem; cursor: pointer; }
+    button:hover { background: #1557b0; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    #status { margin-top: 1rem; padding: 1rem; border-radius: 4px; display: none; }
+    #status.success { display: block; background: #e8f5e9; color: #2e7d32; }
+    #status.error { display: block; background: #ffebee; color: #c62828; }
+    #status.info { display: block; background: #e3f2fd; color: #1565c0; }
+    #preview { margin-top: 1rem; max-height: 400px; overflow-y: auto; background: #fafafa; border: 1px solid #ddd; border-radius: 4px; padding: 1rem; font-size: 0.8rem; font-family: monospace; white-space: pre-wrap; display: none; }
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 0.75rem; }
+    .summary-card { background: #f0f4f8; padding: 1rem; border-radius: 6px; text-align: center; }
+    .summary-card .num { font-size: 2rem; font-weight: 700; color: #1a73e8; }
+    .summary-card .label { font-size: 0.8rem; color: #666; }
+  </style>
+</head>
+<body>
+  <h1>ACM Dashboard — Seed Data Tool</h1>
+
+  <div class="step">
+    <h2>Step 1: Configure API URL</h2>
+    <p>Enter the Google Apps Script deployment URL.</p>
+    <label for="apiUrl">Apps Script URL</label>
+    <input type="text" id="apiUrl" placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec">
+  </div>
+
+  <div class="step">
+    <h2>Step 2: Review Seed Data</h2>
+    <p>The parsed data from ACM_Activity_Breakdown.md is embedded below.</p>
+    <div class="summary" id="summary"></div>
+    <button onclick="showPreview()">Show Raw JSON</button>
+    <div id="preview"></div>
+  </div>
+
+  <div class="step">
+    <h2>Step 3: Seed the Google Sheet</h2>
+    <p>This will clear all existing data in the sheet and populate it with the seed data.</p>
+    <button id="seedBtn" onclick="seedData()">Seed Data to Google Sheet</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    // Seed data will be loaded from seed-data.json
+    let SEED_DATA = null;
+
+    async function loadSeedData() {
+      try {
+        const resp = await fetch('seed-data.json');
+        SEED_DATA = await resp.json();
+        renderSummary();
+      } catch (e) {
+        setStatus('error', 'Failed to load seed-data.json. Make sure it exists in the same directory. Run: python3 parse_markdown.py');
+      }
+    }
+
+    function renderSummary() {
+      if (!SEED_DATA) return;
+      const el = document.getElementById('summary');
+      el.innerHTML = `
+        <div class="summary-card"><div class="num">${SEED_DATA.activities.length}</div><div class="label">Activities</div></div>
+        <div class="summary-card"><div class="num">${SEED_DATA.todos.length}</div><div class="label">To-dos</div></div>
+        <div class="summary-card"><div class="num">${SEED_DATA.questions.length}</div><div class="label">Questions</div></div>
+      `;
+
+      // Show phase breakdown
+      const phases = {};
+      SEED_DATA.activities.forEach(a => {
+        phases[a.pdca_phase] = (phases[a.pdca_phase] || 0) + 1;
+      });
+      let phaseHtml = '<div style="margin-top:1rem;font-size:0.85rem;">';
+      for (const [phase, count] of Object.entries(phases)) {
+        phaseHtml += `<div><strong>${phase}:</strong> ${count} activities</div>`;
+      }
+      phaseHtml += '</div>';
+      el.innerHTML += phaseHtml;
+    }
+
+    function showPreview() {
+      const el = document.getElementById('preview');
+      if (el.style.display === 'block') {
+        el.style.display = 'none';
+      } else {
+        el.textContent = JSON.stringify(SEED_DATA, null, 2);
+        el.style.display = 'block';
+      }
+    }
+
+    function setStatus(type, msg) {
+      const el = document.getElementById('status');
+      el.className = type;
+      el.textContent = msg;
+    }
+
+    async function seedData() {
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      if (!apiUrl) {
+        setStatus('error', 'Please enter the Apps Script URL first.');
+        return;
+      }
+      if (!SEED_DATA) {
+        setStatus('error', 'Seed data not loaded.');
+        return;
+      }
+
+      const btn = document.getElementById('seedBtn');
+      btn.disabled = true;
+      btn.textContent = 'Seeding...';
+      setStatus('info', 'Sending data to Google Sheets... This may take 30-60 seconds.');
+
+      try {
+        const resp = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'seedAll', data: SEED_DATA }),
+          redirect: 'follow'
+        });
+        const result = await resp.json();
+        if (result.error) {
+          setStatus('error', 'Error: ' + result.error);
+        } else {
+          setStatus('success', `Seeded successfully! ${result.counts.activities} activities, ${result.counts.todos} todos, ${result.counts.questions} questions.`);
+        }
+      } catch (e) {
+        setStatus('error', 'Request failed: ' + e.message + '. Check the API URL and ensure the Apps Script is deployed correctly.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Seed Data to Google Sheet';
+      }
+    }
+
+    loadSeedData();
+  </script>
+</body>
+</html>

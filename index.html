@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACM Project Hub</title>
+  <link rel="stylesheet" href="hub.css">
+</head>
+<body>
+
+  <!-- Screen 1: First-Time Setup -->
+  <div id="setupScreen" class="hub-screen auth-screen">
+    <div class="auth-card">
+      <h1>ACM Project Hub</h1>
+      <p class="subtitle">First-time setup. Connect your master sheet and set a password.</p>
+      <div id="migrationNotice" style="display:none; background:#fef3c7; color:#92400e; padding:0.5rem 0.75rem; border-radius:4px; font-size:0.8rem; margin-bottom:1rem;"></div>
+      <form onsubmit="handleSetup(event)">
+        <label for="setupMasterUrl">Master Sheet API URL</label>
+        <input type="url" id="setupMasterUrl" placeholder="https://script.google.com/macros/s/.../exec" required>
+
+        <label for="setupPassword">Set a Password</label>
+        <input type="password" id="setupPassword" placeholder="Enter a password" required minlength="4">
+
+        <label for="setupPasswordConfirm">Confirm Password</label>
+        <input type="password" id="setupPasswordConfirm" placeholder="Re-enter password" required>
+
+        <div class="auth-error" id="setupError"></div>
+        <button type="submit" class="auth-btn" id="setupBtn">Save & Continue</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Screen 2: Password Prompt -->
+  <div id="passwordScreen" class="hub-screen auth-screen">
+    <div class="auth-card">
+      <h1>ACM Project Hub</h1>
+      <p class="subtitle">Enter your password to continue.</p>
+      <form onsubmit="handlePasswordSubmit(event)">
+        <label for="passwordInput">Password</label>
+        <input type="password" id="passwordInput" placeholder="Enter your password" required autofocus>
+
+        <div class="auth-error" id="passwordError"></div>
+        <button type="submit" class="auth-btn" id="passwordBtn">Unlock</button>
+      </form>
+      <span class="auth-link" onclick="handleReset()">Reset setup</span>
+    </div>
+  </div>
+
+  <!-- Screen 3: Project Hub -->
+  <div id="hubScreen" class="hub-screen hub-main">
+    <header class="hub-header">
+      <h1>ACM Projects</h1>
+      <button class="hub-header-btn primary" onclick="openCreateModal()">+ New Project</button>
+      <button class="hub-header-btn" onclick="openHubSettings()" title="Hub Settings">&#9881;</button>
+    </header>
+
+    <div class="hub-content">
+      <div id="projectGrid" class="project-grid">
+        <!-- Project cards rendered by JS -->
+      </div>
+
+      <div class="setup-instructions">
+        <h3>How to connect a new project to Google Sheets</h3>
+        <ol>
+          <li>
+            <strong>Copy the Google Sheet data sheet:</strong> Open the template
+            <em>ACM planner data</em> sheet, go to <strong>File &rarr; Make a copy</strong>.
+            This copies all tabs and the attached Apps Script.
+          </li>
+          <li>
+            <strong>Deploy as a Web App:</strong> Click <em>Deploy &rarr; New deployment</em>.
+            Set <em>Execute as</em> to <strong>Me</strong> and
+            <em>Who has access</em> to <strong>Anyone</strong>. Click <strong>Deploy</strong>.
+          </li>
+          <li>
+            <strong>Copy the Web App URL</strong> that appears after deployment
+            (it looks like <code>https://script.google.com/macros/s/.../exec</code>).
+          </li>
+          <li>
+            <strong>Open the project</strong> in the dashboard, go to
+            <strong>Settings</strong> (gear icon), and paste the URL into the
+            <strong>API URL</strong> field. Click <strong>Save</strong>.
+          </li>
+          <li>
+            <strong>Seed the data (optional):</strong> Open <code>seed.html</code> in your browser,
+            enter the same API URL, and click <em>Seed All</em> to populate the sheet with the
+            standard ACM activity template.
+          </li>
+        </ol>
+        <p class="hint">
+          Each project needs its own Google Sheet and its own Apps Script deployment.
+          The dashboard will work offline with cached data even if the sheet is unreachable.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Project Modal -->
+  <div class="modal-overlay" id="createProjectModal" style="display:none;">
+    <div class="modal">
+      <h2>New Project <button class="modal-close" onclick="closeCreateModal()">&times;</button></h2>
+      <form onsubmit="handleCreateProject(event)">
+        <label for="newProjectName">Project Name</label>
+        <input type="text" id="newProjectName" placeholder="e.g. Digital Transformation 2026" required>
+
+        <label for="newProjectClient">Client Name</label>
+        <input type="text" id="newProjectClient" placeholder="e.g. Acme Corp" required>
+
+        <div class="auth-error" id="createError"></div>
+        <div class="modal-actions">
+          <button type="submit" class="auth-btn" id="createBtn">Create Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Hub Settings Modal -->
+  <div class="modal-overlay" id="hubSettingsModal" style="display:none;">
+    <div class="modal">
+      <h2>Hub Settings <button class="modal-close" onclick="closeHubSettings()">&times;</button></h2>
+
+      <label for="settingsMasterUrl">Master Sheet API URL</label>
+      <input type="text" id="settingsMasterUrl" readonly style="opacity:0.6;">
+
+      <form onsubmit="handleChangePassword(event)">
+        <label for="settingsNewPassword">New Password</label>
+        <input type="password" id="settingsNewPassword" placeholder="Enter new password" minlength="4">
+
+        <label for="settingsConfirmPassword">Confirm New Password</label>
+        <input type="password" id="settingsConfirmPassword" placeholder="Re-enter new password">
+
+        <div class="auth-error" id="settingsError"></div>
+        <div class="modal-actions">
+          <button type="submit" class="auth-btn">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="hubLoading" class="hub-loading">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script src="hub.js"></script>
+</body>
+</html>
