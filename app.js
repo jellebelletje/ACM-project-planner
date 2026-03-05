@@ -474,14 +474,6 @@ function renderNav() {
       </span>
     </button>`;
   }).join('');
-
-  nav.querySelectorAll('.nav-phase').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const phase = btn.dataset.phase;
-      const section = document.querySelector(`[data-phase-section="${phase}"]`);
-      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
 }
 
 function renderTimeline() {
@@ -707,14 +699,6 @@ function renderStatusBar() {
     ${budgetHtml}
   `;
 
-  // Time entry button handler
-  const teBtn = document.getElementById('timeEntryBtn');
-  if (teBtn) {
-    teBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleTimeEntry();
-    });
-  }
 }
 
 function toggleTimeEntry() {
@@ -936,65 +920,6 @@ function renderPhases() {
       </div>
     </section>`;
   }).join('');
-
-  // Event: add activity
-  container.querySelectorAll('.phase-add-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      addNewActivity(btn.dataset.phase);
-    });
-  });
-
-  // Event: rename phase
-  container.querySelectorAll('.phase-title').forEach(el => {
-    el.addEventListener('blur', () => {
-      const oldPhase = el.dataset.phase;
-      const newPhase = el.textContent.trim();
-      if (newPhase && newPhase !== oldPhase) {
-        renamePhase(oldPhase, newPhase);
-      }
-    });
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
-    });
-  });
-
-  // Event: toggle inactive cards
-  container.querySelectorAll('.btn-inactive-toggle').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const phase = btn.dataset.phase;
-      if (!state.showInactive) state.showInactive = {};
-      state.showInactive[phase] = !state.showInactive[phase];
-      renderPhases();
-      attachExpandedEvents();
-    });
-  });
-
-  // Event: move card arrows
-  container.querySelectorAll('.card-move-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      moveCard(btn.dataset.moveId, parseInt(btn.dataset.moveDir));
-    });
-  });
-
-  // Event: log time on meta cards
-  container.querySelectorAll('.card-log-time-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openTimeEntryForActivity(btn.dataset.logTimeId);
-    });
-  });
-
-  // Event: card clicks
-  container.querySelectorAll('.activity-card:not(.expanded)').forEach(card => {
-    card.addEventListener('click', (e) => {
-      // Don't expand when clicking move arrows or log time
-      if (e.target.closest('.card-move-btn') || e.target.closest('.card-log-time-btn')) return;
-      expandActivity(card.dataset.activityId);
-    });
-  });
 }
 
 function renderCard(act) {
@@ -2190,6 +2115,82 @@ async function init() {
       window.location.href = 'index.html';
     });
   }
+
+  // Delegated event listeners on stable containers (registered once, not per-render)
+
+  // Nav panel: delegate clicks for phase scroll-to
+  document.getElementById('navPanel').addEventListener('click', (e) => {
+    const btn = e.target.closest('.nav-phase');
+    if (btn) {
+      const section = document.querySelector(`[data-phase-section="${btn.dataset.phase}"]`);
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  // Status bar: delegate click for time entry button
+  document.querySelector('.top-bar').addEventListener('click', (e) => {
+    if (e.target.closest('#timeEntryBtn')) {
+      e.stopPropagation();
+      toggleTimeEntry();
+    }
+  });
+
+  // Phases container: delegate clicks for cards, buttons, and controls
+  const phasesContainer = document.getElementById('phasesContainer');
+  phasesContainer.addEventListener('click', (e) => {
+    const target = e.target;
+
+    // Add activity button
+    const addBtn = target.closest('.phase-add-btn');
+    if (addBtn) { e.stopPropagation(); addNewActivity(addBtn.dataset.phase); return; }
+
+    // Inactive toggle
+    const inactiveBtn = target.closest('.btn-inactive-toggle');
+    if (inactiveBtn) {
+      e.stopPropagation();
+      const phase = inactiveBtn.dataset.phase;
+      if (!state.showInactive) state.showInactive = {};
+      state.showInactive[phase] = !state.showInactive[phase];
+      renderPhases();
+      attachExpandedEvents();
+      return;
+    }
+
+    // Move card buttons
+    const moveBtn = target.closest('.card-move-btn');
+    if (moveBtn) { e.stopPropagation(); moveCard(moveBtn.dataset.moveId, parseInt(moveBtn.dataset.moveDir)); return; }
+
+    // Log time button on meta cards
+    const logBtn = target.closest('.card-log-time-btn');
+    if (logBtn) { e.stopPropagation(); openTimeEntryForActivity(logBtn.dataset.logTimeId); return; }
+
+    // Card click to expand (only collapsed cards)
+    const card = target.closest('.activity-card');
+    if (card && !card.classList.contains('expanded') && !target.closest('.card-move-btn') && !target.closest('.card-log-time-btn')) {
+      expandActivity(card.dataset.activityId);
+      return;
+    }
+  });
+
+  // Phases container: delegate focusout for phase title rename
+  phasesContainer.addEventListener('focusout', (e) => {
+    const title = e.target.closest('.phase-title');
+    if (title) {
+      const oldPhase = title.dataset.phase;
+      const newPhase = title.textContent.trim();
+      if (newPhase && newPhase !== oldPhase) {
+        renamePhase(oldPhase, newPhase);
+      }
+    }
+  });
+
+  // Phases container: delegate keydown for Enter on phase title
+  phasesContainer.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.closest('.phase-title')) {
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
 
   // Setup global event listeners
   document.getElementById('settingsBtn').addEventListener('click', openSettings);
