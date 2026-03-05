@@ -659,7 +659,6 @@ function addTimesheetEntry(activityId, billedMinutes, note) {
   };
   state.timesheet.push(entry);
   queueWrite('addTimesheetEntry', entry);
-  saveToLocalCache();
   renderStatusBar();
 }
 
@@ -1426,7 +1425,6 @@ function attachExpandedEvents() {
       if (act) {
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
-        saveToLocalCache();
         renderAll();
         attachExpandedEvents();
       }
@@ -1444,7 +1442,6 @@ function attachExpandedEvents() {
       const totalMins = (parseInt(hoursEl.value) || 0) * 60 + (parseInt(minsEl.value) || 0);
       act.actual_minutes = totalMins;
       queueWrite('updateActivity', { id: actId, actual_minutes: totalMins });
-      saveToLocalCache();
       renderAll();
       attachExpandedEvents();
     });
@@ -1555,7 +1552,6 @@ function attachExpandedEvents() {
       if (todo) {
         todo.active = false;
         queueWrite('updateTodo', { id: todoId, active: false });
-        saveToLocalCache();
         renderPhases();
         attachExpandedEvents();
         renderStatusBar();
@@ -1572,7 +1568,6 @@ function attachExpandedEvents() {
       if (todo) {
         todo.active = true;
         queueWrite('updateTodo', { id: todoId, active: true });
-        saveToLocalCache();
         renderPhases();
         attachExpandedEvents();
         renderStatusBar();
@@ -1690,7 +1685,6 @@ function attachExpandedEvents() {
       if (question) {
         question.active = false;
         queueWrite('updateQuestion', { id: qId, active: false });
-        saveToLocalCache();
         renderPhases();
         attachExpandedEvents();
         renderStatusBar();
@@ -1707,7 +1701,6 @@ function attachExpandedEvents() {
       if (question) {
         question.active = true;
         queueWrite('updateQuestion', { id: qId, active: true });
-        saveToLocalCache();
         renderPhases();
         attachExpandedEvents();
         renderStatusBar();
@@ -1864,7 +1857,6 @@ function deleteActivity(actId) {
   state.notes = state.notes.filter(n => n.activity_id !== actId);
   queueWrite('deleteActivity', { id: actId });
   state.expandedActivityId = null;
-  saveToLocalCache();
   renderAll();
   attachExpandedEvents();
 }
