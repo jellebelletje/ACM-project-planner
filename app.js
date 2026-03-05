@@ -298,6 +298,10 @@ function getPhaseActivities(phase) {
     .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 }
 
+function isMetaActivity(act) {
+  return act.activity_type === 'meta';
+}
+
 function getPhases() {
   // Get unique phases in order, preserving custom phases
   const seen = new Set();
@@ -657,6 +661,13 @@ function toggleTimeEntry() {
   renderTimeEntryPopover();
 }
 
+function openTimeEntryForActivity(activityId) {
+  state.timeEntryOpen = true;
+  renderTimeEntryPopover();
+  const actSelect = document.getElementById('teActivity');
+  if (actSelect) actSelect.value = activityId;
+}
+
 function renderTimeEntryPopover() {
   let popover = document.getElementById('timeEntryPopover');
   if (!state.timeEntryOpen) {
@@ -907,11 +918,19 @@ function renderPhases() {
     });
   });
 
+  // Event: log time on meta cards
+  container.querySelectorAll('.card-log-time-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openTimeEntryForActivity(btn.dataset.logTimeId);
+    });
+  });
+
   // Event: card clicks
   container.querySelectorAll('.activity-card:not(.expanded)').forEach(card => {
     card.addEventListener('click', (e) => {
-      // Don't expand when clicking move arrows
-      if (e.target.closest('.card-move-btn')) return;
+      // Don't expand when clicking move arrows or log time
+      if (e.target.closest('.card-move-btn') || e.target.closest('.card-log-time-btn')) return;
       expandActivity(card.dataset.activityId);
     });
   });
@@ -938,11 +957,14 @@ function renderCard(act) {
   const isOverBudget = allocMins > 0 && actualMins > allocMins;
   const fillClass = isOverBudget ? ' fill-over-budget' : '';
 
-  let html = `<div class="activity-card status-${escapeHtml(act.status || 'not_started')}${isExpanded ? ' expanded' : ''}${fillClass}" data-activity-id="${escapeHtml(act.id)}" style="--fill-pct: ${fillPct}">
+  const metaClass = isMetaActivity(act) ? ' meta-activity' : '';
+
+  let html = `<div class="activity-card status-${escapeHtml(act.status || 'not_started')}${isExpanded ? ' expanded' : ''}${fillClass}${metaClass}" data-activity-id="${escapeHtml(act.id)}" style="--fill-pct: ${fillPct}">
     <div class="card-header">
       <span class="card-status-dot dot-${escapeHtml(act.status || 'not_started')}"></span>
       <span class="card-title">${isExpanded ? escapeHtml(act.title) : highlightText(act.title)}</span>
       <span class="card-id">${escapeHtml(act.id)}</span>
+      ${isMetaActivity(act) ? '<span class="card-type-badge meta-badge">Admin</span>' : ''}
       ${isExpanded ? `<button class="card-close-btn" data-close-id="${escapeHtml(act.id)}" title="Close">&times;</button>` : ''}
     </div>`;
 
@@ -953,6 +975,7 @@ function renderCard(act) {
       ${questions.length > 0 ? `<span class="card-meta-item">&#128172; ${answeredQs}/${questions.length}</span>` : ''}
       ${hasNotes ? '<span class="card-meta-item card-indicator" title="Has notes">✏️</span>' : ''}
       ${hasLinks ? '<span class="card-meta-item card-indicator" title="Has links">🔗</span>' : ''}
+      ${isMetaActivity(act) ? `<button class="card-meta-item card-log-time-btn" data-log-time-id="${escapeHtml(act.id)}" title="Log time against this activity">&#128339; Log time</button>` : ''}
       ${act.due_date ? `<span class="card-meta-item card-due">${escapeHtml(act.due_date)}</span>` : ''}
       <span class="card-move-arrows">
         <button class="card-move-btn" data-move-id="${escapeHtml(act.id)}" data-move-dir="-1" title="Move left">&#9664;</button>
@@ -1061,6 +1084,13 @@ function renderOverviewTab(act) {
     <div class="overview-field">
       <label>Due Date</label>
       <input type="date" value="${escapeHtml(act.due_date || '')}" data-field="due_date" data-act-id="${act.id}" class="activity-field-input">
+    </div>
+    <div class="overview-field">
+      <label>Activity Type</label>
+      <select data-field="activity_type" data-act-id="${act.id}" class="activity-field-select">
+        <option value=""${!act.activity_type || act.activity_type === 'standard' ? ' selected' : ''}>Standard (Methodology)</option>
+        <option value="meta"${act.activity_type === 'meta' ? ' selected' : ''}>Admin / Overhead</option>
+      </select>
     </div>
     <div class="overview-field overview-description">
       <label>Description</label>
@@ -1775,6 +1805,7 @@ function addNewActivity(phase) {
     status: 'not_started',
     due_date: '',
     depends_on: '',
+    activity_type: '',
     particularisation_guidance: '',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()

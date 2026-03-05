@@ -802,10 +802,51 @@ body {
 .activity-card.status-inactive::before { display: none; }
 
 .activity-card:hover { box-shadow: var(--shadow-lg); }
-.activity-card[data-activity-id="A00"] {
-  background: #f0f1f3;
-  border-left-color: #9ca3af;
+
+/* ---- Meta/Admin Activity Cards ---- */
+.activity-card.meta-activity {
+  background: #fefce8;
+  border-left-style: dashed;
+  border-left-width: 4px;
+  --fill-color: rgba(234, 179, 8, 0.12);
 }
+.activity-card.meta-activity:not(.expanded) {
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(234, 179, 8, 0.15);
+}
+.card-type-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.meta-badge {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+.card-log-time-btn {
+  background: none;
+  border: 1px solid #fbbf24;
+  border-radius: var(--radius-sm);
+  color: #92400e;
+  cursor: pointer;
+  font-size: 0.68rem;
+  padding: 1px 6px;
+  opacity: 1 !important;
+  transition: background 0.15s;
+}
+.card-log-time-btn:hover {
+  background: #fef3c7;
+}
+.activity-card.meta-activity.status-not_started { border-left-color: #d97706; }
+.activity-card.meta-activity.status-in_progress { border-left-color: #f59e0b; }
+.activity-card.meta-activity.status-completed { border-left-color: #22c55e; }
+.activity-card.meta-activity.status-blocked { border-left-color: #ef4444; }
+
 .activity-card.status-not_started { border-left-color: var(--status-not-started); }
 .activity-card.status-in_progress { border-left-color: var(--status-in-progress); }
 .activity-card.status-completed { border-left-color: var(--status-completed); }
