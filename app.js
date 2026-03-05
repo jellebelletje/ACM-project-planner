@@ -1160,6 +1160,7 @@ function renderOverviewTab(act) {
 
   if (act.status === 'inactive') {
     html += `<div class="overview-field"><button class="btn-small btn-reactivate" data-reactivate-id="${escapeHtml(act.id)}">&#9654; Reactivate this activity</button></div>`;
+    html += `<div class="overview-field"><button class="btn-small btn-delete-activity" data-delete-id="${escapeHtml(act.id)}">&#128465; Delete this activity permanently</button></div>`;
   } else {
     html += `<div class="overview-field"><button class="btn-small btn-deactivate" data-deactivate-id="${escapeHtml(act.id)}">&#10005; Make this card inactive</button></div>`;
   }
@@ -1360,6 +1361,15 @@ function attachExpandedEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       setActivityStatus(btn.dataset.reactivateId, 'not_started');
+    });
+  });
+
+  container.querySelectorAll('.btn-delete-activity').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm('Permanently delete this activity and all its todos, questions, and notes? This cannot be undone.')) {
+        deleteActivity(btn.dataset.deleteId);
+      }
     });
   });
 
@@ -1813,6 +1823,18 @@ function setActivityStatus(actId, newStatus) {
   act.status = newStatus;
   queueWrite('updateActivity', { id: act.id, status: newStatus });
   state.expandedActivityId = null;
+  renderAll();
+  attachExpandedEvents();
+}
+
+function deleteActivity(actId) {
+  state.activities = state.activities.filter(a => a.id !== actId);
+  state.todos = state.todos.filter(t => t.activity_id !== actId);
+  state.questions = state.questions.filter(q => q.activity_id !== actId);
+  state.notes = state.notes.filter(n => n.activity_id !== actId);
+  queueWrite('deleteActivity', { id: actId });
+  state.expandedActivityId = null;
+  saveToLocalCache();
   renderAll();
   attachExpandedEvents();
 }

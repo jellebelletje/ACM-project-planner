@@ -981,6 +981,11 @@ body {
   color: var(--status-completed) !important;
   border-color: var(--status-completed) !important;
 }
+.btn-delete-activity {
+  color: #dc2626 !important;
+  border-color: #dc2626 !important;
+  margin-top: 0.5rem;
+}
 
 /* ---- Expanded Card ---- */
 .expanded-content {
