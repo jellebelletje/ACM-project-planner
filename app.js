@@ -630,6 +630,10 @@ function getTotalBilledMinutes() {
   return state.timesheet.reduce((sum, e) => sum + (parseInt(e.billed_minutes) || 0), 0);
 }
 
+function getTotalSpentMinutes() {
+  return state.activities.reduce((sum, a) => sum + (parseInt(a.actual_minutes) || 0), 0);
+}
+
 function getTotalBudgetMinutes() {
   const val = parseFloat(state.config.total_duration_value);
   if (!val || val <= 0) return 0;
@@ -731,6 +735,7 @@ function renderStatusBar() {
     ${budgetHtml}
   `;
 
+  renderTimeComparison();
 }
 
 function toggleTimeEntry() {
@@ -903,6 +908,7 @@ function renderWhatsNext() {
   const next = getWhatsNext();
   if (!next) {
     el.style.display = 'none';
+    renderTimeComparison();
     return;
   }
 
@@ -920,6 +926,33 @@ function renderWhatsNext() {
 
   el.style.cursor = 'pointer';
   el.onclick = () => expandActivity(next.activity.id);
+  renderTimeComparison();
+}
+
+function renderTimeComparison() {
+  const el = document.getElementById('timeComparisonBox');
+  if (!el) return;
+  const unit = state.config.duration_unit || 'hours';
+  const spentMins = getTotalSpentMinutes();
+  const billedMins = getTotalBilledMinutes();
+  const budgetMins = getTotalBudgetMinutes();
+  const maxMins = budgetMins > 0 ? budgetMins : Math.max(spentMins, billedMins, 1);
+  const spentPct = Math.min((spentMins / maxMins) * 100, 100);
+  const billedPct = Math.min((billedMins / maxMins) * 100, 100);
+
+  el.innerHTML = `
+    <div class="time-comp-title">Time Spent vs Time Billed</div>
+    <div class="time-bar-row">
+      <span class="time-bar-label">Spent</span>
+      <div class="time-bar-track"><div class="time-bar-fill spent-fill" style="width:${spentPct}%"></div></div>
+      <span class="time-bar-value">${formatMinutes(spentMins, unit)}${budgetMins > 0 ? ' / ' + formatMinutes(budgetMins, unit) : ''}</span>
+    </div>
+    <div class="time-bar-row">
+      <span class="time-bar-label">Billed</span>
+      <div class="time-bar-track"><div class="time-bar-fill billed-fill" style="width:${billedPct}%"></div></div>
+      <span class="time-bar-value">${formatMinutes(billedMins, unit)}${budgetMins > 0 ? ' / ' + formatMinutes(budgetMins, unit) : ''}</span>
+    </div>
+  `;
 }
 
 function renderPhases() {

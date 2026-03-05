@@ -704,15 +704,85 @@ body {
   /* positioned in flex header, no absolute needed */
 }
 
-/* ---- What's Next Banner ---- */
+/* ---- What's Next + Time Comparison Row ---- */
+.whats-next-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .whats-next {
+  flex: 1;
   background: var(--bg-card);
   border: 1px solid #bfdbfe;
   border-left: 4px solid var(--accent);
   border-radius: 0;
   padding: 1rem 1.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   box-shadow: var(--shadow);
+}
+
+.time-comparison-box {
+  flex: 2;
+  background: var(--bg-card);
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--accent);
+  border-radius: 0;
+  padding: 1rem 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.time-comp-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.time-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.time-bar-label {
+  width: 3.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.time-bar-track {
+  flex: 1;
+  height: 18px;
+  background: #e5e7eb;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.time-bar-fill {
+  height: 100%;
+  border-radius: 9px;
+  transition: width 0.4s ease;
+}
+
+.spent-fill {
+  background: var(--accent);
+}
+
+.billed-fill {
+  background: #22c55e;
+}
+
+.time-bar-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 5rem;
+  white-space: nowrap;
 }
 
 .whats-next-title {
@@ -986,8 +1056,9 @@ body {
 .card-progress-warning {
   color: var(--danger);
   opacity: 1;
-  font-size: 0.85rem;
+  font-size: 1.8rem;
   cursor: help;
+  line-height: 1;
 }
 
 .card-due {
