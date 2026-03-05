@@ -306,6 +306,14 @@ function generateId(prefix) {
   return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+function isTodoDone(t) {
+  return t.is_done === true || t.is_done === 'TRUE' || t.is_done === 'true';
+}
+
+function isQuestionAnswered(q) {
+  return (q.answer && String(q.answer).trim()) || q.is_answered === true || q.is_answered === 'TRUE' || q.is_answered === 'true';
+}
+
 function getActivityTodos(actId) {
   return state.todos.filter(t => t.activity_id === actId).sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 }
@@ -397,11 +405,11 @@ function getWhatsNext() {
       if (act.status === 'not_started' || act.status === 'in_progress') {
         const todos = getActivityTodos(act.id).filter(t => t.active !== false);
         const questions = getActivityQuestions(act.id).filter(q => q.active !== false);
-        const incompleteTodos = todos.filter(t => !t.is_done).length;
-        const unansweredQs = questions.filter(q => !q.answer && !q.is_answered).length;
+        const incompleteTodos = todos.filter(t => !isTodoDone(t)).length;
+        const unansweredQs = questions.filter(q => !isQuestionAnswered(q)).length;
 
         // Get unique "ask whom" for unanswered questions
-        const askWhom = [...new Set(questions.filter(q => !q.answer && !q.is_answered && q.ask_whom).map(q => q.ask_whom))];
+        const askWhom = [...new Set(questions.filter(q => !isQuestionAnswered(q) && q.ask_whom).map(q => q.ask_whom))];
 
         return { activity: act, phase, incompleteTodos, unansweredQs, askWhom };
       }
@@ -640,10 +648,6 @@ function formatMinutesHM(mins) {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function generateId(prefix) {
-  return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-}
-
 function addTimesheetEntry(activityId, billedMinutes, note) {
   const entry = {
     id: generateId('TS'),
@@ -666,10 +670,10 @@ function renderStatusBar() {
   const completed = activeActivities.filter(a => a.status === 'completed').length;
   const activeTodos = state.todos.filter(t => t.active !== false);
   const allTodos = activeTodos.length;
-  const doneTodos = activeTodos.filter(t => t.is_done).length;
+  const doneTodos = activeTodos.filter(t => isTodoDone(t)).length;
   const activeQs = state.questions.filter(q => q.active !== false);
   const allQs = activeQs.length;
-  const answeredQs = activeQs.filter(q => q.answer || q.is_answered).length;
+  const answeredQs = activeQs.filter(q => isQuestionAnswered(q)).length;
   const currentPhase = state.config.current_phase || getPhases()[0] || '';
 
   const unit = state.config.duration_unit || 'hours';
@@ -991,8 +995,8 @@ function renderPhases() {
 function renderCard(act) {
   const todos = getActivityTodos(act.id).filter(t => t.active !== false);
   const questions = getActivityQuestions(act.id).filter(q => q.active !== false);
-  const doneTodos = todos.filter(t => t.is_done).length;
-  const answeredQs = questions.filter(q => q.answer || q.is_answered).length;
+  const doneTodos = todos.filter(t => isTodoDone(t)).length;
+  const answeredQs = questions.filter(q => isQuestionAnswered(q)).length;
   const notes = getActivityNotes(act.id);
   const hasNotes = notes.some(n => n.type === 'note' || n.type === 'attachment_ref');
   const hasLinks = notes.some(n => n.type === 'link');
@@ -1199,7 +1203,7 @@ function renderTodosTab(act) {
   const allTodos = getActivityTodos(act.id);
   const activeTodos = allTodos.filter(t => t.active !== false);
   const inactiveTodos = allTodos.filter(t => t.active === false);
-  const done = activeTodos.filter(t => t.is_done === true || t.is_done === 'TRUE' || t.is_done === 'true').length;
+  const done = activeTodos.filter(t => isTodoDone(t)).length;
   const total = activeTodos.length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   const showInactive = state.showInactiveTodos && state.showInactiveTodos[act.id];
@@ -1213,7 +1217,7 @@ function renderTodosTab(act) {
   <ul class="todo-list">`;
 
   activeTodos.forEach(t => {
-    const isDone = t.is_done === true || t.is_done === 'TRUE' || t.is_done === 'true';
+    const isDone = isTodoDone(t);
     html += `<li class="todo-item${isDone ? ' done' : ''}${t.is_project_specific ? ' todo-project-specific' : ''}">
       <input type="checkbox" ${isDone ? 'checked' : ''} data-todo-id="${escapeHtml(t.id)}">
       <span class="todo-text" contenteditable="true" data-todo-id="${escapeHtml(t.id)}" data-field="text">${highlightText(t.text)}</span>
@@ -1251,7 +1255,7 @@ function renderQuestionsTab(act) {
   const allQuestions = getActivityQuestions(act.id);
   const activeQuestions = allQuestions.filter(q => q.active !== false);
   const inactiveQuestions = allQuestions.filter(q => q.active === false);
-  const answered = activeQuestions.filter(q => q.answer || q.is_answered).length;
+  const answered = activeQuestions.filter(q => isQuestionAnswered(q)).length;
   const total = activeQuestions.length;
   const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
   const showInactive = state.showInactiveQuestions && state.showInactiveQuestions[act.id];
@@ -1276,7 +1280,7 @@ function renderQuestionsTab(act) {
       <div class="subtopic-heading" contenteditable="true" data-subtopic="${escapeHtml(topic)}" data-act-id="${act.id}">${escapeHtml(topic)}</div>`;
 
     qs.forEach(q => {
-      const isAnswered = (q.answer && String(q.answer).trim()) || q.is_answered === true || q.is_answered === 'TRUE';
+      const isAnswered = isQuestionAnswered(q);
       html += `<div class="question-item${isAnswered ? ' answered' : ''}">
         <button class="question-delete" data-question-id="${escapeHtml(q.id)}" title="Make inactive">&times;</button>
         <div class="question-text" contenteditable="true" data-question-id="${escapeHtml(q.id)}" data-field="question_text">${highlightText(q.question_text)}</div>
