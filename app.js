@@ -1137,20 +1137,25 @@ function renderOverviewTab(act) {
 
   html += renderTimeAllocationField(act);
 
-  html += `<div class="overview-field">
-    <label>Activity Type</label>
-    <select data-field="activity_type" data-act-id="${act.id}" class="activity-field-select">
-      <option value=""${!act.activity_type || act.activity_type === 'standard' ? ' selected' : ''}>Standard (Methodology)</option>
-      <option value="meta"${act.activity_type === 'meta' ? ' selected' : ''}>Admin / Overhead</option>
-    </select>
-  </div>`;
+  html += `<div class="overview-field-row">
+    <div class="overview-field" style="margin-bottom:0;">
+      <label>Activity Type</label>
+      <select data-field="activity_type" data-act-id="${act.id}" class="activity-field-select" style="width:auto;">
+        <option value=""${!act.activity_type || act.activity_type === 'standard' ? ' selected' : ''}>Standard (Methodology)</option>
+        <option value="meta"${act.activity_type === 'meta' ? ' selected' : ''}>Admin / Overhead</option>
+      </select>
+    </div>`;
 
   if (act.status === 'inactive') {
-    html += `<div class="overview-field"><button class="btn-small btn-reactivate" data-reactivate-id="${escapeHtml(act.id)}">&#9654; Reactivate this activity</button></div>`;
-    html += `<div class="overview-field"><button class="btn-small btn-delete-activity" data-delete-id="${escapeHtml(act.id)}">&#128465; Delete this activity permanently</button></div>`;
+    html += `<div style="display:flex;gap:8px;align-items:flex-end;margin-left:auto;">
+      <button class="btn-small btn-reactivate" data-reactivate-id="${escapeHtml(act.id)}">&#9654; Reactivate this activity</button>
+      <button class="btn-small btn-delete-activity" data-delete-id="${escapeHtml(act.id)}">&#128465; Delete this activity permanently</button>
+    </div>`;
   } else {
-    html += `<div class="overview-field"><button class="btn-small btn-deactivate" data-deactivate-id="${escapeHtml(act.id)}">&#10005; Make this card inactive</button></div>`;
+    html += `<div style="align-self:flex-end;margin-left:auto;"><button class="btn-small btn-deactivate" data-deactivate-id="${escapeHtml(act.id)}">&#10005; Make this card inactive</button></div>`;
   }
+
+  html += `</div>`;
 
   html += '</div>';
   return html;

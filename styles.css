@@ -1076,6 +1076,13 @@ body {
   gap: 1rem;
 }
 
+.overview-field-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  grid-column: 1 / -1;
+}
+
 .overview-field label {
   display: block;
   font-size: 0.7rem;
