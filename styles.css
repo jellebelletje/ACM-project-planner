@@ -2,14 +2,16 @@
    ACM Activity Dashboard — Styles
    ============================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 /* ---- Reset & Variables ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f4f5f7;
+  --bg: #f5f6f8;
   --bg-card: #ffffff;
-  --bg-nav: #1e293b;
-  --text: #1e293b;
+  --bg-nav: #1a2332;
+  --text: #1a2332;
   --text-light: #64748b;
   --text-on-dark: #f1f5f9;
   --border: #e2e8f0;
@@ -30,10 +32,13 @@
   --danger: #ef4444;
   --danger-hover: #dc2626;
 
-  --radius: 8px;
-  --radius-sm: 4px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+  --transition: 0.2s ease;
 
   --fill-green: rgba(74, 222, 128, 0.18);
   --fill-red: rgba(239, 68, 68, 0.15);
@@ -44,12 +49,14 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--text);
   background: var(--bg);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ---- Top Bar ---- */
@@ -259,12 +266,21 @@ body {
 .time-entry-popover select {
   display: block;
   width: 100%;
-  padding: 5px 8px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   margin-top: 3px;
   font-family: inherit;
+  background: #fafbfc;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.time-entry-popover input:focus,
+.time-entry-popover select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
 .time-inputs {
@@ -431,7 +447,7 @@ body {
   left: 0;
   bottom: 0;
   width: var(--nav-width);
-  background: var(--bg-nav);
+  background: linear-gradient(180deg, #1a2332 0%, #162029 100%);
   border-right: 1px solid rgba(255,255,255,0.05);
   padding: 0.75rem 0;
   overflow-y: auto;
@@ -449,7 +465,7 @@ body {
   cursor: pointer;
   font-size: 0.85rem;
   border-left: 3px solid transparent;
-  transition: all 0.15s;
+  transition: all var(--transition);
 }
 
 .nav-phase:hover { background: rgba(255,255,255,0.05); }
@@ -457,6 +473,7 @@ body {
 .nav-phase.active {
   background: rgba(255,255,255,0.1);
   border-left-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .nav-phase-name {
@@ -475,7 +492,7 @@ body {
 
 .nav-progress-bar {
   flex: 1;
-  height: 3px;
+  height: 4px;
   background: rgba(255,255,255,0.15);
   border-radius: 2px;
   overflow: hidden;
@@ -688,9 +705,11 @@ body {
 .whats-next {
   background: linear-gradient(135deg, #eff6ff, #dbeafe);
   border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--accent);
   border-radius: var(--radius);
   padding: 1rem 1.5rem;
   margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .whats-next-title {
@@ -758,8 +777,9 @@ body {
 .phase-act .phase-header { border-bottom-color: rgba(139,95,199,0.25); }
 
 .phase-title {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
+  letter-spacing: -0.01em;
   cursor: pointer;
   padding: 2px 6px;
   border-radius: var(--radius-sm);
@@ -790,11 +810,11 @@ body {
 .activity-card {
   background: var(--bg-card);
   border-radius: var(--radius);
-  padding: 1rem;
+  padding: 1rem 1.1rem;
   box-shadow: var(--shadow);
   cursor: pointer;
-  border-left: 4px solid var(--status-not-started);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  border-left: 5px solid var(--status-not-started);
+  transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
   position: relative;
   overflow: hidden;
   --fill-color: var(--fill-green);
@@ -830,7 +850,18 @@ body {
 .activity-card.expanded::before,
 .activity-card.status-inactive::before { display: none; }
 
-.activity-card:hover { box-shadow: var(--shadow-lg); }
+.activity-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+.activity-card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow);
+}
+.activity-card.expanded {
+  box-shadow: var(--shadow-md);
+  transform: none;
+}
 
 /* ---- Meta/Admin Activity Cards ---- */
 .activity-card.meta-activity {
@@ -900,6 +931,7 @@ body {
   color: var(--text-light);
   padding: 0 0.25rem;
   flex-shrink: 0;
+  transition: color var(--transition);
 }
 .card-close-btn:hover { color: var(--text); }
 
@@ -919,7 +951,7 @@ body {
 
 .card-title {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   flex: 1;
   min-width: 0;
 }
@@ -1031,7 +1063,7 @@ body {
 }
 
 .tab-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1rem;
   border: none;
   background: none;
   color: var(--text-light);
@@ -1040,11 +1072,11 @@ body {
   font-weight: 500;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
-  transition: all 0.15s;
+  transition: all var(--transition);
 }
 
-.tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover { color: var(--text); background: var(--border-light); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(59,130,246,0.04); }
 
 .tab-content { display: none; }
 .tab-content.active { display: block; }
@@ -1058,22 +1090,30 @@ body {
 
 .overview-field label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-light);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
   margin-bottom: 4px;
 }
 
 .overview-field select,
 .overview-field input[type="date"] {
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
-  background: white;
+  background: #fafbfc;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.overview-field select:focus,
+.overview-field input[type="date"]:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
 .overview-description {
@@ -1361,16 +1401,21 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
+  transition: background var(--transition);
   padding: 0.4rem 0;
   border-bottom: 1px solid var(--border-light);
 }
 
 .todo-item:last-child { border-bottom: none; }
 
+.todo-item:hover { background: var(--border-light); }
+
 .todo-item input[type="checkbox"] {
   margin-top: 3px;
   flex-shrink: 0;
   cursor: pointer;
+  width: 16px;
+  height: 16px;
   width: 16px;
   height: 16px;
 }
@@ -1402,7 +1447,7 @@ body {
   font-size: 1rem;
   padding: 0 4px;
   opacity: 0;
-  transition: opacity 0.15s;
+  transition: opacity var(--transition), color var(--transition);
 }
 
 .todo-item:hover .todo-delete { opacity: 1; }
@@ -1615,7 +1660,7 @@ body {
   cursor: pointer;
   font-size: 0.9rem;
   opacity: 0;
-  transition: opacity 0.15s;
+  transition: opacity var(--transition), color var(--transition);
   flex-shrink: 0;
 }
 
@@ -1638,9 +1683,11 @@ body {
   font-size: 0.78rem;
   cursor: pointer;
   white-space: nowrap;
+  transition: all var(--transition);
 }
 
 .btn-small:hover { background: var(--border-light); }
+.btn-small:active { transform: translateY(1px); }
 
 .btn-primary {
   padding: 8px 16px;
@@ -1650,9 +1697,12 @@ body {
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
 }
 
-.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-primary:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
 
 .btn-danger {
   padding: 8px 16px;
@@ -1662,15 +1712,19 @@ body {
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
 }
 
-.btn-danger:hover { background: var(--danger-hover); }
+.btn-danger:hover { background: var(--danger-hover); transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-danger:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
 
 /* ---- Modals ---- */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1679,12 +1733,13 @@ body {
 
 .modal {
   background: white;
-  border-radius: var(--radius);
+  border-radius: 12px;
   width: 90%;
   max-width: 500px;
   max-height: 85vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
 }
 
 .modal-small { max-width: 400px; }
@@ -1706,6 +1761,7 @@ body {
   cursor: pointer;
   color: var(--text-light);
   padding: 4px 8px;
+  transition: color var(--transition);
 }
 
 .modal-close:hover { color: var(--text); }
@@ -1727,12 +1783,14 @@ body {
 .modal-body textarea {
   display: block;
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   margin-top: 4px;
   font-family: inherit;
+  background: #fafbfc;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .modal-body input:focus,
@@ -1740,6 +1798,7 @@ body {
 .modal-body textarea:focus {
   border-color: var(--accent);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
 .modal-actions {
