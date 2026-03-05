@@ -8,14 +8,14 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f5f6f8;
+  --bg: #5a6270;
   --bg-card: #ffffff;
   --bg-nav: #1a2332;
   --text: #1a2332;
   --text-light: #64748b;
   --text-on-dark: #f1f5f9;
   --border: #e2e8f0;
-  --border-light: #f1f5f9;
+  --border-light: #f0f2f5;
 
   --status-not-started: #94a3b8;
   --status-in-progress: #f59e0b;
@@ -34,14 +34,14 @@
 
   --radius: 10px;
   --radius-sm: 6px;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.07);
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.14), 0 4px 8px rgba(0,0,0,0.07);
   --transition: 0.2s ease;
 
-  --fill-green: rgba(74, 222, 128, 0.18);
-  --fill-red: rgba(239, 68, 68, 0.15);
+  --fill-green: rgba(74, 222, 128, 0.35);
+  --fill-red: rgba(239, 68, 68, 0.30);
 
   --nav-width: 200px;
   --topbar-height: 56px;
@@ -516,11 +516,12 @@ body {
 
 /* ---- Dual Timeline Track ---- */
 .timelines-container {
-  border-radius: var(--radius);
+  border-radius: 0;
   margin-bottom: 1rem;
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
+  background: var(--bg-card);
 }
 
 /* "We are here" today marker */
@@ -588,27 +589,27 @@ body {
 }
 
 .timeline-track[data-timeline-type="technical"] {
-  background: linear-gradient(135deg, #f0f4f8 0%, #f5f7fa 100%);
+  background: #d0d4da;
 }
 
 .timeline-track[data-timeline-type="technical"] .timeline-title {
-  color: #3b5998;
+  color: #2a3a4a;
 }
 
 .timeline-track[data-timeline-type="technical"] .timeline-line {
-  background: #b8c9e0;
+  background: #a0a8b4;
 }
 
 .timeline-track[data-timeline-type="acm"] {
-  background: linear-gradient(135deg, #fdf2f0 0%, #fef6f3 100%);
+  background: #e8c4a8;
 }
 
 .timeline-track[data-timeline-type="acm"] .timeline-title {
-  color: #b45a3c;
+  color: #5a3018;
 }
 
 .timeline-track[data-timeline-type="acm"] .timeline-line {
-  background: #e8c4b8;
+  background: #c49a78;
 }
 
 .timeline-header {
@@ -619,8 +620,8 @@ body {
 }
 
 .timeline-title {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--text-light);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -675,7 +676,7 @@ body {
 
 .milestone-label {
   font-size: 0.7rem;
-  color: var(--text-light);
+  color: var(--text);
   text-align: center;
   white-space: nowrap;
   max-width: 100px;
@@ -693,7 +694,7 @@ body {
 
 .milestone-date {
   font-size: 0.65rem;
-  color: var(--text-light);
+  color: var(--text);
   opacity: 0.7;
 }
 
@@ -703,13 +704,13 @@ body {
 
 /* ---- What's Next Banner ---- */
 .whats-next {
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  background: var(--bg-card);
   border: 1px solid #bfdbfe;
   border-left: 4px solid var(--accent);
-  border-radius: var(--radius);
+  border-radius: 0;
   padding: 1rem 1.5rem;
   margin-bottom: 1rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow);
 }
 
 .whats-next-title {
@@ -737,31 +738,20 @@ body {
 .phase-section {
   margin-bottom: 2rem;
   padding: 1rem 1.25rem;
-  border-radius: var(--radius);
-  border-left: 4px solid transparent;
+  border-radius: 0;
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
 }
 
-/* PDCA Phase Colors */
-.phase-plan {
-  background: #fdf6ec;
-  border-left-color: #d4a03a;
-}
-.phase-do {
-  background: #eef8f0;
-  border-left-color: #3da356;
-}
-.phase-check {
-  background: #eef3fb;
-  border-left-color: #4a7fd4;
-}
-.phase-act {
-  background: #f5eefa;
-  border-left-color: #8b5fc7;
-}
-.phase-default {
-  background: var(--bg-card);
-  border-left-color: var(--border);
-}
+/* Per-phase bold background colors (index-based for unique colors) */
+.phase-section[data-phase-idx="0"] { background: #7a8fa4; }
+.phase-section[data-phase-idx="1"] { background: #e08a5e; }
+.phase-section[data-phase-idx="2"] { background: #5dba7c; }
+.phase-section[data-phase-idx="3"] { background: #5c9ed6; }
+.phase-section[data-phase-idx="4"] { background: #9a7bc7; }
+.phase-section[data-phase-idx="5"] { background: #d4695a; }
+.phase-section[data-phase-idx="6"] { background: #4aada0; }
+.phase-section[data-phase-idx="7"] { background: #c4a654; }
 
 .phase-header {
   display: flex;
@@ -769,12 +759,8 @@ body {
   gap: 0.75rem;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid rgba(0,0,0,0.08);
+  border-bottom: 2px solid rgba(0,0,0,0.12);
 }
-.phase-plan .phase-header { border-bottom-color: rgba(212,160,58,0.25); }
-.phase-do .phase-header { border-bottom-color: rgba(61,163,86,0.25); }
-.phase-check .phase-header { border-bottom-color: rgba(74,127,212,0.25); }
-.phase-act .phase-header { border-bottom-color: rgba(139,95,199,0.25); }
 
 .phase-title {
   font-size: 1.1rem;
@@ -785,12 +771,12 @@ body {
   border-radius: var(--radius-sm);
 }
 
-.phase-title:hover { background: var(--border-light); }
+.phase-title:hover { background: rgba(255,255,255,0.3); }
 
 .phase-count {
   font-size: 0.75rem;
-  color: var(--text-light);
-  background: var(--border-light);
+  color: rgba(0,0,0,0.6);
+  background: rgba(255,255,255,0.5);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -809,7 +795,7 @@ body {
 /* ---- Activity Card ---- */
 .activity-card {
   background: var(--bg-card);
-  border-radius: var(--radius);
+  border-radius: 0;
   padding: 1rem 1.1rem;
   box-shadow: var(--shadow);
   cursor: pointer;
@@ -865,13 +851,13 @@ body {
 
 /* ---- Meta/Admin Activity Cards ---- */
 .activity-card.meta-activity {
-  background: #fefce8;
+  background: #fffdf5;
   border-left-style: dashed;
   border-left-width: 4px;
-  --fill-color: rgba(234, 179, 8, 0.12);
+  --fill-color: rgba(234, 179, 8, 0.25);
 }
 .activity-card.meta-activity:not(.expanded) {
-  box-shadow: var(--shadow), inset 0 0 0 1px rgba(234, 179, 8, 0.15);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(234, 179, 8, 0.18);
 }
 .card-type-badge {
   font-size: 0.6rem;
@@ -1020,7 +1006,7 @@ body {
   padding: 1px 5px;
   line-height: 1;
 }
-.card-move-btn:hover { background: var(--bg); color: var(--text); }
+.card-move-btn:hover { background: #f0f2f5; color: var(--text); }
 
 /* Inactive card styling */
 .activity-card.status-inactive {
