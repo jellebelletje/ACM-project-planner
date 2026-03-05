@@ -314,22 +314,44 @@ function isQuestionAnswered(q) {
   return (q.answer && String(q.answer).trim()) || q.is_answered === true || q.is_answered === 'TRUE' || q.is_answered === 'true';
 }
 
+// Render-cycle cache: cleared before each render pass to avoid stale data
+const _cache = {};
+function clearCache() {
+  for (const k in _cache) delete _cache[k];
+}
+
 function getActivityTodos(actId) {
-  return state.todos.filter(t => t.activity_id === actId).sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+  const key = 'todos_' + actId;
+  if (_cache[key]) return _cache[key];
+  const result = state.todos.filter(t => t.activity_id === actId).sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+  _cache[key] = result;
+  return result;
 }
 
 function getActivityQuestions(actId) {
-  return state.questions.filter(q => q.activity_id === actId).sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+  const key = 'questions_' + actId;
+  if (_cache[key]) return _cache[key];
+  const result = state.questions.filter(q => q.activity_id === actId).sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+  _cache[key] = result;
+  return result;
 }
 
 function getActivityNotes(actId) {
-  return state.notes.filter(n => n.activity_id === actId);
+  const key = 'notes_' + actId;
+  if (_cache[key]) return _cache[key];
+  const result = state.notes.filter(n => n.activity_id === actId);
+  _cache[key] = result;
+  return result;
 }
 
 function getPhaseActivities(phase) {
-  return state.activities
+  const key = 'phase_' + phase;
+  if (_cache[key]) return _cache[key];
+  const result = state.activities
     .filter(a => a.pdca_phase === phase)
     .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+  _cache[key] = result;
+  return result;
 }
 
 function getActivity(id) { return state.activities.find(a => a.id === id); }
@@ -441,6 +463,7 @@ function checkDependencies(act) {
 // ---- Renderers ----
 
 function renderAll() {
+  clearCache();
   renderNav();
   renderTimeline();
   renderStatusBar();
@@ -628,9 +651,12 @@ function getEffectiveAllocatedPct(actId) {
   const act = getActivity(actId);
   if (!act || act.status === 'inactive') return 0;
   const rawPct = getActivityAllocatedPct(act);
-  const sumActive = state.activities
-    .filter(a => a.status !== 'inactive')
-    .reduce((sum, a) => sum + getActivityAllocatedPct(a), 0);
+  if (_cache.sumActivePct === undefined) {
+    _cache.sumActivePct = state.activities
+      .filter(a => a.status !== 'inactive')
+      .reduce((sum, a) => sum + getActivityAllocatedPct(a), 0);
+  }
+  const sumActive = _cache.sumActivePct;
   if (sumActive <= 0) return 0;
   return (rawPct / sumActive) * 100;
 }
@@ -891,6 +917,7 @@ function renderWhatsNext() {
 }
 
 function renderPhases() {
+  clearCache();
   const container = document.getElementById('phasesContainer');
   const phases = getPhases();
 
