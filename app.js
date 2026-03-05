@@ -969,6 +969,7 @@ function renderCard(act) {
   const actualMins = parseInt(act.actual_minutes) || 0;
   const isOverBudget = allocMins > 0 && actualMins > allocMins;
   const fillClass = isOverBudget ? ' fill-over-budget' : '';
+  const showProgressWarning = isOverBudget && doneTodos < 3 && answeredQs < 3;
 
   const metaClass = isMetaActivity(act) ? ' meta-activity' : '';
 
@@ -984,6 +985,7 @@ function renderCard(act) {
   if (!isExpanded) {
     html += `<div class="card-intro">${highlightText(act.intro_text || act.title)}</div>
     <div class="card-meta">
+      ${showProgressWarning ? '<span class="card-meta-item card-progress-warning" title="Over budget with little visible progress">&#9888;</span>' : ''}
       ${todos.length > 0 ? `<span class="card-meta-item">&#9745; ${doneTodos}/${todos.length}</span>` : ''}
       ${questions.length > 0 ? `<span class="card-meta-item">&#128172; ${answeredQs}/${questions.length}</span>` : ''}
       ${hasNotes ? '<span class="card-meta-item card-indicator" title="Has notes">✏️</span>' : ''}

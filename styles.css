@@ -983,6 +983,13 @@ body {
   font-size: 0.72rem;
 }
 
+.card-progress-warning {
+  color: var(--danger);
+  opacity: 1;
+  font-size: 0.85rem;
+  cursor: help;
+}
+
 .card-due {
   color: var(--status-in-progress);
   font-weight: 500;
