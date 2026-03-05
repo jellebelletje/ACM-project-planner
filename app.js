@@ -18,7 +18,7 @@ const CONFIG = {
     'Plan I: Diagnosis',
     'Plan II: Design + Activate Champions',
     'Do: Deployment',
-    'Check: Analysis',
+    'Check: Analyse',
     'Act: Handover, Anchor & Learn'
   ]
 };
@@ -250,6 +250,15 @@ function escapeHtml(str) {
   if (!str) return '';
   const s = String(str);
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return String(dateStr);
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function renderMarkdownGuidance(text) {
@@ -527,7 +536,7 @@ function renderSingleTimeline(barId, milestones, globalMin, globalMax) {
     html += `<div class="timeline-milestone" data-milestone-id="${escapeHtml(m.id)}" style="left:${leftPercent.toFixed(1)}%">
       <div class="milestone-dot ${escapeHtml(m.status || 'planned')}"></div>
       <span class="milestone-label">${escapeHtml(m.milestone_name)}</span>
-      ${m.date ? `<span class="milestone-date">${escapeHtml(m.date)}</span>` : '<span class="milestone-date" style="font-style:italic;">(no date)</span>'}
+      ${m.date ? `<span class="milestone-date">${formatDate(m.date)}</span>` : '<span class="milestone-date" style="font-style:italic;">(no date)</span>'}
     </div>`;
   });
 
@@ -976,7 +985,7 @@ function renderCard(act) {
       ${hasNotes ? '<span class="card-meta-item card-indicator" title="Has notes">✏️</span>' : ''}
       ${hasLinks ? '<span class="card-meta-item card-indicator" title="Has links">🔗</span>' : ''}
       ${isMetaActivity(act) ? `<button class="card-meta-item card-log-time-btn" data-log-time-id="${escapeHtml(act.id)}" title="Log time against this activity">&#128339; Log time</button>` : ''}
-      ${act.due_date ? `<span class="card-meta-item card-due">${escapeHtml(act.due_date)}</span>` : ''}
+      ${act.due_date ? `<span class="card-meta-item card-due">${formatDate(act.due_date)}</span>` : ''}
       <span class="card-move-arrows">
         <button class="card-move-btn" data-move-id="${escapeHtml(act.id)}" data-move-dir="-1" title="Move left">&#9664;</button>
         <button class="card-move-btn" data-move-id="${escapeHtml(act.id)}" data-move-dir="1" title="Move right">&#9654;</button>
