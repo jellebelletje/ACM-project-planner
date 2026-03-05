@@ -1971,6 +1971,84 @@ function setupHeaderEditing() {
   });
 }
 
+// ---- Hub ↔ Sheet Config Sync ----
+
+function syncHubConfigToSheet() {
+  if (!currentProject) return;
+  let configChanged = false;
+
+  if (currentProject.name && currentProject.name !== state.config.project_name) {
+    state.config.project_name = currentProject.name;
+    configChanged = true;
+  }
+  if (currentProject.client_name && currentProject.client_name !== state.config.client_name) {
+    state.config.client_name = currentProject.client_name;
+    configChanged = true;
+  }
+
+  if (configChanged) {
+    queueWrite('updateConfig', {
+      project_name: state.config.project_name,
+      client_name: state.config.client_name
+    });
+  }
+}
+
+async function resetProjectData() {
+  if (!CONFIG.API_URL) {
+    alert('No API URL configured. Set it in Settings first.');
+    return;
+  }
+  if (!confirm('This will reset all activities, to-dos, and questions back to the standard template.\n\nYour project name and client name will be kept.\n\nContinue?')) {
+    return;
+  }
+
+  const loading = document.getElementById('loadingOverlay');
+  loading.innerHTML = '<div class="loading-spinner"></div><p>Resetting project data...</p>';
+  loading.classList.remove('hidden');
+
+  try {
+    // Load seed data
+    let seedData;
+    try {
+      const resp = await fetch('seed-data.json');
+      seedData = await resp.json();
+    } catch {
+      if (window.SEED_DATA) {
+        seedData = window.SEED_DATA;
+      } else {
+        throw new Error('Could not load seed data template.');
+      }
+    }
+
+    // Send seed to API
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'seedAll', data: seedData }),
+      redirect: 'follow'
+    });
+    const result = await resp.json();
+    if (result.error) throw new Error(result.error);
+
+    // Refetch data from the now-seeded sheet
+    await fetchAll();
+
+    // Re-apply hub project name/client (seed may have overwritten config)
+    syncHubConfigToSheet();
+
+    loading.classList.add('hidden');
+    renderAll();
+    attachExpandedEvents();
+    closeModal('settingsModal');
+
+  } catch (e) {
+    console.error('Reset failed:', e);
+    loading.classList.add('hidden');
+    alert('Failed to reset project data: ' + e.message);
+  }
+}
+
 // ---- Initialization ----
 
 async function init() {
@@ -2042,13 +2120,14 @@ async function init() {
   // Show cached data instantly while fetching fresh data
   const hasCached = loadFromLocalCache();
   if (hasCached && state.activities.length > 0) {
+    syncHubConfigToSheet();
     loading.classList.add('hidden');
     renderAll();
     attachExpandedEvents();
     // Refresh from API in background (non-blocking)
     if (CONFIG.API_URL) {
       fetchAll().then(ok => {
-        if (ok) { renderAll(); attachExpandedEvents(); }
+        if (ok) { syncHubConfigToSheet(); renderAll(); attachExpandedEvents(); }
         else { showSyncError(); }
       });
     }
@@ -2074,6 +2153,7 @@ async function init() {
     return;
   }
 
+  syncHubConfigToSheet();
   loading.classList.add('hidden');
   renderAll();
   attachExpandedEvents();
