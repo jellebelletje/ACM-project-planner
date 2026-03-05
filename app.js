@@ -23,6 +23,19 @@ const CONFIG = {
   ]
 };
 
+// Known spelling variants → canonical CONFIG.PHASES name
+const PHASE_ALIASES = {
+  'Check: Analyse': 'Check: Analysis'
+};
+
+function normalizePhaseNames() {
+  state.activities.forEach(a => {
+    if (a.pdca_phase && PHASE_ALIASES[a.pdca_phase]) {
+      a.pdca_phase = PHASE_ALIASES[a.pdca_phase];
+    }
+  });
+}
+
 // Default time allocation percentages (based on 20-day / 160-hour baseline)
 const DEFAULT_ALLOCATED_PCT = {
   A00: 5, A01: 3, A02: 4, A03: 4, A04: 3, A05: 2, A06: 2, A12: 2, A07: 2,
@@ -131,6 +144,7 @@ function loadFromLocalCache() {
         timesheet: data.timesheet || [],
         config: data.config || {}
       });
+      normalizePhaseNames();
       return true;
     }
   } catch (e) { /* ignore */ }
@@ -153,6 +167,7 @@ async function fetchAll() {
         state.milestones = data.milestones || [];
         state.timesheet = data.timesheet || [];
         state.config = data.config || {};
+        normalizePhaseNames();
         saveToLocalCache();
         return true;
       }
@@ -168,6 +183,7 @@ async function fetchAll() {
       state.milestones = data.milestones || [];
       state.timesheet = data.timesheet || [];
       state.config = data.config || {};
+      normalizePhaseNames();
       saveToLocalCache();
       return true;
     }
@@ -188,6 +204,7 @@ async function fetchAll() {
     state.milestones = data.milestones || [];
     state.timesheet = data.timesheet || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
+    normalizePhaseNames();
     saveToLocalCache();
     return true;
   } catch (e) {

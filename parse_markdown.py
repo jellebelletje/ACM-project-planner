@@ -14,7 +14,7 @@ def parse_markdown(filepath):
         'Phase 2': 'Plan I: Diagnosis',
         'Phase 3': 'Plan II: Design + Activate Champions',
         'Phase 4': 'Do: Deployment',
-        'Phase 5': 'Check: Analyse',
+        'Phase 5': 'Check: Analysis',
         'Phase 6': 'Act: Handover, Anchor & Learn',
     }
 
