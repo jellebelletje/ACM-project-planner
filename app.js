@@ -18,7 +18,7 @@ const CONFIG = {
     'Plan I: Diagnosis',
     'Plan II: Design + Activate Champions',
     'Do: Deployment',
-    'Check: Analyse',
+    'Check: Analysis',
     'Act: Handover, Anchor & Learn'
   ]
 };
