@@ -332,6 +332,12 @@ function getPhaseActivities(phase) {
     .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 }
 
+function getActivity(id) { return state.activities.find(a => a.id === id); }
+function getTodo(id) { return state.todos.find(t => t.id === id); }
+function getQuestion(id) { return state.questions.find(q => q.id === id); }
+function getNote(id) { return state.notes.find(n => n.id === id); }
+function getMilestone(id) { return state.milestones.find(m => m.id === id); }
+
 function isMetaActivity(act) {
   return act.activity_type === 'meta';
 }
@@ -424,7 +430,7 @@ function checkDependencies(act) {
   const depIds = String(act.depends_on).split(',').map(s => s.trim()).filter(Boolean);
   const incomplete = [];
   for (const depId of depIds) {
-    const dep = state.activities.find(a => a.id === depId);
+    const dep = getActivity(depId);
     if (dep && dep.status !== 'completed') {
       incomplete.push(dep);
     }
@@ -627,7 +633,7 @@ function getActivityAllocatedPct(act) {
 }
 
 function getEffectiveAllocatedPct(actId) {
-  const act = state.activities.find(a => a.id === actId);
+  const act = getActivity(actId);
   if (!act || act.status === 'inactive') return 0;
   const rawPct = getActivityAllocatedPct(act);
   const sumActive = state.activities
@@ -1158,7 +1164,7 @@ function renderOverviewTab(act) {
       <label>Dependencies</label>
       <div class="deps-list">
         ${deps.map(d => {
-          const dep = state.activities.find(a => a.id === d);
+          const dep = getActivity(d);
           return `<span class="dep-badge" data-dep-id="${escapeHtml(d)}">${escapeHtml(d)}${dep ? ': ' + escapeHtml(truncate(dep.title, 30)) : ''}</span>`;
         }).join('')}
       </div>
@@ -1421,7 +1427,7 @@ function attachExpandedEvents() {
       const actId = el.dataset.actId;
       const field = el.dataset.field;
       const value = el.value;
-      const act = state.activities.find(a => a.id === actId);
+      const act = getActivity(actId);
       if (act) {
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
@@ -1435,7 +1441,7 @@ function attachExpandedEvents() {
   container.querySelectorAll('.time-spent-hours, .time-spent-mins').forEach(el => {
     el.addEventListener('change', () => {
       const actId = el.dataset.actId;
-      const act = state.activities.find(a => a.id === actId);
+      const act = getActivity(actId);
       if (!act) return;
       const hoursEl = container.querySelector(`.time-spent-hours[data-act-id="${actId}"]`);
       const minsEl = container.querySelector(`.time-spent-mins[data-act-id="${actId}"]`);
@@ -1453,7 +1459,7 @@ function attachExpandedEvents() {
       const actId = el.dataset.actId;
       const field = el.dataset.field;
       const value = el.textContent.trim();
-      const act = state.activities.find(a => a.id === actId);
+      const act = getActivity(actId);
       if (act && act[field] !== value) {
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
@@ -1486,7 +1492,7 @@ function attachExpandedEvents() {
         textarea.focus();
       } else {
         const newValue = textarea.value.trim();
-        const act = state.activities.find(a => a.id === actId);
+        const act = getActivity(actId);
         if (act) {
           act.particularisation_guidance = newValue;
           queueWrite('updateActivity', { id: actId, particularisation_guidance: newValue });
@@ -1520,7 +1526,7 @@ function attachExpandedEvents() {
   container.querySelectorAll('.todo-item input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', () => {
       const todoId = cb.dataset.todoId;
-      const todo = state.todos.find(t => t.id === todoId);
+      const todo = getTodo(todoId);
       if (todo) {
         todo.is_done = cb.checked;
         queueWrite('updateTodo', { id: todoId, is_done: cb.checked });
@@ -1535,7 +1541,7 @@ function attachExpandedEvents() {
     el.addEventListener('blur', () => {
       const todoId = el.dataset.todoId;
       const text = el.textContent.trim();
-      const todo = state.todos.find(t => t.id === todoId);
+      const todo = getTodo(todoId);
       if (todo && todo.text !== text) {
         todo.text = text;
         queueWrite('updateTodo', { id: todoId, text: text });
@@ -1548,7 +1554,7 @@ function attachExpandedEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const todoId = btn.dataset.todoId;
-      const todo = state.todos.find(t => t.id === todoId);
+      const todo = getTodo(todoId);
       if (todo) {
         todo.active = false;
         queueWrite('updateTodo', { id: todoId, active: false });
@@ -1564,7 +1570,7 @@ function attachExpandedEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const todoId = btn.dataset.todoId;
-      const todo = state.todos.find(t => t.id === todoId);
+      const todo = getTodo(todoId);
       if (todo) {
         todo.active = true;
         queueWrite('updateTodo', { id: todoId, active: true });
@@ -1635,7 +1641,7 @@ function attachExpandedEvents() {
       timer = setTimeout(() => {
         const qId = ta.dataset.questionId;
         const answer = ta.value;
-        const q = state.questions.find(x => x.id === qId);
+        const q = getQuestion(qId);
         if (q) {
           q.answer = answer;
           q.is_answered = !!answer.trim();
@@ -1653,7 +1659,7 @@ function attachExpandedEvents() {
     el.addEventListener('blur', () => {
       const qId = el.dataset.questionId;
       const text = el.textContent.trim();
-      const q = state.questions.find(x => x.id === qId);
+      const q = getQuestion(qId);
       if (q && q.question_text !== text) {
         q.question_text = text;
         queueWrite('updateQuestion', { id: qId, question_text: text });
@@ -1667,7 +1673,7 @@ function attachExpandedEvents() {
       const qId = el.dataset.questionId;
       let text = el.textContent.trim();
       if (text.startsWith('Ask: ')) text = text.substring(5);
-      const q = state.questions.find(x => x.id === qId);
+      const q = getQuestion(qId);
       if (q && q.ask_whom !== text) {
         q.ask_whom = text;
         queueWrite('updateQuestion', { id: qId, ask_whom: text });
@@ -1681,7 +1687,7 @@ function attachExpandedEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const qId = btn.dataset.questionId;
-      const question = state.questions.find(q => q.id === qId);
+      const question = getQuestion(qId);
       if (question) {
         question.active = false;
         queueWrite('updateQuestion', { id: qId, active: false });
@@ -1697,7 +1703,7 @@ function attachExpandedEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const qId = btn.dataset.questionId;
-      const question = state.questions.find(q => q.id === qId);
+      const question = getQuestion(qId);
       if (question) {
         question.active = true;
         queueWrite('updateQuestion', { id: qId, active: true });
@@ -1762,7 +1768,7 @@ function attachExpandedEvents() {
       const noteId = el.dataset.noteId;
       const field = el.dataset.field;
       const value = el.textContent.trim();
-      const note = state.notes.find(n => n.id === noteId);
+      const note = getNote(noteId);
       if (note && note[field] !== value) {
         note[field] = value;
         queueWrite('updateNote', { id: noteId, [field]: value });
@@ -1821,7 +1827,7 @@ function attachExpandedEvents() {
 }
 
 function moveCard(actId, direction) {
-  const act = state.activities.find(a => a.id === actId);
+  const act = getActivity(actId);
   if (!act) return;
   const phaseActs = getPhaseActivities(act.pdca_phase);
   const idx = phaseActs.findIndex(a => a.id === actId);
@@ -1841,7 +1847,7 @@ function moveCard(actId, direction) {
 }
 
 function setActivityStatus(actId, newStatus) {
-  const act = state.activities.find(a => a.id === actId);
+  const act = getActivity(actId);
   if (!act) return;
   act.status = newStatus;
   queueWrite('updateActivity', { id: act.id, status: newStatus });
@@ -1909,7 +1915,7 @@ function openMilestoneModal(msId, timelineType) {
   state.editingMilestoneId = msId || null;
 
   if (msId) {
-    const ms = state.milestones.find(m => m.id === msId);
+    const ms = getMilestone(msId);
     if (!ms) return;
     document.getElementById('milestoneModalTitle').textContent = 'Edit Milestone';
     document.getElementById('msName').value = ms.milestone_name || '';
@@ -1944,7 +1950,7 @@ function saveMilestone() {
   };
 
   if (state.editingMilestoneId) {
-    const ms = state.milestones.find(m => m.id === state.editingMilestoneId);
+    const ms = getMilestone(state.editingMilestoneId);
     if (ms) Object.assign(ms, data);
     data.id = state.editingMilestoneId;
     queueWrite('updateMilestone', data);
