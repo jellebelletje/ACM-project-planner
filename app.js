@@ -1094,13 +1094,6 @@ function renderOverviewTab(act) {
       <label>Due Date</label>
       <input type="date" value="${escapeHtml(act.due_date || '')}" data-field="due_date" data-act-id="${act.id}" class="activity-field-input">
     </div>
-    <div class="overview-field">
-      <label>Activity Type</label>
-      <select data-field="activity_type" data-act-id="${act.id}" class="activity-field-select">
-        <option value=""${!act.activity_type || act.activity_type === 'standard' ? ' selected' : ''}>Standard (Methodology)</option>
-        <option value="meta"${act.activity_type === 'meta' ? ' selected' : ''}>Admin / Overhead</option>
-      </select>
-    </div>
     <div class="overview-field overview-description">
       <label>Description</label>
       <div class="editable-text" contenteditable="true" data-field="intro_text" data-act-id="${act.id}">${escapeHtml(act.intro_text || '')}</div>
@@ -1139,6 +1132,14 @@ function renderOverviewTab(act) {
   }
 
   html += renderTimeAllocationField(act);
+
+  html += `<div class="overview-field">
+    <label>Activity Type</label>
+    <select data-field="activity_type" data-act-id="${act.id}" class="activity-field-select">
+      <option value=""${!act.activity_type || act.activity_type === 'standard' ? ' selected' : ''}>Standard (Methodology)</option>
+      <option value="meta"${act.activity_type === 'meta' ? ' selected' : ''}>Admin / Overhead</option>
+    </select>
+  </div>`;
 
   if (act.status === 'inactive') {
     html += `<div class="overview-field"><button class="btn-small btn-reactivate" data-reactivate-id="${escapeHtml(act.id)}">&#9654; Reactivate this activity</button></div>`;
