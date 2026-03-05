@@ -474,19 +474,26 @@ function renderTimeline() {
   const technicalMs = state.milestones.filter(m => m.timeline_type !== 'acm');
   const acmMs = state.milestones.filter(m => m.timeline_type === 'acm');
 
-  // Compute global date range across BOTH timelines for alignment
+  // Compute global date range across BOTH timelines + project start/end for alignment
   const allDated = state.milestones.filter(m => m.date);
+  const projectStart = state.config.start_date ? new Date(state.config.start_date).getTime() : null;
+  const projectEnd = state.config.end_date ? new Date(state.config.end_date).getTime() : null;
+
+  // Collect all known dates (milestones + project bounds)
+  const allDates = allDated.map(m => new Date(m.date).getTime());
+  if (projectStart && !isNaN(projectStart)) allDates.push(projectStart);
+  if (projectEnd && !isNaN(projectEnd)) allDates.push(projectEnd);
+
   let globalMin, globalMax;
 
-  if (allDated.length >= 2) {
-    const dates = allDated.map(m => new Date(m.date).getTime());
-    globalMin = Math.min(...dates);
-    globalMax = Math.max(...dates);
+  if (allDates.length >= 2) {
+    globalMin = Math.min(...allDates);
+    globalMax = Math.max(...allDates);
     const padding = (globalMax - globalMin) * 0.05 || (86400000 * 7);
     globalMin -= padding;
     globalMax += padding;
-  } else if (allDated.length === 1) {
-    const d = new Date(allDated[0].date).getTime();
+  } else if (allDates.length === 1) {
+    const d = allDates[0];
     globalMin = d - 86400000 * 30;
     globalMax = d + 86400000 * 30;
   } else {
@@ -494,8 +501,8 @@ function renderTimeline() {
     globalMax = null;
   }
 
-  renderSingleTimeline('timelineBarTechnical', technicalMs, globalMin, globalMax);
-  renderSingleTimeline('timelineBarAcm', acmMs, globalMin, globalMax);
+  renderSingleTimeline('timelineBarTechnical', technicalMs, globalMin, globalMax, projectStart, projectEnd);
+  renderSingleTimeline('timelineBarAcm', acmMs, globalMin, globalMax, projectStart, projectEnd);
 
   // "We are here" today marker above the technical timeline
   const techBar = document.getElementById('timelineBarTechnical');
@@ -517,12 +524,31 @@ function renderTimeline() {
   }
 }
 
-function renderSingleTimeline(barId, milestones, globalMin, globalMax) {
+function renderSingleTimeline(barId, milestones, globalMin, globalMax, projectStart, projectEnd) {
   const bar = document.getElementById(barId);
   if (!bar) return;
 
+  // Build project boundary markers HTML
+  let boundaryHtml = '';
+  if (globalMin !== null && globalMax !== null && globalMax !== globalMin) {
+    if (projectStart && !isNaN(projectStart)) {
+      const pct = Math.max(0, Math.min(100, ((projectStart - globalMin) / (globalMax - globalMin)) * 100));
+      boundaryHtml += `<div class="timeline-project-marker project-start-marker" style="left:${pct.toFixed(1)}%">
+        <div class="project-marker-line"></div>
+        <span class="project-marker-label">Start: ${formatDate(new Date(projectStart).toISOString())}</span>
+      </div>`;
+    }
+    if (projectEnd && !isNaN(projectEnd)) {
+      const pct = Math.max(0, Math.min(100, ((projectEnd - globalMin) / (globalMax - globalMin)) * 100));
+      boundaryHtml += `<div class="timeline-project-marker project-end-marker" style="left:${pct.toFixed(1)}%">
+        <div class="project-marker-line"></div>
+        <span class="project-marker-label">End: ${formatDate(new Date(projectEnd).toISOString())}</span>
+      </div>`;
+    }
+  }
+
   if (milestones.length === 0) {
-    bar.innerHTML = '<div class="timeline-line"></div>' +
+    bar.innerHTML = '<div class="timeline-line"></div>' + boundaryHtml +
       '<div style="position:relative;z-index:1;color:var(--text-light);font-size:0.8rem;text-align:center;width:100%;padding:8px 0;">' +
       'No milestones yet.</div>';
     return;
@@ -535,7 +561,7 @@ function renderSingleTimeline(barId, milestones, globalMin, globalMax) {
     return new Date(a.date) - new Date(b.date);
   });
 
-  let html = '<div class="timeline-line"></div>';
+  let html = '<div class="timeline-line"></div>' + boundaryHtml;
   const undated = sorted.filter(m => !m.date);
 
   sorted.forEach(m => {

@@ -532,6 +532,35 @@ body {
   margin-top: -2px;
 }
 
+/* Project start/end date markers */
+.timeline-project-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 2;
+  pointer-events: none;
+}
+.project-marker-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1.5px;
+  background: var(--text-light);
+  opacity: 0.5;
+}
+.project-marker-label {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: var(--text-light);
+  white-space: nowrap;
+  line-height: 1;
+}
+
 .timeline-track {
   position: relative;
   padding: 0.4rem 1.5rem;
