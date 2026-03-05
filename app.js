@@ -197,6 +197,9 @@ async function fetchAll() {
     const resp = await fetch(CONFIG.API_URL + '?action=getAll', { redirect: 'follow', signal: controller.signal });
     clearTimeout(timeout);
     const data = await resp.json();
+    // Preserve local config if there are pending config writes (prevents stale API data from overwriting recent changes)
+    const hadPendingConfig = pendingWrites.some(w => w.action === 'updateConfig');
+    const localConfig = hadPendingConfig ? { ...state.config } : null;
     state.activities = data.activities || [];
     state.todos = data.todos || [];
     state.questions = data.questions || [];
@@ -204,6 +207,9 @@ async function fetchAll() {
     state.milestones = data.milestones || [];
     state.timesheet = data.timesheet || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
+    if (localConfig) {
+      Object.assign(state.config, localConfig);
+    }
     normalizePhaseNames();
     saveToLocalCache();
     return true;
@@ -1983,6 +1989,9 @@ async function saveSettings() {
 
   Object.assign(state.config, newConfig);
   queueWrite('updateConfig', newConfig);
+  // Config changes are critical — flush to API immediately, don't wait for debounce
+  clearTimeout(debounceTimer);
+  flushWrites();
 
   const apiUrl = document.getElementById('cfgApiUrl').value.trim();
   const apiUrlChanged = apiUrl !== CONFIG.API_URL;
@@ -2272,6 +2281,14 @@ async function init() {
   });
 
   setupHeaderEditing();
+
+  // Flush any pending writes before page unload (prevents data loss on refresh)
+  window.addEventListener('beforeunload', () => {
+    if (pendingWrites.length > 0 && CONFIG.API_URL) {
+      const ops = pendingWrites.splice(0, pendingWrites.length);
+      navigator.sendBeacon(CONFIG.API_URL, JSON.stringify({ action: 'batchUpdate', data: ops }));
+    }
+  });
 
   // Show cached data instantly while fetching fresh data
   const hasCached = loadFromLocalCache();
