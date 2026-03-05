@@ -8,7 +8,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #5a6270;
+  --bg: #2a2d33;
   --bg-card: #ffffff;
   --bg-nav: #2a2d33;
   --text: #1a2332;
@@ -512,6 +512,8 @@ body {
   flex: 1;
   padding: 1rem 1.5rem 2rem;
   min-width: 0;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255,255,255,0.08);
 }
 
 /* ---- Dual Timeline Track ---- */
