@@ -1431,7 +1431,12 @@ function attachExpandedEvents() {
       if (act) {
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
-        renderAll();
+        if (field === 'status') {
+          renderAll();
+        } else {
+          renderPhases();
+          renderStatusBar();
+        }
         attachExpandedEvents();
       }
     });
@@ -1448,7 +1453,8 @@ function attachExpandedEvents() {
       const totalMins = (parseInt(hoursEl.value) || 0) * 60 + (parseInt(minsEl.value) || 0);
       act.actual_minutes = totalMins;
       queueWrite('updateActivity', { id: actId, actual_minutes: totalMins });
-      renderAll();
+      renderPhases();
+      renderStatusBar();
       attachExpandedEvents();
     });
   });
@@ -1530,7 +1536,10 @@ function attachExpandedEvents() {
       if (todo) {
         todo.is_done = cb.checked;
         queueWrite('updateTodo', { id: todoId, is_done: cb.checked });
-        renderAll();
+        renderPhases();
+        renderStatusBar();
+        renderNav();
+        renderWhatsNext();
         attachExpandedEvents();
       }
     });
@@ -1890,7 +1899,10 @@ function addNewActivity(phase) {
 
   state.activities.push(act);
   queueWrite('addActivity', act);
-  renderAll();
+  renderPhases();
+  renderNav();
+  renderStatusBar();
+  renderWhatsNext();
   attachExpandedEvents();
 }
 
@@ -1904,7 +1916,8 @@ function renamePhase(oldName, newName) {
   // Update CONFIG.PHASES
   const idx = CONFIG.PHASES.indexOf(oldName);
   if (idx !== -1) CONFIG.PHASES[idx] = newName;
-  renderAll();
+  renderPhases();
+  renderNav();
   attachExpandedEvents();
 }
 
