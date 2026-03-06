@@ -1603,38 +1603,59 @@ function autoSizeAnswer(ta) {
   const scrollH = ta.scrollHeight;
   ta.style.removeProperty('max-height');
 
-  // Auto-fit height to content, capped at 10 lines (unless expanded)
-  if (ta.classList.contains('expanded')) {
-    ta.style.height = scrollH + 'px';
-  } else {
-    ta.style.height = Math.min(scrollH, maxCollapsed) + 'px';
-  }
+  const isExpanded = ta.classList.contains('expanded');
+  const needsTruncation = scrollH > maxCollapsed;
 
-  // Show "Read more" if content exceeds 10 lines
+  // Auto-fit height to content, capped at 10 lines (unless expanded)
+  ta.style.height = (isExpanded || !needsTruncation ? scrollH : maxCollapsed) + 'px';
+
+  // Manage fade + button
+  let fade = wrap.querySelector('.answer-fade');
   let btn = wrap.querySelector('.answer-read-more');
-  if (scrollH > maxCollapsed && !ta.classList.contains('expanded')) {
+
+  if (needsTruncation && !isExpanded) {
+    // Add fade overlay
+    if (!fade) {
+      fade = document.createElement('div');
+      fade.className = 'answer-fade';
+      wrap.appendChild(fade);
+    }
+    fade.style.display = '';
+    // Add button
     if (!btn) {
       btn = document.createElement('button');
       btn.className = 'answer-read-more';
-      btn.textContent = 'Read more ▾';
-      btn.addEventListener('click', () => {
-        ta.classList.add('expanded');
-        autoSizeAnswer(ta);
-        btn.textContent = 'Show less ▴';
-      });
       wrap.appendChild(btn);
     }
-  } else if (scrollH <= maxCollapsed) {
-    if (btn) btn.remove();
-  }
-
-  // Handle "Show less" toggle
-  if (btn && ta.classList.contains('expanded')) {
+    btn.textContent = 'Read more ▾';
+    btn.style.display = '';
+    btn.onclick = () => {
+      ta.classList.add('expanded');
+      autoSizeAnswer(ta);
+    };
+  } else if (needsTruncation && isExpanded) {
+    // Hide fade, show "Show less"
+    if (fade) fade.style.display = 'none';
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.className = 'answer-read-more';
+      wrap.appendChild(btn);
+    }
     btn.textContent = 'Show less ▴';
+    btn.style.display = '';
+    btn.style.position = 'static';
+    btn.style.transform = 'none';
+    btn.style.left = 'auto';
+    btn.style.bottom = 'auto';
+    btn.style.marginTop = '4px';
     btn.onclick = () => {
       ta.classList.remove('expanded');
       autoSizeAnswer(ta);
     };
+  } else {
+    // Content fits — remove fade and button
+    if (fade) fade.remove();
+    if (btn) btn.remove();
   }
 }
 

@@ -1933,19 +1933,35 @@ body {
 
 .answer-field:focus { border-color: var(--accent); outline: none; }
 
-.answer-read-more {
-  display: block;
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 4px 0;
-  margin-top: 2px;
+.answer-fade {
+  position: absolute;
+  bottom: 0;
+  left: 1px;
+  right: 1px;
+  height: 3em;
+  background: linear-gradient(to bottom, transparent, white);
+  pointer-events: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
-.answer-read-more:hover { text-decoration: underline; }
+.answer-read-more {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 12px;
+  border-radius: 10px;
+  z-index: 2;
+  box-shadow: var(--shadow-sm);
+}
+
+.answer-read-more:hover { background: #eff6ff; }
 
 .question-delete {
   float: right;
