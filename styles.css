@@ -1312,6 +1312,36 @@ body {
 
 .dep-badge:hover { background: #dbeafe; }
 
+.ai-new-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #eff6ff;
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 1 !important;
+  white-space: nowrap;
+}
+
+.todo-notes {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-style: italic;
+  margin-left: 24px;
+  margin-top: 2px;
+}
+
+.review-item-source {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-style: italic;
+  margin-top: 4px;
+}
+
 .dep-warning {
   background: #fef3c7;
   color: #92400e;

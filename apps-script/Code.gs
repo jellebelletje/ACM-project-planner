@@ -17,7 +17,8 @@ const SHEET_NAMES = {
   TIME_BILLED: 'Time_Billed',
   SOW: 'SOW',
   CONFIG: 'Project_Config',
-  TRANSCRIPTS: 'Transcripts'
+  TRANSCRIPTS: 'Transcripts',
+  PROMPTS: 'Prompts'
 };
 
 // ---- Router ----
@@ -216,6 +217,37 @@ function getClaudeApiKey(optConfig) {
   }
 }
 
+/**
+ * Read the latest versioned prompt from the Prompts sheet.
+ * Keys follow the pattern: {prefix}_v{number} (e.g. process_all_v1, process_all_v2).
+ * Returns the value (prompt text) for the highest version number found.
+ */
+function getLatestPrompt(prefix) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.PROMPTS);
+    if (!sheet) return null;
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return null;
+    var data = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+    var pattern = new RegExp('^' + prefix + '_v(\\d+)$');
+    var bestVersion = -1;
+    var bestValue = null;
+    for (var i = 0; i < data.length; i++) {
+      var match = String(data[i][0]).match(pattern);
+      if (match) {
+        var ver = parseInt(match[1], 10);
+        if (ver > bestVersion) {
+          bestVersion = ver;
+          bestValue = data[i][1];
+        }
+      }
+    }
+    return bestValue || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function getActivities() {
   return getSheetData(SHEET_NAMES.ACTIVITIES);
 }
@@ -399,10 +431,12 @@ function processTranscripts(data) {
   var apiKey = getClaudeApiKey();
   if (!apiKey) return { error: 'Claude API key not configured. Add it to the master sheet Config tab.' };
 
-  // 4. Build combined content from all unprocessed entries
+  // 4. Build combined content from all unprocessed entries (include source_document)
   var combinedContent = unprocessed.map(function(entry) {
     var convType = entry.meeting_type || 'external';
-    return '--- Entry ' + entry.id + ' (' + (entry.date || 'no date') + ', ' +
+    var sourceDoc = entry.source_filename || 'unknown document';
+    return '--- Entry ' + entry.id + ' (source_document: ' + sourceDoc + ', ' +
+           (entry.date || 'no date') + ', ' +
            (entry.participants || 'no participants') + ', ' + convType +
            (entry.context ? ', context: ' + entry.context : '') + ') ---\n' + entry.transcript_note;
   }).join('\n\n');
@@ -420,23 +454,33 @@ function processTranscripts(data) {
     return t.id + ' (Activity ' + t.activity_id + '): ' + t.text;
   }).join('\n');
 
-  // 6. Build prompt
-  var prompt = 'You are analyzing conversation transcripts and notes for a change management project. ' +
-    'Entries are tagged as "external" (conversations with the client) or "internal" (internal team conversations). ' +
-    'Treat both types equally when extracting insights, but include the meeting type in your analysis.\n' +
-    'There are ' + unprocessed.length + ' new entries to process.\n\n' +
-    'CONTENT:\n' + combinedContent + '\n\n' +
-    'ACTIVITIES:\n' + activitiesContext + '\n\n' +
-    'OPEN QUESTIONS:\n' + questionsContext + '\n\n' +
-    'INCOMPLETE TODOS:\n' + todosContext + '\n\n' +
-    'Analyze ALL the content and return a JSON object with:\n' +
-    '1. "matched_activities": array of activity IDs that this content primarily addresses\n' +
-    '2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "source_entry_id": which entry ID the answer came from } for questions answered in the content\n' +
-    '3. "completed_todos": array of { "id": todo_id, "note": brief explanation, "source_entry_id": which entry ID } for todos completed based on the content\n' +
-    '4. "summary": a paragraph summarizing what insights were extracted across all entries\n' +
-    '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n\n' +
-    'Only include questions/todos where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
-    'Return ONLY valid JSON, no markdown formatting.';
+  // 6. Build prompt — load from Prompts sheet (latest version), with fallback
+  var promptTemplate = getLatestPrompt('process_all');
+  var prompt;
+  if (promptTemplate) {
+    prompt = promptTemplate
+      .replace(/\{\{ENTRY_COUNT\}\}/g, String(unprocessed.length))
+      .replace(/\{\{CONTENT\}\}/g, combinedContent)
+      .replace(/\{\{ACTIVITIES\}\}/g, activitiesContext)
+      .replace(/\{\{QUESTIONS\}\}/g, questionsContext)
+      .replace(/\{\{TODOS\}\}/g, todosContext);
+  } else {
+    // Hardcoded fallback if Prompts sheet is missing or empty
+    prompt = 'You are an expert Adoption & Change Management (ACM) consultant analyzing meeting transcripts and notes from a change management trajectory.\n' +
+      'There are ' + unprocessed.length + ' new entries to process.\n\n' +
+      'CONTENT:\n' + combinedContent + '\n\n' +
+      'ACTIVITIES:\n' + activitiesContext + '\n\n' +
+      'OPEN QUESTIONS:\n' + questionsContext + '\n\n' +
+      'INCOMPLETE TODOS:\n' + todosContext + '\n\n' +
+      'Analyze ALL the content and return a JSON object with:\n' +
+      '1. "matched_activities": array of activity IDs that this content primarily addresses\n' +
+      '2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "source_entry_id": which entry ID the answer came from, "source_document": the source_document name from that entry } for questions answered in the content\n' +
+      '3. "completed_todos": array of { "id": todo_id, "note": brief explanation, "source_entry_id": which entry ID, "source_document": the source_document name from that entry } for todos completed based on the content\n' +
+      '4. "summary": a paragraph summarizing what ACM-relevant insights were extracted across all entries\n' +
+      '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n\n' +
+      'Only include questions/todos where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
+      'Return ONLY valid JSON, no markdown formatting.';
+  }
 
   // 7. Call Claude API
   try {

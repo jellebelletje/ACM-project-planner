@@ -305,6 +305,18 @@ function formatDate(dateStr) {
   return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+function formatDateLong(date) {
+  const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return String(date);
+  const day = d.getDate();
+  const suffix = (day === 1 || day === 21 || day === 31) ? 'st'
+    : (day === 2 || day === 22) ? 'nd'
+    : (day === 3 || day === 23) ? 'rd' : 'th';
+  return `${day}${suffix} ${fullMonths[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 function renderMarkdownGuidance(text) {
   if (!text) return '';
   // Split on sentences that start with "For **" to create list items
@@ -1142,6 +1154,13 @@ function renderCard(act) {
 
   const metaClass = isMetaActivity(act) ? ' meta-activity' : '';
 
+  // Check if this activity was updated by AI processing in this session
+  let aiUpdated = false;
+  try {
+    const aiIds = JSON.parse(sessionStorage.getItem('acm_ai_updated_activities') || '[]');
+    aiUpdated = aiIds.includes(act.id);
+  } catch (e) { /* ignore */ }
+
   let html = `<div class="activity-card status-${escapeHtml(act.status || 'not_started')}${isExpanded ? ' expanded' : ''}${fillClass}${metaClass}" data-activity-id="${escapeHtml(act.id)}" style="--fill-pct: ${fillPct}">
     <div class="card-header">
       <span class="card-status-dot dot-${escapeHtml(act.status || 'not_started')}"></span>
@@ -1154,6 +1173,7 @@ function renderCard(act) {
   if (!isExpanded) {
     html += `<div class="card-intro">${highlightText(act.intro_text || act.title)}</div>
     <div class="card-meta">
+      ${aiUpdated ? '<span class="card-meta-item ai-new-badge" title="Updated by AI processing">&#11088; New info!</span>' : ''}
       ${showProgressWarning ? '<span class="card-meta-item card-progress-warning" title="Over budget with little visible progress">&#9888;</span>' : ''}
       ${todos.length > 0 ? `<span class="card-meta-item">&#9745; ${doneTodos}/${todos.length}</span>` : ''}
       ${questions.length > 0 ? `<span class="card-meta-item">&#128172; ${answeredQs}/${questions.length}</span>` : ''}
@@ -1386,6 +1406,7 @@ function renderTodosTab(act) {
     html += `<li class="todo-item${isDone ? ' done' : ''}${t.is_project_specific ? ' todo-project-specific' : ''}">
       <input type="checkbox" ${isDone ? 'checked' : ''} data-todo-id="${escapeHtml(t.id)}">
       <span class="todo-text" contenteditable="true" data-todo-id="${escapeHtml(t.id)}" data-field="text">${highlightText(t.text)}</span>
+      ${t.notes ? '<span class="todo-notes">' + escapeHtml(t.notes) + '</span>' : ''}
       <button class="todo-delete" data-todo-id="${escapeHtml(t.id)}" title="Make inactive">&times;</button>
     </li>`;
   });
@@ -2513,6 +2534,7 @@ function openReviewModal(proposals, entryIds) {
               <div class="review-item-id">${escapeHtml(aq.id)}</div>
               <div class="review-item-question">${q ? escapeHtml(q.question_text) : 'Unknown question'}</div>
               <div class="review-item-answer"><strong>Proposed answer:</strong> ${escapeHtml(aq.answer)}</div>
+              ${aq.source_document ? `<div class="review-item-source">Source: ${escapeHtml(aq.source_document)}</div>` : ''}
             </div>
           </label>
         </div>`;
@@ -2533,6 +2555,7 @@ function openReviewModal(proposals, entryIds) {
               <div class="review-item-id">${escapeHtml(ct.id)}</div>
               <div class="review-item-todo">${t ? escapeHtml(t.text) : 'Unknown todo'}</div>
               <div class="review-item-note"><strong>Reason:</strong> ${escapeHtml(ct.note || '')}</div>
+              ${ct.source_document ? `<div class="review-item-source">Source: ${escapeHtml(ct.source_document)}</div>` : ''}
             </div>
           </label>
         </div>`;
@@ -2554,6 +2577,8 @@ function applySelectedProposals() {
   if (!pendingProposals || !pendingEntryIds) return;
 
   const modal = document.getElementById('reviewModal');
+  const aiUpdatedIds = new Set();
+  const todayStr = formatDateLong(new Date());
 
   // Apply checked question answers
   if (pendingProposals.answered_questions) {
@@ -2563,9 +2588,13 @@ function applySelectedProposals() {
         const aq = pendingProposals.answered_questions[idx];
         const q = getQuestion(aq.id);
         if (q) {
-          q.answer = aq.answer;
+          const sourceDoc = aq.source_document || 'transcript';
+          const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+          const fullAnswer = aq.answer + attribution;
+          q.answer = fullAnswer;
           q.is_answered = true;
-          queueWrite('updateQuestion', { id: aq.id, answer: aq.answer, is_answered: true });
+          queueWrite('updateQuestion', { id: aq.id, answer: fullAnswer, is_answered: true });
+          if (q.activity_id) aiUpdatedIds.add(q.activity_id);
         }
       }
     });
@@ -2579,12 +2608,29 @@ function applySelectedProposals() {
         const ct = pendingProposals.completed_todos[idx];
         const t = getTodo(ct.id);
         if (t) {
+          const sourceDoc = ct.source_document || 'transcript';
+          const attribution = '[completed by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+          const noteText = (ct.note ? ct.note + ' ' : '') + attribution;
           t.is_done = true;
-          queueWrite('updateTodo', { id: ct.id, is_done: true });
+          t.notes = noteText;
+          queueWrite('updateTodo', { id: ct.id, is_done: true, notes: noteText });
+          if (t.activity_id) aiUpdatedIds.add(t.activity_id);
         }
       }
     });
   }
+
+  // Track matched activities for the "New info!" badge
+  if (pendingProposals.matched_activities) {
+    pendingProposals.matched_activities.forEach(id => aiUpdatedIds.add(id));
+  }
+
+  // Merge with existing session data and save
+  try {
+    const existing = JSON.parse(sessionStorage.getItem('acm_ai_updated_activities') || '[]');
+    existing.forEach(id => aiUpdatedIds.add(id));
+  } catch (e) { /* ignore */ }
+  sessionStorage.setItem('acm_ai_updated_activities', JSON.stringify(Array.from(aiUpdatedIds)));
 
   // Update each processed entry with summary and mark as processed
   if (pendingProposals.entry_summaries) {
