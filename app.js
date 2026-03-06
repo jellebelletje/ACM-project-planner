@@ -1471,7 +1471,9 @@ function renderQuestionsTab(act) {
         <button class="question-delete" data-question-id="${escapeHtml(q.id)}" title="Make inactive">&times;</button>
         <div class="question-text" contenteditable="true" data-question-id="${escapeHtml(q.id)}" data-field="question_text">${highlightText(q.question_text)}</div>
         ${q.ask_whom ? `<span class="ask-whom-badge" contenteditable="true" data-question-id="${escapeHtml(q.id)}" data-field="ask_whom">Ask: ${escapeHtml(q.ask_whom)}</span>` : ''}
-        <textarea class="answer-field" data-question-id="${escapeHtml(q.id)}" placeholder="Answer...">${escapeHtml(q.answer || '')}</textarea>
+        <div class="answer-field-wrap">
+          <textarea class="answer-field" data-question-id="${escapeHtml(q.id)}" placeholder="Answer...">${escapeHtml(q.answer || '')}</textarea>
+        </div>
       </div>`;
     });
 
@@ -1586,6 +1588,38 @@ function expandActivity(actId) {
   if (state.expandedActivityId) {
     const card = document.querySelector(`[data-activity-id="${actId}"]`);
     if (card) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  }
+}
+
+function autoSizeAnswer(ta) {
+  const lineH = parseFloat(getComputedStyle(ta).lineHeight) || (parseFloat(getComputedStyle(ta).fontSize) * 1.5);
+  const maxCollapsed = Math.round(lineH * 20 + 12); // 20 lines
+  const wrap = ta.closest('.answer-field-wrap');
+  if (!wrap) return;
+
+  // Temporarily remove max-height to measure full scroll height
+  ta.style.maxHeight = 'none';
+  ta.style.height = 'auto';
+  const scrollH = ta.scrollHeight;
+  ta.style.removeProperty('height');
+  ta.style.removeProperty('max-height');
+
+  // If content fits within 20 lines, let CSS handle it (auto-expand up to max-height)
+  // If content exceeds 20 lines, show/keep the "Read more" button
+  let btn = wrap.querySelector('.answer-read-more');
+  if (scrollH > maxCollapsed && !ta.classList.contains('expanded')) {
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.className = 'answer-read-more';
+      btn.textContent = 'Read more ▾';
+      btn.addEventListener('click', () => {
+        ta.classList.toggle('expanded');
+        btn.textContent = ta.classList.contains('expanded') ? 'Show less ▴' : 'Read more ▾';
+      });
+      wrap.appendChild(btn);
+    }
+  } else if (scrollH <= maxCollapsed && btn && !ta.classList.contains('expanded')) {
+    btn.remove();
   }
 }
 
@@ -1889,11 +1923,12 @@ function attachExpandedEvents() {
     });
   });
 
-  // Question answer
+  // Question answer — auto-size and "Read more" button
   container.querySelectorAll('.answer-field').forEach(ta => {
     let timer;
     ta.addEventListener('input', () => {
       clearTimeout(timer);
+      autoSizeAnswer(ta);
       timer = setTimeout(() => {
         const qId = ta.dataset.questionId;
         const answer = ta.value;
@@ -1908,6 +1943,8 @@ function attachExpandedEvents() {
         }
       }, CONFIG.DEBOUNCE_MS);
     });
+    // Initial auto-size on render
+    autoSizeAnswer(ta);
   });
 
   // Question text edit

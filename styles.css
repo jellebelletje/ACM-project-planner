@@ -1907,6 +1907,10 @@ body {
 
 .ask-whom-badge:hover { background: #bfdbfe; }
 
+.answer-field-wrap {
+  position: relative;
+}
+
 .answer-field {
   width: 100%;
   padding: 6px 8px;
@@ -1914,12 +1918,34 @@ body {
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   font-family: inherit;
-  resize: vertical;
-  min-height: 2.5em;
-  transition: border-color 0.15s;
+  line-height: 1.5;
+  resize: none;
+  overflow: hidden;
+  min-height: calc(10 * 1.5em + 12px);
+  max-height: calc(20 * 1.5em + 12px);
+  transition: border-color 0.15s, max-height 0.3s ease;
+}
+
+.answer-field.expanded {
+  max-height: none;
+  overflow: auto;
 }
 
 .answer-field:focus { border-color: var(--accent); outline: none; }
+
+.answer-read-more {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-top: 2px;
+}
+
+.answer-read-more:hover { text-decoration: underline; }
 
 .question-delete {
   float: right;
