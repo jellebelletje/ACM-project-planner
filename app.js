@@ -2428,11 +2428,6 @@ async function processAllTranscripts() {
     !t.processed || t.processed === 'FALSE' || t.processed === false);
   if (unprocessed.length === 0) { alert('No unprocessed entries.'); return; }
 
-  if (!state.config.has_claude_api_key) {
-    alert('Claude API key not found. Add it to the master sheet Config tab, and make sure Master Sheet ID is set in Project Settings.');
-    return;
-  }
-
   // Show loading
   const btn = document.getElementById('processAllBtn');
   const originalText = btn.textContent;
