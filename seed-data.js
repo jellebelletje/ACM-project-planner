@@ -31,6 +31,21 @@ window.SEED_DATA = {
       "updated_at": ""
     },
     {
+      "id": "A35",
+      "title": "Internal Alignment",
+      "intro_text": "Surface internal knowledge about the client.",
+      "full_description": "Identify internally which person or people know the client best and have worked with them before. Go with them through this change management dashboard and try to answer as many questions as possible before you talk to the client.",
+      "pdca_phase": "Plan I: Diagnosis",
+      "sequence": 2,
+      "status": "not_started",
+      "due_date": "",
+      "depends_on": "",
+      "activity_type": "meta",
+      "particularisation_guidance": "",
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
       "id": "A01",
       "title": "Assess Sponsorship in a Structured Interview",
       "intro_text": "Identify the executive sponsor and any co-sponsors for this initiative",
@@ -3404,6 +3419,16 @@ window.SEED_DATA = {
     }
   ],
   "questions": [
+    {
+      "id": "Q-A35-1",
+      "activity_id": "A35",
+      "sub_topic": "Internal Knowledge",
+      "question_text": "Who internally has the most hands-on experience with this client, and what do they know about the client's appetite for change?",
+      "ask_whom": "",
+      "answer": "",
+      "is_answered": false,
+      "sequence": 0
+    },
     {
       "id": "Q001",
       "activity_id": "A01",
