@@ -66,7 +66,8 @@ const state = {
   showInactiveQuestions: {},
   timeEntryOpen: false,
   transcripts: [],
-  expandedTranscriptId: null
+  expandedTranscriptId: null,
+  agreements: []
 };
 
 // ---- Debounce & Sync ----
@@ -129,6 +130,7 @@ function saveToLocalCache() {
     timeBilled: state.timeBilled,
     sow: state.sow,
     transcripts: state.transcripts,
+    agreements: state.agreements,
     config: state.config,
     timestamp: Date.now()
   };
@@ -152,6 +154,7 @@ function loadFromLocalCache() {
         timeBilled: data.timeBilled || [],
         sow: data.sow || [],
         transcripts: data.transcripts || [],
+        agreements: data.agreements || [],
         config: data.config || {}
       });
       normalizePhaseNames();
@@ -167,7 +170,7 @@ async function fetchAll() {
     // Try loading from local seed-data.json for demo
     // Try fetch first (works with http:// but not file://)
     try {
-      const resp = await fetch('seed-data.json');
+      const resp = await fetch('seed-data.json?v=' + Date.now());
       if (resp.ok) {
         const data = await resp.json();
         state.activities = data.activities || [];
@@ -179,6 +182,7 @@ async function fetchAll() {
         state.timeBilled = data.time_billed || [];
         state.sow = data.sow || [];
         state.transcripts = data.transcripts || [];
+        state.agreements = data.agreements || [];
         state.config = data.config || {};
         normalizePhaseNames();
         saveToLocalCache();
@@ -198,6 +202,7 @@ async function fetchAll() {
       state.timeBilled = data.time_billed || [];
       state.sow = data.sow || [];
       state.transcripts = data.transcripts || [];
+      state.agreements = data.agreements || [];
       state.config = data.config || {};
       normalizePhaseNames();
       saveToLocalCache();
@@ -225,6 +230,7 @@ async function fetchAll() {
     state.timeBilled = data.time_billed || [];
     state.sow = data.sow || [];
     state.transcripts = data.transcripts || [];
+    state.agreements = data.agreements || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
     if (localConfig) {
       Object.assign(state.config, localConfig);
@@ -398,6 +404,7 @@ function getTodo(id) { return state.todos.find(t => t.id === id); }
 function getQuestion(id) { return state.questions.find(q => q.id === id); }
 function getNote(id) { return state.notes.find(n => n.id === id); }
 function getMilestone(id) { return state.milestones.find(m => m.id === id); }
+function getAgreement(id) { return state.agreements.find(a => a.id === id); }
 
 function isMetaActivity(act) {
   return act.activity_type === 'meta';
@@ -531,6 +538,7 @@ function renderAll() {
   renderWhatsNext();
   renderPhases();
   renderTranscripts();
+  renderAgreements();
   updateProjectHeader();
 }
 
@@ -558,6 +566,14 @@ function renderNav() {
       </span>
     </button>`;
   }).join('');
+
+  // Agreements button
+  nav.innerHTML += `
+    <div class="nav-rawdata-separator"></div>
+    <button class="nav-rawdata-btn" data-scroll-target="agreementsSection">
+      <span class="nav-rawdata-icon">&#9999;&#65039;</span>
+      Agreements
+    </button>`;
 
   // Raw Data button below phases
   const unprocessedCount = state.transcripts.filter(t => !t.processed || t.processed === 'FALSE' || t.processed === false).length;
@@ -2561,6 +2577,141 @@ async function processAllTranscripts() {
   btn.disabled = false;
 }
 
+// ---- Agreements ----
+
+function renderAgreements() {
+  const container = document.getElementById('agreementsSection');
+  if (!container) return;
+
+  const internalAgreements = state.agreements.filter(a =>
+    a.active !== false && a.active !== 'FALSE' && a.active !== 'false' &&
+    (a.internal === true || a.internal === 'TRUE' || a.internal === 'true'));
+  const externalAgreements = state.agreements.filter(a =>
+    a.active !== false && a.active !== 'FALSE' && a.active !== 'false' &&
+    (a.internal === false || a.internal === 'FALSE' || a.internal === 'false' || a.internal === ''));
+
+  function renderCards(agreements) {
+    if (agreements.length === 0) {
+      return '<p class="agreement-empty">No agreements yet.</p>';
+    }
+    return agreements.map(ag => {
+      const hasAnswer = ag.agreement && String(ag.agreement).trim();
+      const attribution = ag.added_by && ag.added_on
+        ? `<div class="agreement-attribution">Added by ${escapeHtml(ag.added_by)} on ${escapeHtml(ag.added_on)}</div>`
+        : '';
+      return `<div class="agreement-card${hasAnswer ? ' answered' : ''}" data-agreement-id="${escapeHtml(ag.id)}">
+        <button class="agreement-delete" data-agreement-id="${escapeHtml(ag.id)}" title="Remove">&times;</button>
+        <div class="agreement-question" contenteditable="true" data-agreement-id="${escapeHtml(ag.id)}" data-field="question_agreed">${escapeHtml(ag.question_agreed || '')}</div>
+        <div class="answer-field-wrap">
+          <textarea class="answer-field agreement-answer" data-agreement-id="${escapeHtml(ag.id)}" placeholder="Agreement...">${escapeHtml(ag.agreement || '')}</textarea>
+        </div>
+        ${attribution}
+      </div>`;
+    }).join('');
+  }
+
+  container.innerHTML = `
+    <div class="agreements-header">
+      <h2>Agreements</h2>
+    </div>
+    <div class="agreements-columns">
+      <div class="agreements-block agreements-internal">
+        <h3 class="agreements-block-title">Internal Agreements</h3>
+        ${renderCards(internalAgreements)}
+        <button class="btn-small agreement-add" data-agreement-type="internal">+ Add Agreement</button>
+      </div>
+      <div class="agreements-block agreements-external">
+        <h3 class="agreements-block-title">External Agreements</h3>
+        ${renderCards(externalAgreements)}
+        <button class="btn-small agreement-add" data-agreement-type="external">+ Add Agreement</button>
+      </div>
+    </div>`;
+
+  attachAgreementEvents();
+}
+
+function attachAgreementEvents() {
+  const container = document.getElementById('agreementsSection');
+  if (!container) return;
+
+  // Answer field auto-size and save
+  container.querySelectorAll('.agreement-answer').forEach(ta => {
+    let timer;
+    ta.addEventListener('input', () => {
+      clearTimeout(timer);
+      autoSizeAnswer(ta);
+      timer = setTimeout(() => {
+        const agId = ta.dataset.agreementId;
+        const agreement = ta.value;
+        const ag = getAgreement(agId);
+        if (ag) {
+          // Set attribution on first answer input
+          if (!ag.added_by && agreement.trim()) {
+            ag.added_by = 'human';
+            ag.added_on = formatDateLong(new Date());
+            ag.agreement = agreement;
+            queueWrite('updateAgreement', { id: agId, agreement, added_by: ag.added_by, added_on: ag.added_on });
+            renderAgreements();
+            return;
+          }
+          ag.agreement = agreement;
+          queueWrite('updateAgreement', { id: agId, agreement });
+        }
+      }, CONFIG.DEBOUNCE_MS);
+    });
+    autoSizeAnswer(ta);
+  });
+
+  // Question text edit
+  container.querySelectorAll('.agreement-question[data-agreement-id]').forEach(el => {
+    el.addEventListener('blur', () => {
+      const agId = el.dataset.agreementId;
+      const text = el.textContent.trim();
+      const ag = getAgreement(agId);
+      if (ag && ag.question_agreed !== text) {
+        ag.question_agreed = text;
+        queueWrite('updateAgreement', { id: agId, question_agreed: text });
+      }
+    });
+  });
+
+  // Delete agreement (soft delete)
+  container.querySelectorAll('.agreement-delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const agId = btn.dataset.agreementId;
+      const ag = getAgreement(agId);
+      if (ag) {
+        ag.active = false;
+        queueWrite('updateAgreement', { id: agId, active: false });
+        renderAgreements();
+      }
+    });
+  });
+
+  // Add agreement
+  container.querySelectorAll('.agreement-add').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isInternal = btn.dataset.agreementType === 'internal';
+      const newAg = {
+        id: generateId('AG'),
+        question_agreed: '',
+        agreement: '',
+        internal: isInternal,
+        active: true,
+        added_by: '',
+        added_on: ''
+      };
+      state.agreements.push(newAg);
+      queueWrite('addAgreement', newAg);
+      renderAgreements();
+      // Focus the new question field
+      const newField = container.querySelector(`[data-agreement-id="${newAg.id}"] .agreement-question`);
+      if (newField) newField.focus();
+    });
+  });
+}
+
 // ---- Review Modal ----
 
 let pendingProposals = null;
@@ -2647,9 +2798,33 @@ function openReviewModal(proposals, entryIds, promptSource) {
     </div>`;
   }
 
-  if (!proposals.answered_questions?.length && !proposals.completed_todos?.length) {
+  // Answered agreements (with checkboxes)
+  if (proposals.answered_agreements && proposals.answered_agreements.length > 0) {
     html += `<div class="review-section">
-      <p class="review-empty">No specific question answers or todo completions were identified. The entries will still be marked as processed.</p>
+      <h3 class="review-section-title">Proposed Agreement Updates (${proposals.answered_agreements.length})</h3>
+      ${proposals.answered_agreements.map((aa, i) => {
+        const ag = getAgreement(aa.id);
+        const isUpdate = aa.is_update && ag && ag.agreement;
+        const label = isUpdate ? 'New information to append' : 'Proposed agreement';
+        return `<div class="review-item">
+          <label class="review-checkbox">
+            <input type="checkbox" checked data-review-type="agreement" data-review-idx="${i}">
+            <div class="review-item-content">
+              <div class="review-item-id">${escapeHtml(aa.id)}${isUpdate ? ' <span class="review-update-badge">Update</span>' : ''}</div>
+              <div class="review-item-question">${ag ? escapeHtml(ag.question_agreed) : 'Unknown agreement'}</div>
+              ${isUpdate ? `<div class="review-item-existing"><strong>Current agreement:</strong> ${escapeHtml(truncate(ag.agreement, 200))}</div>` : ''}
+              <div class="review-item-answer"><strong>${label}:</strong> ${escapeHtml(aa.answer)}</div>
+              ${aa.source_document ? `<div class="review-item-source">Source: ${escapeHtml(aa.source_document)}</div>` : ''}
+            </div>
+          </label>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  if (!proposals.answered_questions?.length && !proposals.completed_todos?.length && !proposals.answered_agreements?.length) {
+    html += `<div class="review-section">
+      <p class="review-empty">No specific question answers, todo completions, or agreement updates were identified. The entries will still be marked as processed.</p>
     </div>`;
   }
 
@@ -2707,6 +2882,37 @@ function applySelectedProposals() {
           t.notes = noteText;
           queueWrite('updateTodo', { id: ct.id, is_done: true, notes: noteText });
           if (t.activity_id) aiUpdatedIds.add(t.activity_id);
+        }
+      }
+    });
+  }
+
+  // Apply checked agreement answers
+  if (pendingProposals.answered_agreements) {
+    modal.querySelectorAll('[data-review-type="agreement"]').forEach(cb => {
+      if (cb.checked) {
+        const idx = parseInt(cb.dataset.reviewIdx);
+        const aa = pendingProposals.answered_agreements[idx];
+        const ag = getAgreement(aa.id);
+        if (ag) {
+          const sourceDoc = aa.source_document || 'transcript';
+          let fullAgreement;
+          if (aa.is_update && ag.agreement) {
+            const attribution = '\n\n[updated by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+            fullAgreement = ag.agreement + '\n\n' + aa.answer + attribution;
+          } else {
+            const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+            fullAgreement = aa.answer + attribution;
+          }
+          ag.agreement = fullAgreement;
+          const updateData = { id: aa.id, agreement: fullAgreement };
+          if (!ag.added_by) {
+            ag.added_by = 'AI';
+            ag.added_on = todayStr;
+            updateData.added_by = 'AI';
+            updateData.added_on = todayStr;
+          }
+          queueWrite('updateAgreement', updateData);
         }
       }
     });
@@ -2919,7 +3125,7 @@ async function resetProjectData() {
     // Load seed data
     let seedData;
     try {
-      const resp = await fetch('seed-data.json');
+      const resp = await fetch('seed-data.json?v=' + Date.now());
       seedData = await resp.json();
     } catch {
       if (window.SEED_DATA) {
@@ -2990,7 +3196,8 @@ async function init() {
     }
     const rawDataBtn = e.target.closest('.nav-rawdata-btn');
     if (rawDataBtn) {
-      const section = document.getElementById('rawDataStore');
+      const targetId = rawDataBtn.dataset.scrollTarget;
+      const section = document.getElementById(targetId);
       if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });

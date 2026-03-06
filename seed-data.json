@@ -6125,6 +6125,14 @@
       "sequence": 9
     }
   ],
+  "agreements": [
+    { "id": "AG_default_i1", "question_agreed": "", "agreement": "", "internal": true, "active": true, "added_by": "", "added_on": "" },
+    { "id": "AG_default_i2", "question_agreed": "", "agreement": "", "internal": true, "active": true, "added_by": "", "added_on": "" },
+    { "id": "AG_default_i3", "question_agreed": "", "agreement": "", "internal": true, "active": true, "added_by": "", "added_on": "" },
+    { "id": "AG_default_e1", "question_agreed": "", "agreement": "", "internal": false, "active": true, "added_by": "", "added_on": "" },
+    { "id": "AG_default_e2", "question_agreed": "", "agreement": "", "internal": false, "active": true, "added_by": "", "added_on": "" },
+    { "id": "AG_default_e3", "question_agreed": "", "agreement": "", "internal": false, "active": true, "added_by": "", "added_on": "" }
+  ],
   "config": {
     "project_name": "",
     "client_name": "",

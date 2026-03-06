@@ -2344,6 +2344,142 @@ body {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ---- Agreements Section ---- */
+.agreements-store {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  background: var(--bg-card);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+  border-top: 3px solid var(--accent);
+}
+
+.agreements-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.agreements-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.agreements-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.agreements-block {
+  padding: 1rem;
+  border-radius: var(--radius);
+  min-height: 200px;
+}
+
+.agreements-internal {
+  background: #f0f4f8;
+}
+
+.agreements-external {
+  background: #fdf8f0;
+}
+
+.agreements-block-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+}
+
+.agreement-card {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--status-not-started);
+  position: relative;
+}
+
+.agreement-card.answered {
+  border-left-color: var(--status-completed);
+}
+
+.agreement-question {
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+  cursor: text;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-weight: 500;
+}
+
+.agreement-question:hover {
+  border-color: var(--border);
+}
+
+.agreement-question:focus {
+  border-color: var(--accent);
+  outline: none;
+  background: white;
+}
+
+.agreement-question:empty::before {
+  content: 'Type agreement question...';
+  color: var(--text-light);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.agreement-delete {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.agreement-card:hover .agreement-delete {
+  opacity: 1;
+}
+
+.agreement-delete:hover {
+  color: var(--danger);
+}
+
+.agreement-attribution {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.agreement-empty {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  font-style: italic;
+  padding: 1rem 0;
+}
+
+.agreement-add {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .agreements-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---- Raw Data Store ---- */
 .raw-data-store {
   margin-top: 2rem;

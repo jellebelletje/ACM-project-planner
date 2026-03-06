@@ -18,7 +18,8 @@ const SHEET_NAMES = {
   SOW: 'SOW',
   CONFIG: 'Project_Config',
   TRANSCRIPTS: 'Transcripts',
-  PROMPTS: 'Prompts'
+  PROMPTS: 'Prompts',
+  AGREEMENTS: 'Agreements'
 };
 
 // ---- Router ----
@@ -146,6 +147,15 @@ function doPost(e) {
       case 'processTranscripts':
         result = processTranscripts(body.data);
         break;
+      case 'addAgreement':
+        result = addAgreement(body.data);
+        break;
+      case 'updateAgreement':
+        result = updateAgreement(body.data);
+        break;
+      case 'deleteAgreement':
+        result = deleteAgreement(body.data.id);
+        break;
       case 'addActivity':
         result = addActivity(body.data);
         break;
@@ -189,6 +199,7 @@ function getAll() {
     time_billed: getTimeBilledAll(),
     sow: getSowAll(),
     transcripts: getTranscriptsAll(),
+    agreements: getAgreementsAll(),
     config: config
   };
 }
@@ -304,6 +315,11 @@ function getTranscriptsAll() {
   catch (e) { return []; }
 }
 
+function getAgreementsAll() {
+  try { return getSheetData(SHEET_NAMES.AGREEMENTS); }
+  catch (e) { return []; }
+}
+
 // Legacy timesheet functions (kept for backwards compat)
 function addTimesheetEntry(data) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TIMESHEET);
@@ -410,6 +426,42 @@ function deleteTranscriptEntry(data) {
   return { success: true, id: data.id };
 }
 
+// ---- Agreement Operations ----
+
+function addAgreement(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.AGREEMENTS);
+  if (!sheet) return { error: 'Agreements sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: data.id };
+}
+
+function updateAgreement(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.AGREEMENTS);
+  if (!sheet) return { error: 'Agreements sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, data.id);
+  if (rowIdx === -1) return { error: 'Agreement not found: ' + data.id };
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = sheet.getRange(rowIdx, 1, 1, headers.length).getValues()[0];
+
+  for (const key in data) {
+    if (key === 'id') continue;
+    const colIdx = headers.indexOf(key);
+    if (colIdx !== -1) {
+      row[colIdx] = data[key];
+    }
+  }
+
+  sheet.getRange(rowIdx, 1, 1, headers.length).setValues([row]);
+  return { success: true, id: data.id };
+}
+
+function deleteAgreement(id) {
+  return deleteRowById(SHEET_NAMES.AGREEMENTS, id);
+}
+
 function processTranscripts(data) {
   // 1. Get all unprocessed entries
   var transcripts = getTranscriptsAll();
@@ -464,6 +516,21 @@ function processTranscripts(data) {
     return t.id + ' (Activity ' + t.activity_id + '): ' + t.text;
   }).join('\n');
 
+  // Read agreements for AI context
+  var allAgreements = getAgreementsAll();
+  var activeAgreements = allAgreements.filter(function(ag) {
+    return ag.active !== false && ag.active !== 'FALSE';
+  });
+  var agreementsContext = activeAgreements.map(function(ag) {
+    var type = (ag.internal === true || ag.internal === 'TRUE' || ag.internal === 'true') ? 'Internal' : 'External';
+    var cleanAgreement = (ag.agreement || '').replace(/\n\n\[answered by AI on [^\]]+\]/g, '').replace(/\n\n\[updated by AI on [^\]]+\]/g, '').trim();
+    if (cleanAgreement) {
+      return ag.id + ' (' + type + '): ' + (ag.question_agreed || '(no question)') + '\nCurrent agreement: ' + cleanAgreement;
+    } else {
+      return ag.id + ' (' + type + '): ' + (ag.question_agreed || '(no question)') + '\n(No agreement recorded yet)';
+    }
+  }).join('\n\n');
+
   // 6. Build prompt — load from Prompts sheet (latest version), with fallback
   var promptTemplate = getLatestPrompt('process_all');
   var prompt;
@@ -475,7 +542,8 @@ function processTranscripts(data) {
       .replace(/\{\{ACTIVITIES\}\}/g, activitiesContext)
       .replace(/\{\{QUESTIONS\}\}/g, questionsContext)
       .replace(/\{\{ANSWERED_QUESTIONS\}\}/g, answeredQuestionsContext || '(none)')
-      .replace(/\{\{TODOS\}\}/g, todosContext);
+      .replace(/\{\{TODOS\}\}/g, todosContext)
+      .replace(/\{\{AGREEMENTS\}\}/g, agreementsContext || '(none)');
   } else {
     // Hardcoded fallback if Prompts sheet is missing or empty
     prompt = 'You are an expert Adoption & Change Management (ACM) consultant analyzing meeting transcripts and notes from a change management trajectory.\n' +
@@ -485,14 +553,17 @@ function processTranscripts(data) {
       'OPEN QUESTIONS (unanswered):\n' + questionsContext + '\n\n' +
       'PREVIOUSLY ANSWERED QUESTIONS (only add NEW information if the content provides meaningful additions):\n' + (answeredQuestionsContext || '(none)') + '\n\n' +
       'INCOMPLETE TODOS:\n' + todosContext + '\n\n' +
+      'AGREEMENTS (update existing or fill empty agreements if the content addresses them):\n' + (agreementsContext || '(none)') + '\n\n' +
       'Analyze ALL the content and return a JSON object with:\n' +
       '1. "matched_activities": array of activity IDs that this content primarily addresses\n' +
       '2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "is_update": boolean, "source_entry_id": which entry ID the answer came from, "source_document": the source_document name from that entry } for questions answered or updated. For previously answered questions, set "is_update" to true and provide ONLY the new information.\n' +
       '3. "completed_todos": array of { "id": todo_id, "note": brief explanation, "source_entry_id": which entry ID, "source_document": the source_document name from that entry } for todos completed based on the content\n' +
       '4. "summary": a paragraph shortly listing the items that are to be added to the sheet\n' +
-      '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n\n' +
-      'Only include questions/todos where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
+      '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n' +
+      '6. "answered_agreements": array of { "id": agreement_id, "answer": the agreement text, "is_update": boolean, "source_entry_id": which entry ID, "source_document": the source_document name from that entry } for agreements where the content provides or updates the answer\n\n' +
+      'Only include questions/todos/agreements where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
       'For previously answered questions, only include them if the transcript adds genuinely NEW information not already in the existing answer.\n' +
+      'For agreements: provide the agreement text if the content clearly establishes one. For existing agreements, only include if the transcript adds genuinely NEW information. Set "is_update" to true for existing agreements.\n' +
       'Return ONLY valid JSON, no markdown formatting.';
   }
 
@@ -768,6 +839,9 @@ function batchUpdate(operations) {
         case 'addTranscriptEntry': r = addTranscriptEntry(op.data); break;
         case 'updateTranscript': r = updateTranscript(op.data); break;
         case 'deleteTranscriptEntry': r = deleteTranscriptEntry(op.data); break;
+        case 'addAgreement': r = addAgreement(op.data); break;
+        case 'updateAgreement': r = updateAgreement(op.data); break;
+        case 'deleteAgreement': r = deleteAgreement(op.data.id); break;
         default: r = { error: 'Unknown batch action: ' + op.action };
       }
       results.push(r);
