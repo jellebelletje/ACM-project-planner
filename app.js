@@ -2668,18 +2668,12 @@ async function saveSettings() {
     start_date: document.getElementById('cfgStartDate').value,
     end_date: document.getElementById('cfgEndDate').value,
     total_duration_value: document.getElementById('cfgDurationValue').value.trim(),
-    duration_unit: document.getElementById('cfgDurationUnit').value
+    duration_unit: document.getElementById('cfgDurationUnit').value,
+    master_sheet_id: document.getElementById('cfgMasterSheetId').value.trim()
   };
 
   Object.assign(state.config, newConfig);
   queueWrite('updateConfig', newConfig);
-
-  // Master Sheet ID
-  const masterSheetId = document.getElementById('cfgMasterSheetId').value.trim();
-  if (masterSheetId !== (state.config.master_sheet_id || '')) {
-    queueWrite('updateConfig', { master_sheet_id: masterSheetId });
-    state.config.master_sheet_id = masterSheetId;
-  }
 
   // Config changes are critical — flush to API immediately, don't wait for debounce
   clearTimeout(debounceTimer);
