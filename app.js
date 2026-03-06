@@ -209,7 +209,7 @@ async function fetchAll() {
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
     const resp = await fetch(CONFIG.API_URL + '?action=getAll', { redirect: 'follow', signal: controller.signal });
     clearTimeout(timeout);
     const data = await resp.json();
