@@ -12,7 +12,9 @@ const SHEET_NAMES = {
   QUESTIONS: 'Questions',
   NOTES_LINKS: 'Notes_Links',
   MILESTONES: 'Technical_Milestones',
-  TIMESHEET: 'Timesheet',
+  TIMESHEET: 'Timesheet',  // Legacy — kept for backwards compat
+  TIME_SPENT: 'Time_Spent',
+  TIME_BILLED: 'Time_Billed',
   CONFIG: 'Project_Config'
 };
 
@@ -114,6 +116,18 @@ function doPost(e) {
       case 'deleteTimesheetEntry':
         result = deleteTimesheetEntry(body.data);
         break;
+      case 'addTimeSpentEntry':
+        result = addTimeSpentEntry(body.data);
+        break;
+      case 'deleteTimeSpentEntry':
+        result = deleteTimeSpentEntry(body.data);
+        break;
+      case 'addTimeBilledEntry':
+        result = addTimeBilledEntry(body.data);
+        break;
+      case 'deleteTimeBilledEntry':
+        result = deleteTimeBilledEntry(body.data);
+        break;
       case 'addActivity':
         result = addActivity(body.data);
         break;
@@ -148,7 +162,9 @@ function getAll() {
     questions: getQuestionsAll(),
     notes: getNotesLinksAll(),
     milestones: getMilestones(),
-    timesheet: getTimesheetAll(),
+    timesheet: getTimesheetAll(),  // Legacy
+    time_spent: getTimeSpentAll(),
+    time_billed: getTimeBilledAll(),
     config: getConfig()
   };
 }
@@ -189,6 +205,17 @@ function getTimesheetAll() {
   return getSheetData(SHEET_NAMES.TIMESHEET);
 }
 
+function getTimeSpentAll() {
+  try { return getSheetData(SHEET_NAMES.TIME_SPENT); }
+  catch (e) { return []; }
+}
+
+function getTimeBilledAll() {
+  try { return getSheetData(SHEET_NAMES.TIME_BILLED); }
+  catch (e) { return []; }
+}
+
+// Legacy timesheet functions (kept for backwards compat)
 function addTimesheetEntry(data) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TIMESHEET);
   if (!sheet) return { error: 'Timesheet sheet not found' };
@@ -201,6 +228,43 @@ function addTimesheetEntry(data) {
 function deleteTimesheetEntry(data) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TIMESHEET);
   if (!sheet) return { error: 'Timesheet sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, data.id);
+  if (rowIdx === -1) return { error: 'Entry not found: ' + data.id };
+  sheet.deleteRow(rowIdx);
+  return { success: true, id: data.id };
+}
+
+// New Time_Spent / Time_Billed functions
+function addTimeSpentEntry(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TIME_SPENT);
+  if (!sheet) return { error: 'Time_Spent sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: data.id };
+}
+
+function deleteTimeSpentEntry(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TIME_SPENT);
+  if (!sheet) return { error: 'Time_Spent sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, data.id);
+  if (rowIdx === -1) return { error: 'Entry not found: ' + data.id };
+  sheet.deleteRow(rowIdx);
+  return { success: true, id: data.id };
+}
+
+function addTimeBilledEntry(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TIME_BILLED);
+  if (!sheet) return { error: 'Time_Billed sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: data.id };
+}
+
+function deleteTimeBilledEntry(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TIME_BILLED);
+  if (!sheet) return { error: 'Time_Billed sheet not found' };
   const rowIdx = findRowIndex(sheet, 1, data.id);
   if (rowIdx === -1) return { error: 'Entry not found: ' + data.id };
   sheet.deleteRow(rowIdx);
@@ -433,6 +497,10 @@ function batchUpdate(operations) {
         case 'updateConfig': r = updateConfig(op.data); break;
         case 'addTimesheetEntry': r = addTimesheetEntry(op.data); break;
         case 'deleteTimesheetEntry': r = deleteTimesheetEntry(op.data); break;
+        case 'addTimeSpentEntry': r = addTimeSpentEntry(op.data); break;
+        case 'deleteTimeSpentEntry': r = deleteTimeSpentEntry(op.data); break;
+        case 'addTimeBilledEntry': r = addTimeBilledEntry(op.data); break;
+        case 'deleteTimeBilledEntry': r = deleteTimeBilledEntry(op.data); break;
         default: r = { error: 'Unknown batch action: ' + op.action };
       }
       results.push(r);

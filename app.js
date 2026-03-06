@@ -52,7 +52,8 @@ const state = {
   questions: [],
   notes: [],
   milestones: [],
-  timesheet: [],
+  timeSpent: [],
+  timeBilled: [],
   config: {},
   expandedActivityId: null,
   activeTab: {},
@@ -121,7 +122,8 @@ function saveToLocalCache() {
     questions: state.questions,
     notes: state.notes,
     milestones: state.milestones,
-    timesheet: state.timesheet,
+    timeSpent: state.timeSpent,
+    timeBilled: state.timeBilled,
     config: state.config,
     timestamp: Date.now()
   };
@@ -141,7 +143,8 @@ function loadFromLocalCache() {
         questions: data.questions || [],
         notes: data.notes || [],
         milestones: data.milestones || [],
-        timesheet: data.timesheet || [],
+        timeSpent: data.timeSpent || [],
+        timeBilled: data.timeBilled || [],
         config: data.config || {}
       });
       normalizePhaseNames();
@@ -165,7 +168,8 @@ async function fetchAll() {
         state.questions = data.questions || [];
         state.notes = data.notes || [];
         state.milestones = data.milestones || [];
-        state.timesheet = data.timesheet || [];
+        state.timeSpent = data.time_spent || [];
+        state.timeBilled = data.time_billed || [];
         state.config = data.config || {};
         normalizePhaseNames();
         saveToLocalCache();
@@ -181,7 +185,8 @@ async function fetchAll() {
       state.questions = data.questions || [];
       state.notes = data.notes || [];
       state.milestones = data.milestones || [];
-      state.timesheet = data.timesheet || [];
+      state.timeSpent = data.time_spent || [];
+      state.timeBilled = data.time_billed || [];
       state.config = data.config || {};
       normalizePhaseNames();
       saveToLocalCache();
@@ -205,7 +210,8 @@ async function fetchAll() {
     state.questions = data.questions || [];
     state.notes = data.notes || [];
     state.milestones = data.milestones || [];
-    state.timesheet = data.timesheet || [];
+    state.timeSpent = data.time_spent || [];
+    state.timeBilled = data.time_billed || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
     if (localConfig) {
       Object.assign(state.config, localConfig);
@@ -252,7 +258,8 @@ function retrySyncFromBanner() {
       state.questions = data.questions || [];
       state.notes = data.notes || [];
       state.milestones = data.milestones || [];
-      state.timesheet = data.timesheet || [];
+      state.timeSpent = data.time_spent || [];
+      state.timeBilled = data.time_billed || [];
       state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
       saveToLocalCache();
       const banner = document.getElementById('syncErrorBanner');
@@ -627,11 +634,29 @@ function renderSingleTimeline(barId, milestones, globalMin, globalMax, projectSt
 
 // ---- Time Tracking Helpers ----
 function getTotalBilledMinutes() {
-  return state.timesheet.reduce((sum, e) => sum + (parseInt(e.billed_minutes) || 0), 0);
+  return state.timeBilled.reduce((sum, e) => sum + (parseInt(e.billed_minutes) || 0), 0);
 }
 
 function getTotalSpentMinutes() {
-  return state.activities.reduce((sum, a) => sum + (parseInt(a.actual_minutes) || 0), 0);
+  return state.timeSpent.reduce((sum, e) => sum + (parseInt(e.spent_minutes) || 0), 0);
+}
+
+function getActivityTimeSpent(actId) {
+  return state.timeSpent.filter(e => e.activity_id === actId).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
+function getActivityTimeBilled(actId) {
+  return state.timeBilled.filter(e => e.activity_id === actId).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
+function recalcActualMinutes(actId) {
+  const total = getActivityTimeSpent(actId).reduce((sum, e) => sum + (parseInt(e.spent_minutes) || 0), 0);
+  const act = getActivity(actId);
+  if (act) {
+    act.actual_minutes = total;
+    queueWrite('updateActivity', { id: actId, actual_minutes: total });
+  }
+  return total;
 }
 
 function getTotalBudgetMinutes() {
@@ -682,17 +707,32 @@ function formatMinutesHM(mins) {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function addTimesheetEntry(activityId, billedMinutes, note) {
+function addTimeBilledEntry(activityId, billedMinutes, note) {
   const entry = {
-    id: generateId('TS'),
+    id: generateId('TB'),
     activity_id: activityId,
     date: new Date().toISOString().split('T')[0],
     billed_minutes: billedMinutes,
     note: note || '',
     created_at: new Date().toISOString()
   };
-  state.timesheet.push(entry);
-  queueWrite('addTimesheetEntry', entry);
+  state.timeBilled.push(entry);
+  queueWrite('addTimeBilledEntry', entry);
+  renderStatusBar();
+}
+
+function addTimeSpentEntry(activityId, spentMinutes, note) {
+  const entry = {
+    id: generateId('TS'),
+    activity_id: activityId,
+    date: new Date().toISOString().split('T')[0],
+    spent_minutes: spentMinutes,
+    note: note || '',
+    created_at: new Date().toISOString()
+  };
+  state.timeSpent.push(entry);
+  queueWrite('addTimeSpentEntry', entry);
+  recalcActualMinutes(activityId);
   renderStatusBar();
 }
 
@@ -837,7 +877,7 @@ function renderTimeEntryPopover() {
     mins = Math.round(mins / 5) * 5;
 
     const note = document.getElementById('teNote').value.trim();
-    addTimesheetEntry(actId, mins, note);
+    addTimeBilledEntry(actId, mins, note);
 
     state.timeEntryOpen = false;
     renderTimeEntryPopover();
@@ -1053,11 +1093,13 @@ function renderExpandedContent(act) {
       <button class="tab-btn${activeTab === 'todos' ? ' active' : ''}" data-tab="todos" data-act-id="${act.id}">To-dos</button>
       <button class="tab-btn${activeTab === 'questions' ? ' active' : ''}" data-tab="questions" data-act-id="${act.id}">Questions</button>
       <button class="tab-btn${activeTab === 'notes' ? ' active' : ''}" data-tab="notes" data-act-id="${act.id}">Notes & Links</button>
+      <button class="tab-btn${activeTab === 'timelog' ? ' active' : ''}" data-tab="timelog" data-act-id="${act.id}">Time Log</button>
     </div>
     <div class="tab-content${activeTab === 'overview' ? ' active' : ''}" data-tab-content="overview">${renderOverviewTab(act)}</div>
     <div class="tab-content${activeTab === 'todos' ? ' active' : ''}" data-tab-content="todos">${renderTodosTab(act)}</div>
     <div class="tab-content${activeTab === 'questions' ? ' active' : ''}" data-tab-content="questions">${renderQuestionsTab(act)}</div>
     <div class="tab-content${activeTab === 'notes' ? ' active' : ''}" data-tab-content="notes">${renderNotesTab(act)}</div>
+    <div class="tab-content${activeTab === 'timelog' ? ' active' : ''}" data-tab-content="timelog">${renderTimeLogTab(act)}</div>
   </div>`;
 }
 
@@ -1065,14 +1107,13 @@ function renderTimeAllocationField(act) {
   const effectivePct = getEffectiveAllocatedPct(act.id);
   const allocMins = getAllocatedMinutes(act.id);
   const budgetMins = getTotalBudgetMinutes();
-  const actualMins = parseInt(act.actual_minutes) || 0;
-  const actualH = Math.floor(actualMins / 60);
-  const actualM = actualMins % 60;
+  const spentEntries = getActivityTimeSpent(act.id);
+  const spentTotal = spentEntries.reduce((sum, e) => sum + (parseInt(e.spent_minutes) || 0), 0);
 
   // Comparison
   let comparisonHtml = '';
-  if (allocMins > 0 && actualMins > 0) {
-    const diff = actualMins - allocMins;
+  if (allocMins > 0 && spentTotal > 0) {
+    const diff = spentTotal - allocMins;
     const diffPct = Math.round(Math.abs(diff) / allocMins * 100);
     if (diff > 0) {
       comparisonHtml = `<span class="time-comparison-badge over">${diffPct}% over</span>`;
@@ -1083,17 +1124,17 @@ function renderTimeAllocationField(act) {
     }
   }
 
-  // Hours options for actual time (0-99)
-  let hoursOpts = '';
-  for (let i = 0; i <= 99; i++) {
-    hoursOpts += `<option value="${i}"${i === actualH ? ' selected' : ''}>${i}</option>`;
+  // Hours options for adding time (0-23)
+  let addHoursOpts = '';
+  for (let i = 0; i <= 23; i++) {
+    addHoursOpts += `<option value="${i}"${i === 1 ? ' selected' : ''}>${i}</option>`;
   }
 
   // Minutes options (5-min granularity)
-  let minsOpts = '';
+  let addMinsOpts = '';
   for (let i = 0; i < 60; i += 5) {
     const padded = String(i).padStart(2, '0');
-    minsOpts += `<option value="${i}"${i === actualM ? ' selected' : ''}>${padded}</option>`;
+    addMinsOpts += `<option value="${i}"${i === 0 ? ' selected' : ''}>${padded}</option>`;
   }
 
   return `<div class="overview-field time-allocation-section">
@@ -1109,13 +1150,18 @@ function renderTimeAllocationField(act) {
     </div>
     <label>Time Spent</label>
     <div class="time-alloc-row">
-      <div class="time-spent-inputs">
-        <select class="time-spent-hours" data-act-id="${act.id}">${hoursOpts}</select>
-        <span>h</span>
-        <select class="time-spent-mins" data-act-id="${act.id}">${minsOpts}</select>
-        <span>m</span>
+      <div class="time-spent-total">
+        <strong>${formatMinutesHM(spentTotal)}</strong>
         ${comparisonHtml}
       </div>
+    </div>
+    <div class="time-spent-add-form">
+      <select class="time-spent-add-hours" data-act-id="${act.id}">${addHoursOpts}</select>
+      <span>h</span>
+      <select class="time-spent-add-mins" data-act-id="${act.id}">${addMinsOpts}</select>
+      <span>m</span>
+      <input type="text" class="time-spent-add-note" data-act-id="${act.id}" placeholder="Note (optional)">
+      <button class="btn-small btn-add-time-spent" data-act-id="${act.id}">+ Add</button>
     </div>
   </div>`;
 }
@@ -1343,6 +1389,50 @@ function renderNotesTab(act) {
   return html;
 }
 
+function renderTimeLogTab(act) {
+  const spentEntries = getActivityTimeSpent(act.id);
+  const billedEntries = getActivityTimeBilled(act.id);
+  const spentTotal = spentEntries.reduce((sum, e) => sum + (parseInt(e.spent_minutes) || 0), 0);
+  const billedTotal = billedEntries.reduce((sum, e) => sum + (parseInt(e.billed_minutes) || 0), 0);
+  const unit = state.config.duration_unit || 'hours';
+
+  // Merge and sort by date descending
+  const allEntries = [
+    ...spentEntries.map(e => ({ ...e, type: 'spent', minutes: parseInt(e.spent_minutes) || 0 })),
+    ...billedEntries.map(e => ({ ...e, type: 'billed', minutes: parseInt(e.billed_minutes) || 0 }))
+  ].sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.created_at || '').localeCompare(a.created_at || ''));
+
+  let html = '<div class="time-log-tab">';
+  html += '<div class="time-log-summary">';
+  html += `<span>Total spent: <strong>${formatMinutesHM(spentTotal)}</strong></span>`;
+  html += `<span>Total billed: <strong>${formatMinutesHM(billedTotal)}</strong></span>`;
+  html += '</div>';
+
+  if (allEntries.length === 0) {
+    html += '<p class="time-log-empty">No time entries yet.</p>';
+  } else {
+    html += '<div class="time-log-entries">';
+    allEntries.forEach(entry => {
+      const typeClass = entry.type === 'spent' ? 'time-log-spent' : 'time-log-billed';
+      const typeLabel = entry.type === 'spent' ? 'Spent' : 'Billed';
+      const deleteBtn = entry.type === 'spent'
+        ? `<button class="time-log-delete" data-entry-id="${escapeHtml(entry.id)}" data-act-id="${escapeHtml(act.id)}" title="Delete entry">&times;</button>`
+        : '';
+      html += `<div class="time-log-entry ${typeClass}">
+        <span class="time-log-date">${entry.date ? formatDate(entry.date) : ''}</span>
+        <span class="time-log-type">${typeLabel}</span>
+        <span class="time-log-duration">${formatMinutesHM(entry.minutes)}</span>
+        <span class="time-log-note">${escapeHtml(entry.note || '')}</span>
+        ${deleteBtn}
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
 // ---- Event Handlers ----
 
 function expandActivity(actId) {
@@ -1440,19 +1530,20 @@ function attachExpandedEvents() {
     });
   });
 
-  // Time spent hours/minutes selects
-  container.querySelectorAll('.time-spent-hours, .time-spent-mins').forEach(el => {
-    el.addEventListener('change', () => {
-      const actId = el.dataset.actId;
-      const act = getActivity(actId);
-      if (!act) return;
-      const hoursEl = container.querySelector(`.time-spent-hours[data-act-id="${actId}"]`);
-      const minsEl = container.querySelector(`.time-spent-mins[data-act-id="${actId}"]`);
-      const totalMins = (parseInt(hoursEl.value) || 0) * 60 + (parseInt(minsEl.value) || 0);
-      act.actual_minutes = totalMins;
-      queueWrite('updateActivity', { id: actId, actual_minutes: totalMins });
+  // Add time spent entry
+  container.querySelectorAll('.btn-add-time-spent').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const actId = btn.dataset.actId;
+      const hoursEl = container.querySelector(`.time-spent-add-hours[data-act-id="${actId}"]`);
+      const minsEl = container.querySelector(`.time-spent-add-mins[data-act-id="${actId}"]`);
+      const noteEl = container.querySelector(`.time-spent-add-note[data-act-id="${actId}"]`);
+      const mins = (parseInt(hoursEl.value) || 0) * 60 + (parseInt(minsEl.value) || 0);
+      if (mins <= 0) return;
+      const note = noteEl ? noteEl.value.trim() : '';
+      addTimeSpentEntry(actId, mins, note);
+      clearCache();
       renderPhases();
-      renderStatusBar();
       attachExpandedEvents();
     });
   });
@@ -1765,6 +1856,22 @@ function attachExpandedEvents() {
       state.notes = state.notes.filter(n => n.id !== noteId);
       queueWrite('deleteNote', { id: noteId });
       renderPhases();
+      attachExpandedEvents();
+    });
+  });
+
+  // Delete time spent entry
+  container.querySelectorAll('.time-log-delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const entryId = btn.dataset.entryId;
+      const actId = btn.dataset.actId;
+      state.timeSpent = state.timeSpent.filter(e => e.id !== entryId);
+      queueWrite('deleteTimeSpentEntry', { id: entryId });
+      recalcActualMinutes(actId);
+      clearCache();
+      renderPhases();
+      renderStatusBar();
       attachExpandedEvents();
     });
   });
