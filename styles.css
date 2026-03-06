@@ -775,7 +775,7 @@ body {
 }
 
 .billed-fill {
-  background: #22c55e;
+  background: var(--status-completed);
 }
 
 .time-bar-value {
@@ -1070,13 +1070,17 @@ body {
   margin-left: auto;
   display: none;
   gap: 2px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 50px;
 }
 
 .activity-card:hover .card-move-arrows {
   display: flex;
 }
 
-.card-move-btn {
+.card-move-btn,
+.card-complete-btn {
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1087,6 +1091,23 @@ body {
   line-height: 1;
 }
 .card-move-btn:hover { background: #f0f2f5; color: var(--text); }
+.card-complete-btn {
+  border: none;
+  font-size: 1rem;
+  padding: 0;
+  opacity: 0.55;
+}
+.card-complete-btn:hover {
+  background: none;
+  opacity: 1;
+}
+.card-complete-btn.is-completed {
+  color: var(--status-completed);
+  opacity: 1;
+}
+.card-complete-btn.is-completed:hover {
+  opacity: 1;
+}
 
 /* Inactive card styling */
 .activity-card.status-inactive {
@@ -1386,6 +1407,40 @@ body {
 .time-allocation-section {
   grid-column: 1 / -1;
 }
+.time-section-row {
+  position: relative;
+  padding-right: 50%;
+}
+.time-section-row.expanded {
+  padding-right: 0;
+  display: flex;
+  gap: 1.5rem;
+}
+.time-section-left {
+  width: 100%;
+}
+.time-section-row.expanded .time-section-left {
+  flex: 1;
+  min-width: 0;
+}
+.time-section-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 48%;
+  overflow: hidden;
+}
+.time-section-right.expanded {
+  position: relative;
+  top: auto;
+  bottom: auto;
+  right: auto;
+  width: auto;
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
 .time-allocation-section label {
   font-weight: 600;
   font-size: 0.75rem;
@@ -1502,21 +1557,52 @@ body {
   font-size: 0.8rem;
   margin-top: 0.4rem;
 }
-.btn-add-time-spent {
-  padding: 0.35rem 0.8rem;
-  font-size: 0.78rem;
-  font-weight: 600;
+
+/* Time spent history on Overview tab */
+.time-spent-history-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.time-spent-history {
+  flex: 1;
+  overflow: hidden;
+}
+.time-spent-history.expanded {
+  overflow: visible;
+}
+.time-section-right.expanded {
+  overflow: visible;
+}
+.time-spent-entry {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  line-height: 1.6;
   white-space: nowrap;
-  background: #22c55e;
-  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.time-spent-history-fade {
+  position: absolute;
+  bottom: 1.4em;
+  left: 0;
+  right: 0;
+  height: 2.5em;
+  background: linear-gradient(to bottom, transparent, var(--bg-card));
+  pointer-events: none;
+}
+.time-spent-history-toggle {
+  background: none;
   border: none;
-  border-radius: 4px;
+  color: var(--accent);
   cursor: pointer;
-  transition: background 0.15s;
+  font-size: 0.75rem;
+  padding: 0;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
 }
-.btn-add-time-spent:hover {
-  background: #16a34a;
-}
+.time-spent-history-toggle:hover { text-decoration: underline; }
 
 /* Time Log tab */
 .time-log-tab {
@@ -1566,7 +1652,7 @@ body {
   color: var(--accent);
 }
 .time-log-billed .time-log-type {
-  color: #22c55e;
+  color: var(--status-completed);
 }
 .time-log-duration {
   min-width: 4rem;
@@ -1887,6 +1973,22 @@ body {
 
 .btn-small:hover { background: var(--border-light); }
 .btn-small:active { transform: translateY(1px); }
+.btn-add-time-spent {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--status-completed);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-add-time-spent:hover {
+  background: var(--status-completed);
+  filter: brightness(0.85);
+}
 
 .btn-primary {
   padding: 8px 16px;

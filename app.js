@@ -398,6 +398,27 @@ function getPhases() {
   return phases;
 }
 
+// ---- Phase auto-advance ----
+function checkPhaseAdvance() {
+  const phases = getPhases();
+  if (phases.length === 0) return;
+  const current = state.config.current_phase || phases[0];
+  const idx = phases.indexOf(current);
+  if (idx === -1 || idx >= phases.length - 1) return; // unknown or already last phase
+
+  // Check if all non-inactive activities in the current phase are completed
+  const acts = getPhaseActivities(current);
+  const activeActs = acts.filter(a => a.status !== 'inactive');
+  if (activeActs.length === 0) return; // no activities to complete
+  const allDone = activeActs.every(a => a.status === 'completed');
+  if (!allDone) return;
+
+  // Advance to next phase
+  const nextPhase = phases[idx + 1];
+  state.config.current_phase = nextPhase;
+  queueWrite('updateConfig', { current_phase: nextPhase });
+}
+
 // ---- Search ----
 function matchesSearch(text) {
   if (!state.searchQuery) return true;
@@ -707,6 +728,36 @@ function formatMinutesHM(mins) {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function formatEntryLine(minutes, dateStr, createdAt, activityName) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const duration = `${h}' ${String(m).padStart(2, '0')}''`;
+
+  // Parse date (YYYY-MM-DD) for display
+  let dateDisplay = dateStr || '';
+  if (dateStr && dateStr.length >= 10) {
+    const parts = dateStr.split('-');
+    const day = parseInt(parts[2], 10);
+    const mon = MONTH_NAMES[parseInt(parts[1], 10) - 1] || parts[1];
+    const year = parts[0];
+    dateDisplay = `${day} ${mon} ${year}`;
+  }
+
+  // Parse time from created_at (ISO string)
+  let timeDisplay = '';
+  if (createdAt) {
+    const d = new Date(createdAt);
+    if (!isNaN(d.getTime())) {
+      timeDisplay = ` at ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+  }
+
+  const prefix = activityName ? `${activityName}: ` : '';
+  return `${prefix}${duration} logged on ${dateDisplay}${timeDisplay}`;
+}
+
 function addTimeBilledEntry(activityId, billedMinutes, note) {
   const entry = {
     id: generateId('TB'),
@@ -758,9 +809,24 @@ function renderStatusBar() {
   const budgetLabel = budgetMins > 0
     ? `<strong>${formatMinutes(billedMins, unit)}</strong> / ${formatMinutes(budgetMins, unit)}`
     : `<strong>${formatMinutes(billedMins, unit)}</strong> billed`;
+
+  // Build billing tooltip from Time_Billed entries
+  const sortedBilled = [...state.timeBilled].sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.created_at || '').localeCompare(a.created_at || ''));
+  let billedTooltip = '';
+  if (sortedBilled.length > 0) {
+    billedTooltip = sortedBilled.map(e => {
+      const act = getActivity(e.activity_id);
+      const actName = act ? (act.title || e.activity_id) : e.activity_id;
+      const mins = parseInt(e.billed_minutes) || 0;
+      return formatEntryLine(mins, e.date, e.created_at, actName);
+    }).join('\n');
+  } else {
+    billedTooltip = 'No billed time entries yet';
+  }
+
   const budgetHtml = `
     <span class="status-item budget-item">
-      <span class="budget-bar" title="${budgetMins > 0 ? formatMinutes(billedMins, unit) + ' of ' + formatMinutes(budgetMins, unit) + ' billed' : 'No budget set'}">
+      <span class="budget-bar" title="${escapeHtml(billedTooltip)}">
         <span class="budget-bar-fill" style="width:${pct}%;background:${barColor}"></span>
       </span>
       <span class="budget-label">${budgetLabel}</span>
@@ -1074,6 +1140,7 @@ function renderCard(act) {
       <span class="card-move-arrows">
         <button class="card-move-btn" data-move-id="${escapeHtml(act.id)}" data-move-dir="-1" title="Move left">&#9664;</button>
         <button class="card-move-btn" data-move-id="${escapeHtml(act.id)}" data-move-dir="1" title="Move right">&#9654;</button>
+        <button class="card-complete-btn${act.status === 'completed' ? ' is-completed' : ''}" data-complete-id="${escapeHtml(act.id)}" title="${act.status === 'completed' ? 'Mark as not started' : 'Mark as completed'}">${act.status === 'completed' ? '☑' : '☐'}</button>
       </span>
     </div>`;
   } else {
@@ -1137,31 +1204,56 @@ function renderTimeAllocationField(act) {
     addMinsOpts += `<option value="${i}"${i === 0 ? ' selected' : ''}>${padded}</option>`;
   }
 
+  // Build history HTML
+  let historyHtml = '';
+  if (spentEntries.length > 0) {
+    historyHtml = `
+    <div class="time-spent-history-wrapper" data-act-id="${act.id}">
+      <div class="time-spent-history" data-act-id="${act.id}">
+        ${spentEntries.map(e => {
+          const mins = parseInt(e.spent_minutes) || 0;
+          const line = formatEntryLine(mins, e.date, e.created_at);
+          const note = e.note ? ` — ${escapeHtml(e.note)}` : '';
+          return `<div class="time-spent-entry">${escapeHtml(line)}${note}</div>`;
+        }).join('')}
+      </div>
+      <div class="time-spent-history-fade"></div>
+      ${spentEntries.length > 3 ? `<button class="time-spent-history-toggle" data-act-id="${act.id}">Show all (${spentEntries.length} entries)</button>` : ''}
+    </div>`;
+  }
+
   return `<div class="overview-field time-allocation-section">
-    <label>Time Allocation</label>
-    <div class="time-alloc-row">
-      <div class="time-alloc-projected">
-        <input type="number" class="alloc-pct-input" value="${getActivityAllocatedPct(act)}" min="0" max="100" step="0.5"
-               data-field="allocated_pct" data-act-id="${act.id}">
-        <span class="alloc-pct-label">%</span>
-        <span class="alloc-projected-time">${budgetMins > 0 ? formatMinutesHM(allocMins) + ' of ' + formatMinutesHM(budgetMins) : 'No budget set'}</span>
-        <span class="alloc-effective-pct">(effective: ${effectivePct.toFixed(1)}%)</span>
+    <div class="time-section-row">
+      <div class="time-section-left">
+        <label>Time Allocation</label>
+        <div class="time-alloc-row">
+          <div class="time-alloc-projected">
+            <input type="number" class="alloc-pct-input" value="${getActivityAllocatedPct(act)}" min="0" max="100" step="0.5"
+                   data-field="allocated_pct" data-act-id="${act.id}">
+            <span class="alloc-pct-label">%</span>
+            <span class="alloc-projected-time">${budgetMins > 0 ? formatMinutesHM(allocMins) + ' of ' + formatMinutesHM(budgetMins) : 'No budget set'}</span>
+            <span class="alloc-effective-pct">(effective: ${effectivePct.toFixed(1)}%)</span>
+          </div>
+        </div>
+        <label>Time Spent</label>
+        <div class="time-alloc-row">
+          <div class="time-spent-total">
+            <strong>${formatMinutesHM(spentTotal)}</strong>
+            ${comparisonHtml}
+          </div>
+        </div>
+        <div class="time-spent-add-form">
+          <select class="time-spent-add-hours" data-act-id="${act.id}">${addHoursOpts}</select>
+          <span>h</span>
+          <select class="time-spent-add-mins" data-act-id="${act.id}">${addMinsOpts}</select>
+          <span>m</span>
+          <input type="text" class="time-spent-add-note" data-act-id="${act.id}" placeholder="Note (optional)">
+          <button class="btn-small btn-add-time-spent" data-act-id="${act.id}">+ Add</button>
+        </div>
       </div>
-    </div>
-    <label>Time Spent</label>
-    <div class="time-alloc-row">
-      <div class="time-spent-total">
-        <strong>${formatMinutesHM(spentTotal)}</strong>
-        ${comparisonHtml}
+      <div class="time-section-right">
+        ${historyHtml}
       </div>
-    </div>
-    <div class="time-spent-add-form">
-      <select class="time-spent-add-hours" data-act-id="${act.id}">${addHoursOpts}</select>
-      <span>h</span>
-      <select class="time-spent-add-mins" data-act-id="${act.id}">${addMinsOpts}</select>
-      <span>m</span>
-      <input type="text" class="time-spent-add-note" data-act-id="${act.id}" placeholder="Note (optional)">
-      <button class="btn-small btn-add-time-spent" data-act-id="${act.id}">+ Add</button>
     </div>
   </div>`;
 }
@@ -1520,6 +1612,7 @@ function attachExpandedEvents() {
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
         if (field === 'status') {
+          checkPhaseAdvance();
           renderAll();
         } else {
           renderPhases();
@@ -1614,6 +1707,26 @@ function attachExpandedEvents() {
       content.style.display = isVisible ? 'none' : 'block';
       if (wrapper) wrapper.style.display = isVisible ? '' : 'none';
       btn.textContent = isVisible ? 'Description' : '▲ Hide Description';
+    });
+  });
+
+  // Time spent history toggle
+  container.querySelectorAll('.time-spent-history-toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const actId = btn.dataset.actId;
+      const history = container.querySelector(`.time-spent-history[data-act-id="${actId}"]`);
+      const fade = btn.parentElement.querySelector('.time-spent-history-fade');
+      const rightCol = btn.closest('.time-section-right');
+      const row = btn.closest('.time-section-row');
+      if (!history) return;
+      const isExpanded = history.classList.contains('expanded');
+      history.classList.toggle('expanded');
+      if (rightCol) rightCol.classList.toggle('expanded');
+      if (row) row.classList.toggle('expanded');
+      if (fade) fade.style.display = isExpanded ? '' : 'none';
+      const count = history.querySelectorAll('.time-spent-entry').length;
+      btn.textContent = isExpanded ? `Show all (${count} entries)` : '▲ Show less';
     });
   });
 
@@ -1965,6 +2078,7 @@ function setActivityStatus(actId, newStatus) {
   if (!act) return;
   act.status = newStatus;
   queueWrite('updateActivity', { id: act.id, status: newStatus });
+  checkPhaseAdvance();
   state.expandedActivityId = null;
   renderAll();
   attachExpandedEvents();
@@ -2343,13 +2457,30 @@ async function init() {
     const moveBtn = target.closest('.card-move-btn');
     if (moveBtn) { e.stopPropagation(); moveCard(moveBtn.dataset.moveId, parseInt(moveBtn.dataset.moveDir)); return; }
 
+    // Quick-complete checkbox on card
+    const completeBtn = target.closest('.card-complete-btn');
+    if (completeBtn) {
+      e.stopPropagation();
+      const actId = completeBtn.dataset.completeId;
+      const act = getActivity(actId);
+      if (act) {
+        const newStatus = act.status === 'completed' ? 'not_started' : 'completed';
+        act.status = newStatus;
+        queueWrite('updateActivity', { id: actId, status: newStatus });
+        checkPhaseAdvance();
+        renderAll();
+        attachExpandedEvents();
+      }
+      return;
+    }
+
     // Log time button on meta cards
     const logBtn = target.closest('.card-log-time-btn');
     if (logBtn) { e.stopPropagation(); openTimeEntryForActivity(logBtn.dataset.logTimeId); return; }
 
     // Card click to expand (only collapsed cards)
     const card = target.closest('.activity-card');
-    if (card && !card.classList.contains('expanded') && !target.closest('.card-move-btn') && !target.closest('.card-log-time-btn')) {
+    if (card && !card.classList.contains('expanded') && !target.closest('.card-move-btn') && !target.closest('.card-log-time-btn') && !target.closest('.card-complete-btn')) {
       expandActivity(card.dataset.activityId);
       return;
     }
