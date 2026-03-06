@@ -1921,9 +1921,9 @@ body {
   line-height: 1.5;
   resize: none;
   overflow: hidden;
-  min-height: calc(10 * 1.5em + 12px);
-  max-height: calc(20 * 1.5em + 12px);
-  transition: border-color 0.15s, max-height 0.3s ease;
+  min-height: 2.5em;
+  max-height: calc(10 * 1.5em + 12px);
+  transition: border-color 0.15s;
 }
 
 .answer-field.expanded {

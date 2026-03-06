@@ -1593,19 +1593,24 @@ function expandActivity(actId) {
 
 function autoSizeAnswer(ta) {
   const lineH = parseFloat(getComputedStyle(ta).lineHeight) || (parseFloat(getComputedStyle(ta).fontSize) * 1.5);
-  const maxCollapsed = Math.round(lineH * 20 + 12); // 20 lines
+  const maxCollapsed = Math.round(lineH * 10 + 12); // 10 lines cap
   const wrap = ta.closest('.answer-field-wrap');
   if (!wrap) return;
 
-  // Temporarily remove max-height to measure full scroll height
+  // Measure full content height
   ta.style.maxHeight = 'none';
   ta.style.height = 'auto';
   const scrollH = ta.scrollHeight;
-  ta.style.removeProperty('height');
   ta.style.removeProperty('max-height');
 
-  // If content fits within 20 lines, let CSS handle it (auto-expand up to max-height)
-  // If content exceeds 20 lines, show/keep the "Read more" button
+  // Auto-fit height to content, capped at 10 lines (unless expanded)
+  if (ta.classList.contains('expanded')) {
+    ta.style.height = scrollH + 'px';
+  } else {
+    ta.style.height = Math.min(scrollH, maxCollapsed) + 'px';
+  }
+
+  // Show "Read more" if content exceeds 10 lines
   let btn = wrap.querySelector('.answer-read-more');
   if (scrollH > maxCollapsed && !ta.classList.contains('expanded')) {
     if (!btn) {
@@ -1613,13 +1618,23 @@ function autoSizeAnswer(ta) {
       btn.className = 'answer-read-more';
       btn.textContent = 'Read more ▾';
       btn.addEventListener('click', () => {
-        ta.classList.toggle('expanded');
-        btn.textContent = ta.classList.contains('expanded') ? 'Show less ▴' : 'Read more ▾';
+        ta.classList.add('expanded');
+        autoSizeAnswer(ta);
+        btn.textContent = 'Show less ▴';
       });
       wrap.appendChild(btn);
     }
-  } else if (scrollH <= maxCollapsed && btn && !ta.classList.contains('expanded')) {
-    btn.remove();
+  } else if (scrollH <= maxCollapsed) {
+    if (btn) btn.remove();
+  }
+
+  // Handle "Show less" toggle
+  if (btn && ta.classList.contains('expanded')) {
+    btn.textContent = 'Show less ▴';
+    btn.onclick = () => {
+      ta.classList.remove('expanded');
+      autoSizeAnswer(ta);
+    };
   }
 }
 
