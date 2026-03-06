@@ -10,23 +10,27 @@ CONTENT:
 ACTIVITIES:
 {{ACTIVITIES}}
 
-OPEN QUESTIONS:
+OPEN QUESTIONS (unanswered — provide a full answer if the content addresses them):
 {{QUESTIONS}}
+
+PREVIOUSLY ANSWERED QUESTIONS (already have an answer — only add NEW information if the content provides meaningful additions):
+{{ANSWERED_QUESTIONS}}
 
 INCOMPLETE TODOS:
 {{TODOS}}
 
 Analyze ALL the content thoroughly and return a JSON object with:
 1. "matched_activities": array of activity IDs that this content primarily addresses
-2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "source_entry_id": which entry ID the answer came from, "source_document": the source_document name from that entry's header } for questions where the content clearly provides an answer
+2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "is_update": boolean, "source_entry_id": which entry ID the answer came from, "source_document": the source_document name from that entry's header } for questions where the content clearly provides an answer or new information
 3. "completed_todos": array of { "id": todo_id, "note": brief explanation of how it was completed, "source_entry_id": which entry ID, "source_document": the source_document name from that entry's header } for todos that the content indicates have been completed
-4. "summary": a paragraph summarizing what ACM-relevant insights were extracted across all entries
+4. "summary": a paragraph shortly listing the items that are to be added to the sheet
 5. "entry_summaries": array of { "id": entry_id, "summary": short summary of that entry's key points, "activity_id": comma-separated matched activity IDs } for each processed entry
 
 Important rules:
 - Only include questions/todos where the content clearly provides the answer or completion. Be conservative — do not guess or infer beyond what is explicitly stated.
 - The "source_document" field must exactly match the source_document name shown in the entry header.
-- For answered questions, provide concise but complete answers based on what was discussed.
+- For OPEN (unanswered) questions: provide concise but complete answers based on what was discussed. Set "is_update" to false.
+- For PREVIOUSLY ANSWERED questions: ONLY include them in "answered_questions" if the transcript adds genuinely NEW and meaningful information that is not already covered by the existing answer. Do NOT repeat or rephrase what is already known. Set "is_update" to true and provide ONLY the new information in the "answer" field — do not repeat the existing answer. If the transcript merely confirms what is already known without adding substance, do NOT include that question.
 - For completed todos, explain briefly what evidence in the content shows the todo is done.
 
 Return ONLY valid JSON, no markdown formatting.

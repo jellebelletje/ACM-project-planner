@@ -2551,7 +2551,7 @@ async function processAllTranscripts() {
       return;
     }
 
-    openReviewModal(result.proposals, result.processed_entry_ids);
+    openReviewModal(result.proposals, result.processed_entry_ids, result.prompt_source);
   } catch (e) {
     loading.classList.add('hidden');
     alert('Processing failed: ' + e.message);
@@ -2566,12 +2566,20 @@ async function processAllTranscripts() {
 let pendingProposals = null;
 let pendingEntryIds = null;
 
-function openReviewModal(proposals, entryIds) {
+function openReviewModal(proposals, entryIds, promptSource) {
   pendingProposals = proposals;
   pendingEntryIds = entryIds;
 
   const body = document.getElementById('reviewModalBody');
   let html = '';
+
+  // Warn if fallback prompt was used
+  if (promptSource === 'fallback') {
+    html += `<div class="review-fallback-warning">
+      <strong>Note:</strong> The Prompts sheet could not be read — a built-in fallback prompt was used.
+      Check that a <em>Prompts</em> tab exists with a <code>process_all_v1</code> key.
+    </div>`;
+  }
 
   // Summary
   if (proposals.summary) {
@@ -2600,13 +2608,16 @@ function openReviewModal(proposals, entryIds) {
       <h3 class="review-section-title">Proposed Question Answers (${proposals.answered_questions.length})</h3>
       ${proposals.answered_questions.map((aq, i) => {
         const q = getQuestion(aq.id);
+        const isUpdate = aq.is_update && q && q.answer;
+        const label = isUpdate ? 'New information to append' : 'Proposed answer';
         return `<div class="review-item">
           <label class="review-checkbox">
             <input type="checkbox" checked data-review-type="question" data-review-idx="${i}">
             <div class="review-item-content">
-              <div class="review-item-id">${escapeHtml(aq.id)}</div>
+              <div class="review-item-id">${escapeHtml(aq.id)}${isUpdate ? ' <span class="review-update-badge">Update</span>' : ''}</div>
               <div class="review-item-question">${q ? escapeHtml(q.question_text) : 'Unknown question'}</div>
-              <div class="review-item-answer"><strong>Proposed answer:</strong> ${escapeHtml(aq.answer)}</div>
+              ${isUpdate ? `<div class="review-item-existing"><strong>Existing answer:</strong> ${escapeHtml(truncate(q.answer, 200))}</div>` : ''}
+              <div class="review-item-answer"><strong>${label}:</strong> ${escapeHtml(aq.answer)}</div>
               ${aq.source_document ? `<div class="review-item-source">Source: ${escapeHtml(aq.source_document)}</div>` : ''}
             </div>
           </label>
@@ -2662,8 +2673,16 @@ function applySelectedProposals() {
         const q = getQuestion(aq.id);
         if (q) {
           const sourceDoc = aq.source_document || 'transcript';
-          const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
-          const fullAnswer = aq.answer + attribution;
+          let fullAnswer;
+          if (aq.is_update && q.answer) {
+            // Append new info to existing answer
+            const attribution = '\n\n[updated by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+            fullAnswer = q.answer + '\n\n' + aq.answer + attribution;
+          } else {
+            // New answer for previously unanswered question
+            const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+            fullAnswer = aq.answer + attribution;
+          }
           q.answer = fullAnswer;
           q.is_answered = true;
           queueWrite('updateQuestion', { id: aq.id, answer: fullAnswer, is_answered: true });

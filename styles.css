@@ -1342,6 +1342,44 @@ body {
   margin-top: 4px;
 }
 
+.review-fallback-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+.review-fallback-warning code {
+  background: rgba(0,0,0,0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+.review-update-badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 8px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.review-item-existing {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: var(--bg-card);
+  border-left: 2px solid var(--border);
+  border-radius: 4px;
+}
+
 .dep-warning {
   background: #fef3c7;
   color: #92400e;

@@ -420,8 +420,12 @@ function processTranscripts(data) {
 
   // 2. Read context data
   var activities = getActivities();
-  var questions = getSheetData(SHEET_NAMES.QUESTIONS).filter(function(q) {
+  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
+  var openQuestions = allQuestions.filter(function(q) {
     return !q.is_answered || q.is_answered === 'FALSE' || q.is_answered === false;
+  });
+  var answeredQuestions = allQuestions.filter(function(q) {
+    return q.is_answered && q.is_answered !== 'FALSE' && q.is_answered !== false && q.answer;
   });
   var todos = getSheetData(SHEET_NAMES.TODOS).filter(function(t) {
     return !t.is_done || t.is_done === 'FALSE' || t.is_done === false;
@@ -446,9 +450,15 @@ function processTranscripts(data) {
     return a.id + ': ' + a.title + ' — ' + (a.intro_text || '');
   }).join('\n');
 
-  var questionsContext = questions.map(function(q) {
+  var questionsContext = openQuestions.map(function(q) {
     return q.id + ' (Activity ' + q.activity_id + '): ' + q.question_text;
   }).join('\n');
+
+  var answeredQuestionsContext = answeredQuestions.map(function(q) {
+    // Strip previous AI attribution tags from the answer to keep context clean
+    var cleanAnswer = (q.answer || '').replace(/\n\n\[answered by AI on [^\]]+\]/g, '').replace(/\n\n\[updated by AI on [^\]]+\]/g, '').trim();
+    return q.id + ' (Activity ' + q.activity_id + '): ' + q.question_text + '\nExisting answer: ' + cleanAnswer;
+  }).join('\n\n');
 
   var todosContext = todos.map(function(t) {
     return t.id + ' (Activity ' + t.activity_id + '): ' + t.text;
@@ -457,12 +467,14 @@ function processTranscripts(data) {
   // 6. Build prompt — load from Prompts sheet (latest version), with fallback
   var promptTemplate = getLatestPrompt('process_all');
   var prompt;
+  var promptSource = promptTemplate ? 'sheet' : 'fallback';
   if (promptTemplate) {
     prompt = promptTemplate
       .replace(/\{\{ENTRY_COUNT\}\}/g, String(unprocessed.length))
       .replace(/\{\{CONTENT\}\}/g, combinedContent)
       .replace(/\{\{ACTIVITIES\}\}/g, activitiesContext)
       .replace(/\{\{QUESTIONS\}\}/g, questionsContext)
+      .replace(/\{\{ANSWERED_QUESTIONS\}\}/g, answeredQuestionsContext || '(none)')
       .replace(/\{\{TODOS\}\}/g, todosContext);
   } else {
     // Hardcoded fallback if Prompts sheet is missing or empty
@@ -470,15 +482,17 @@ function processTranscripts(data) {
       'There are ' + unprocessed.length + ' new entries to process.\n\n' +
       'CONTENT:\n' + combinedContent + '\n\n' +
       'ACTIVITIES:\n' + activitiesContext + '\n\n' +
-      'OPEN QUESTIONS:\n' + questionsContext + '\n\n' +
+      'OPEN QUESTIONS (unanswered):\n' + questionsContext + '\n\n' +
+      'PREVIOUSLY ANSWERED QUESTIONS (only add NEW information if the content provides meaningful additions):\n' + (answeredQuestionsContext || '(none)') + '\n\n' +
       'INCOMPLETE TODOS:\n' + todosContext + '\n\n' +
       'Analyze ALL the content and return a JSON object with:\n' +
       '1. "matched_activities": array of activity IDs that this content primarily addresses\n' +
-      '2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "source_entry_id": which entry ID the answer came from, "source_document": the source_document name from that entry } for questions answered in the content\n' +
+      '2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "is_update": boolean, "source_entry_id": which entry ID the answer came from, "source_document": the source_document name from that entry } for questions answered or updated. For previously answered questions, set "is_update" to true and provide ONLY the new information.\n' +
       '3. "completed_todos": array of { "id": todo_id, "note": brief explanation, "source_entry_id": which entry ID, "source_document": the source_document name from that entry } for todos completed based on the content\n' +
-      '4. "summary": a paragraph summarizing what ACM-relevant insights were extracted across all entries\n' +
+      '4. "summary": a paragraph shortly listing the items that are to be added to the sheet\n' +
       '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n\n' +
       'Only include questions/todos where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
+      'For previously answered questions, only include them if the transcript adds genuinely NEW information not already in the existing answer.\n' +
       'Return ONLY valid JSON, no markdown formatting.';
   }
 
@@ -512,7 +526,8 @@ function processTranscripts(data) {
     return {
       success: true,
       processed_entry_ids: unprocessed.map(function(e) { return e.id; }),
-      proposals: analysis
+      proposals: analysis,
+      prompt_source: promptSource
     };
   } catch (err) {
     return { error: 'Processing failed: ' + err.message };
