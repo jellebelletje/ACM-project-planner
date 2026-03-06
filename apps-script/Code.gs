@@ -174,9 +174,8 @@ function doPost(e) {
 
 function getAll() {
   var config = getConfig();
-  var hasClaudeKey = !!config.claude_api_key;
-  delete config.claude_api_key;  // Never send API key to browser
-  config.has_claude_api_key = hasClaudeKey;
+  // Check master sheet for Claude API key (never send the key itself to browser)
+  config.has_claude_api_key = !!getClaudeApiKey(config);
 
   return {
     activities: getActivities(),
@@ -191,6 +190,30 @@ function getAll() {
     transcripts: getTranscriptsAll(),
     config: config
   };
+}
+
+/**
+ * Read the Claude API key from the master registry sheet.
+ * Requires master_sheet_id to be set in the project's Project_Config tab.
+ */
+function getClaudeApiKey(optConfig) {
+  try {
+    var config = optConfig || getConfig();
+    var masterSheetId = config.master_sheet_id;
+    if (!masterSheetId) return null;
+    var masterSS = SpreadsheetApp.openById(masterSheetId);
+    var configSheet = masterSS.getSheetByName('Config');
+    if (!configSheet) return null;
+    var lastRow = configSheet.getLastRow();
+    if (lastRow < 2) return null;
+    var data = configSheet.getRange(2, 1, lastRow - 1, 2).getValues();
+    for (var i = 0; i < data.length; i++) {
+      if (data[i][0] === 'claude_api_key') return data[i][1] || null;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
 }
 
 function getActivities() {
@@ -372,10 +395,9 @@ function processTranscripts(data) {
     return !t.is_done || t.is_done === 'FALSE' || t.is_done === false;
   });
 
-  // 3. Get API key from config (read directly, never sent to browser)
-  var config = getConfig();
-  var apiKey = config.claude_api_key;
-  if (!apiKey) return { error: 'Claude API key not configured. Add it in Project Settings.' };
+  // 3. Get API key from master sheet (never sent to browser)
+  var apiKey = getClaudeApiKey();
+  if (!apiKey) return { error: 'Claude API key not configured. Add it to the master sheet Config tab.' };
 
   // 4. Build combined content from all unprocessed entries
   var combinedContent = unprocessed.map(function(entry) {

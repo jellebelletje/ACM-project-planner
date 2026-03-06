@@ -131,7 +131,7 @@
             <span class="field-hint" id="durationHint" style="display:none;">1 day = 8 hours</span>
           </label>
           <label>API URL<input type="text" id="cfgApiUrl" placeholder="https://script.google.com/macros/s/.../exec"></label>
-          <label>Claude API Key<input type="password" id="cfgClaudeApiKey" placeholder="Enter your Anthropic API key"></label>
+          <label>Master Sheet ID<input type="text" id="cfgMasterSheetId" placeholder="The ID from your master registry sheet URL"></label>
           <div class="modal-actions">
             <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
           </div>
@@ -212,7 +212,7 @@
             <button type="button" class="tr-type-btn active" id="trTypeExternal" onclick="setTranscriptType('external')">External</button>
           </div>
           <label>Content
-            <textarea id="trUploadContent" rows="12" placeholder="Paste transcript or notes here..." oninput="updateTranscriptCharCount()"></textarea>
+            <textarea id="trUploadContent" rows="12" maxlength="50000" placeholder="Paste transcript or notes here..." oninput="updateTranscriptCharCount()"></textarea>
           </label>
           <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem;">
             <label style="margin-bottom:0;flex:1;">Or upload .txt file

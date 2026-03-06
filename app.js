@@ -2370,15 +2370,21 @@ function handleTranscriptFile() {
   reader.readAsText(file);
 }
 
+const TRANSCRIPT_MAX_CHARS = 50000; // Google Sheets cell limit
+
 function updateTranscriptCharCount() {
-  const content = document.getElementById('trUploadContent').value;
-  const count = content.length;
+  const textarea = document.getElementById('trUploadContent');
+  const count = textarea.value.length;
   const el = document.getElementById('trCharCount');
-  if (count > 45000) {
-    el.textContent = count.toLocaleString() + ' chars (warning: exceeds 45,000)';
+  if (count > TRANSCRIPT_MAX_CHARS) {
+    textarea.value = textarea.value.substring(0, TRANSCRIPT_MAX_CHARS);
+    el.textContent = TRANSCRIPT_MAX_CHARS.toLocaleString() + ' / ' + TRANSCRIPT_MAX_CHARS.toLocaleString() + ' (limit reached)';
+    el.style.color = 'var(--danger)';
+  } else if (count > 40000) {
+    el.textContent = count.toLocaleString() + ' / ' + TRANSCRIPT_MAX_CHARS.toLocaleString();
     el.style.color = 'var(--danger)';
   } else if (count > 0) {
-    el.textContent = count.toLocaleString() + ' chars';
+    el.textContent = count.toLocaleString() + ' / ' + TRANSCRIPT_MAX_CHARS.toLocaleString();
     el.style.color = 'var(--text-light)';
   } else {
     el.textContent = '';
@@ -2388,6 +2394,7 @@ function updateTranscriptCharCount() {
 function saveTranscriptEntry() {
   const content = document.getElementById('trUploadContent').value.trim();
   if (!content) { alert('Please enter or upload transcript content.'); return; }
+  if (content.length > TRANSCRIPT_MAX_CHARS) { alert('Content exceeds the 50,000 character limit. Please shorten it.'); return; }
 
   const entry = {
     id: generateId('TR'),
@@ -2422,7 +2429,7 @@ async function processAllTranscripts() {
   if (unprocessed.length === 0) { alert('No unprocessed entries.'); return; }
 
   if (!state.config.has_claude_api_key) {
-    alert('Claude API key not configured. Add it in Project Settings.');
+    alert('Claude API key not found. Add it to the master sheet Config tab, and make sure Master Sheet ID is set in Project Settings.');
     return;
   }
 
@@ -2644,11 +2651,7 @@ function openSettings() {
   updateDurationHint();
   document.getElementById('cfgDurationUnit').addEventListener('change', updateDurationHint);
   document.getElementById('cfgApiUrl').value = CONFIG.API_URL || '';
-  // Claude API key: show placeholder if configured, empty if not
-  document.getElementById('cfgClaudeApiKey').value = '';
-  document.getElementById('cfgClaudeApiKey').placeholder = state.config.has_claude_api_key
-    ? '(key configured \u2014 leave blank to keep)'
-    : 'Enter your Anthropic API key';
+  document.getElementById('cfgMasterSheetId').value = state.config.master_sheet_id || '';
   document.getElementById('settingsModal').style.display = 'flex';
 }
 
@@ -2671,11 +2674,11 @@ async function saveSettings() {
   Object.assign(state.config, newConfig);
   queueWrite('updateConfig', newConfig);
 
-  // Claude API key: only send if user entered a new value (avoid overwriting with empty)
-  const claudeApiKey = document.getElementById('cfgClaudeApiKey').value.trim();
-  if (claudeApiKey) {
-    queueWrite('updateConfig', { claude_api_key: claudeApiKey });
-    state.config.has_claude_api_key = true;
+  // Master Sheet ID
+  const masterSheetId = document.getElementById('cfgMasterSheetId').value.trim();
+  if (masterSheetId !== (state.config.master_sheet_id || '')) {
+    queueWrite('updateConfig', { master_sheet_id: masterSheetId });
+    state.config.master_sheet_id = masterSheetId;
   }
 
   // Config changes are critical — flush to API immediately, don't wait for debounce
