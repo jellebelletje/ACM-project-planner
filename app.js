@@ -185,6 +185,7 @@ async function fetchAll() {
         state.agreements = data.agreements || [];
         state.config = data.config || {};
         normalizePhaseNames();
+        normalizeAgreements();
         saveToLocalCache();
         return true;
       }
@@ -205,6 +206,7 @@ async function fetchAll() {
       state.agreements = data.agreements || [];
       state.config = data.config || {};
       normalizePhaseNames();
+      normalizeAgreements();
       saveToLocalCache();
       return true;
     }
@@ -236,6 +238,7 @@ async function fetchAll() {
       Object.assign(state.config, localConfig);
     }
     normalizePhaseNames();
+    normalizeAgreements();
     saveToLocalCache();
     return true;
   } catch (e) {
@@ -405,6 +408,15 @@ function getQuestion(id) { return state.questions.find(q => q.id === id); }
 function getNote(id) { return state.notes.find(n => n.id === id); }
 function getMilestone(id) { return state.milestones.find(m => m.id === id); }
 function getAgreement(id) { return state.agreements.find(a => a.id === id); }
+
+function normalizeAgreements() {
+  state.agreements.forEach((a, i) => {
+    if (!a.id) a.id = 'AG_auto_' + (i + 1);
+    if (a.active === undefined || a.active === '') a.active = true;
+    if (!a.added_by) a.added_by = '';
+    if (!a.added_on) a.added_on = '';
+  });
+}
 
 function isMetaActivity(act) {
   return act.activity_type === 'meta';
@@ -2579,9 +2591,25 @@ async function processAllTranscripts() {
 
 // ---- Agreements ----
 
+function seedBlankAgreements() {
+  const blanks = [];
+  for (let i = 0; i < 3; i++) {
+    blanks.push({ id: generateId('AG'), question_agreed: '', agreement: '', internal: true, active: true, added_by: '', added_on: '' });
+    blanks.push({ id: generateId('AG'), question_agreed: '', agreement: '', internal: false, active: true, added_by: '', added_on: '' });
+  }
+  blanks.forEach(b => {
+    state.agreements.push(b);
+    queueWrite('addAgreement', b);
+  });
+}
+
 function renderAgreements() {
   const container = document.getElementById('agreementsSection');
   if (!container) return;
+
+  // Auto-seed blank cards if no active agreements exist
+  const hasActive = state.agreements.some(a => a.active !== false && a.active !== 'FALSE' && a.active !== 'false');
+  if (!hasActive) seedBlankAgreements();
 
   const internalAgreements = state.agreements.filter(a =>
     a.active !== false && a.active !== 'FALSE' && a.active !== 'false' &&

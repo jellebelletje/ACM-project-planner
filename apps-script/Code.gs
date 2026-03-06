@@ -316,7 +316,17 @@ function getTranscriptsAll() {
 }
 
 function getAgreementsAll() {
-  try { return getSheetData(SHEET_NAMES.AGREEMENTS); }
+  try {
+    var rows = getSheetData(SHEET_NAMES.AGREEMENTS);
+    // Normalize: ensure every row has id, active, added_by, added_on
+    rows.forEach(function(row, i) {
+      if (!row.id) row.id = 'AG_sheet_' + (i + 1);
+      if (row.active === undefined || row.active === '') row.active = true;
+      if (!row.added_by) row.added_by = '';
+      if (!row.added_on) row.added_on = '';
+    });
+    return rows;
+  }
   catch (e) { return []; }
 }
 
