@@ -38,7 +38,7 @@ function normalizePhaseNames() {
 
 // Default time allocation percentages (based on 20-day / 160-hour baseline)
 const DEFAULT_ALLOCATED_PCT = {
-  A00: 5, A01: 3, A02: 4, A03: 4, A04: 3, A05: 2, A06: 2, A12: 2, A07: 2,
+  A00: 5, A35: 2, A01: 3, A02: 4, A03: 4, A04: 3, A05: 2, A06: 2, A12: 2, A07: 2,
   A08: 5, A13: 3, A09: 4, A11: 4, A10: 4, A14: 3, A15: 3, A16: 2, A17: 2,
   A18: 4, A19: 5, A20: 4, A21: 3, A22: 3, A23: 3, A33: 3, A24: 3,
   A34: 3, A26: 3, A27: 2, A28: 2,
@@ -54,6 +54,7 @@ const state = {
   milestones: [],
   timeSpent: [],
   timeBilled: [],
+  sow: [],
   config: {},
   expandedActivityId: null,
   activeTab: {},
@@ -63,7 +64,9 @@ const state = {
   showInactive: {},
   showInactiveTodos: {},
   showInactiveQuestions: {},
-  timeEntryOpen: false
+  timeEntryOpen: false,
+  transcripts: [],
+  expandedTranscriptId: null
 };
 
 // ---- Debounce & Sync ----
@@ -124,6 +127,8 @@ function saveToLocalCache() {
     milestones: state.milestones,
     timeSpent: state.timeSpent,
     timeBilled: state.timeBilled,
+    sow: state.sow,
+    transcripts: state.transcripts,
     config: state.config,
     timestamp: Date.now()
   };
@@ -145,6 +150,8 @@ function loadFromLocalCache() {
         milestones: data.milestones || [],
         timeSpent: data.timeSpent || [],
         timeBilled: data.timeBilled || [],
+        sow: data.sow || [],
+        transcripts: data.transcripts || [],
         config: data.config || {}
       });
       normalizePhaseNames();
@@ -170,6 +177,8 @@ async function fetchAll() {
         state.milestones = data.milestones || [];
         state.timeSpent = data.time_spent || [];
         state.timeBilled = data.time_billed || [];
+        state.sow = data.sow || [];
+        state.transcripts = data.transcripts || [];
         state.config = data.config || {};
         normalizePhaseNames();
         saveToLocalCache();
@@ -187,6 +196,8 @@ async function fetchAll() {
       state.milestones = data.milestones || [];
       state.timeSpent = data.time_spent || [];
       state.timeBilled = data.time_billed || [];
+      state.sow = data.sow || [];
+      state.transcripts = data.transcripts || [];
       state.config = data.config || {};
       normalizePhaseNames();
       saveToLocalCache();
@@ -212,6 +223,8 @@ async function fetchAll() {
     state.milestones = data.milestones || [];
     state.timeSpent = data.time_spent || [];
     state.timeBilled = data.time_billed || [];
+    state.sow = data.sow || [];
+    state.transcripts = data.transcripts || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
     if (localConfig) {
       Object.assign(state.config, localConfig);
@@ -260,6 +273,7 @@ function retrySyncFromBanner() {
       state.milestones = data.milestones || [];
       state.timeSpent = data.time_spent || [];
       state.timeBilled = data.time_billed || [];
+      state.transcripts = data.transcripts || [];
       state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
       saveToLocalCache();
       const banner = document.getElementById('syncErrorBanner');
@@ -504,6 +518,7 @@ function renderAll() {
   renderNowDoing();
   renderWhatsNext();
   renderPhases();
+  renderTranscripts();
   updateProjectHeader();
 }
 
@@ -531,6 +546,15 @@ function renderNav() {
       </span>
     </button>`;
   }).join('');
+
+  // Raw Data button below phases
+  const unprocessedCount = state.transcripts.filter(t => !t.processed || t.processed === 'FALSE' || t.processed === false).length;
+  nav.innerHTML += `
+    <div class="nav-rawdata-separator"></div>
+    <button class="nav-rawdata-btn" data-scroll-target="rawDataStore">
+      <span class="nav-rawdata-icon">&#128196;</span>
+      Raw Data${unprocessedCount > 0 ? ' <span class="nav-rawdata-badge">' + unprocessedCount + '</span>' : ''}
+    </button>`;
 }
 
 function renderTimeline() {
@@ -2209,6 +2233,404 @@ function closeModal(id) {
   document.getElementById(id).style.display = 'none';
 }
 
+// ---- SOW (Statement of Work) ----
+
+function openSowModal() {
+  const textarea = document.getElementById('sowContent');
+  const remarks = document.getElementById('sowRemarks');
+  const status = document.getElementById('sowStatus');
+  // Load latest SOW entry
+  if (state.sow.length > 0) {
+    const latest = state.sow.reduce((a, b) => (a.date_added || '') >= (b.date_added || '') ? a : b);
+    textarea.value = latest.content || '';
+    remarks.value = latest.remarks || '';
+    status.textContent = latest.date_added ? 'Last saved: ' + latest.date_added : '';
+  } else {
+    textarea.value = '';
+    remarks.value = '';
+    status.textContent = '';
+  }
+  document.getElementById('sowModal').style.display = 'flex';
+}
+
+function saveSow() {
+  const content = document.getElementById('sowContent').value.trim();
+  const remarks = document.getElementById('sowRemarks').value.trim();
+  const status = document.getElementById('sowStatus');
+  if (!content) {
+    status.textContent = 'Please enter the Statement of Work content.';
+    return;
+  }
+  const now = new Date();
+  const dateAdded = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const entry = { date_added: dateAdded, content: content, remarks: remarks };
+  // Replace existing or add new
+  state.sow = [entry];
+  queueWrite('addSowEntry', entry);
+  saveToLocalCache();
+  status.textContent = 'Saved!';
+  setTimeout(() => { closeModal('sowModal'); }, 2000);
+}
+
+// ---- Transcripts ----
+
+function renderTranscripts() {
+  const container = document.getElementById('transcriptList');
+  if (!container) return;
+
+  const sorted = [...state.transcripts].sort((a, b) =>
+    (b.created_at || '').localeCompare(a.created_at || ''));
+
+  const unprocessedCount = sorted.filter(t =>
+    !t.processed || t.processed === 'FALSE' || t.processed === false).length;
+
+  // Update Process All button
+  const processBtn = document.getElementById('processAllBtn');
+  if (processBtn) {
+    processBtn.textContent = unprocessedCount > 0
+      ? `Process All (${unprocessedCount})`
+      : 'Process All';
+    processBtn.disabled = unprocessedCount === 0;
+    processBtn.style.opacity = unprocessedCount === 0 ? '0.5' : '1';
+  }
+
+  if (sorted.length === 0) {
+    container.innerHTML = '<p class="transcript-empty">No entries yet. Click "+ Add Entry" to upload a transcript or note.</p>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(t => {
+    const isProcessed = t.processed === true || t.processed === 'TRUE' || t.processed === 'true';
+    const preview = truncate(t.transcript_note || '', 120);
+    const isExpanded = state.expandedTranscriptId === t.id;
+
+    const convType = t.meeting_type || 'external';
+
+    return `<div class="transcript-entry${isExpanded ? ' expanded' : ''}" data-transcript-id="${escapeHtml(t.id)}">
+      <div class="transcript-entry-row">
+        <span class="transcript-date">${formatDate(t.date || t.created_at)}</span>
+        <span class="transcript-type-badge ${convType}">${convType === 'internal' ? 'Internal' : 'External'}</span>
+        <span class="transcript-participants">${escapeHtml(t.participants || '')}</span>
+        <span class="transcript-preview">${escapeHtml(preview)}</span>
+        <span class="transcript-status-badge ${isProcessed ? 'processed' : 'pending'}">${isProcessed ? 'Processed' : 'Pending'}</span>
+        ${t.source_filename ? '<span class="transcript-filename">' + escapeHtml(t.source_filename) + '</span>' : ''}
+        <button class="transcript-delete" data-transcript-id="${escapeHtml(t.id)}" title="Delete">&times;</button>
+      </div>
+      ${isExpanded ? `<div class="transcript-expanded-content">
+        ${t.context ? '<div class="transcript-context"><strong>Context:</strong> ' + escapeHtml(t.context) + '</div>' : ''}
+        <div class="transcript-full-text">${escapeHtml(t.transcript_note || '')}</div>
+        ${isProcessed && t.summary ? '<div class="transcript-summary"><strong>Summary:</strong> ' + escapeHtml(t.summary) + '</div>' : ''}
+        ${isProcessed && t.activity_id ? '<div class="transcript-matched"><strong>Matched activities:</strong> ' + escapeHtml(t.activity_id) + '</div>' : ''}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleTranscriptExpand(id) {
+  state.expandedTranscriptId = state.expandedTranscriptId === id ? null : id;
+  renderTranscripts();
+}
+
+function deleteTranscript(id) {
+  state.transcripts = state.transcripts.filter(t => t.id !== id);
+  queueWrite('deleteTranscriptEntry', { id });
+  saveToLocalCache();
+  renderTranscripts();
+  renderNav();
+}
+
+function openTranscriptUploadModal() {
+  document.getElementById('trUploadDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('trUploadParticipants').value = '';
+  document.getElementById('trUploadContext').value = '';
+  document.getElementById('trUploadContent').value = '';
+  document.getElementById('trUploadFile').value = '';
+  document.getElementById('trCharCount').textContent = '';
+  setTranscriptType('external'); // default to external
+  document.getElementById('transcriptUploadModal').style.display = 'flex';
+}
+
+function setTranscriptType(type) {
+  document.getElementById('trTypeExternal').classList.toggle('active', type === 'external');
+  document.getElementById('trTypeInternal').classList.toggle('active', type === 'internal');
+  // Store on the modal so saveTranscriptEntry() can read it
+  document.getElementById('transcriptUploadModal').dataset.meetingType = type;
+}
+
+function handleTranscriptFile() {
+  const fileInput = document.getElementById('trUploadFile');
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('trUploadContent').value = e.target.result;
+    updateTranscriptCharCount();
+  };
+  reader.readAsText(file);
+}
+
+function updateTranscriptCharCount() {
+  const content = document.getElementById('trUploadContent').value;
+  const count = content.length;
+  const el = document.getElementById('trCharCount');
+  if (count > 45000) {
+    el.textContent = count.toLocaleString() + ' chars (warning: exceeds 45,000)';
+    el.style.color = 'var(--danger)';
+  } else if (count > 0) {
+    el.textContent = count.toLocaleString() + ' chars';
+    el.style.color = 'var(--text-light)';
+  } else {
+    el.textContent = '';
+  }
+}
+
+function saveTranscriptEntry() {
+  const content = document.getElementById('trUploadContent').value.trim();
+  if (!content) { alert('Please enter or upload transcript content.'); return; }
+
+  const entry = {
+    id: generateId('TR'),
+    date: document.getElementById('trUploadDate').value,
+    participants: document.getElementById('trUploadParticipants').value.trim(),
+    context: document.getElementById('trUploadContext').value.trim(),
+    meeting_type: document.getElementById('transcriptUploadModal').dataset.meetingType || 'external',
+    transcript_note: content,
+    summary: '',
+    processed: false,
+    activity_id: '',
+    source_filename: document.getElementById('trUploadFile').files[0]
+      ? document.getElementById('trUploadFile').files[0].name : '',
+    created_at: new Date().toISOString()
+  };
+
+  state.transcripts.push(entry);
+  queueWrite('addTranscriptEntry', entry);
+  saveToLocalCache();
+  closeModal('transcriptUploadModal');
+  renderTranscripts();
+  renderNav();
+}
+
+// ---- Transcript Processing ----
+
+async function processAllTranscripts() {
+  if (!CONFIG.API_URL) { alert('No API URL configured.'); return; }
+
+  const unprocessed = state.transcripts.filter(t =>
+    !t.processed || t.processed === 'FALSE' || t.processed === false);
+  if (unprocessed.length === 0) { alert('No unprocessed entries.'); return; }
+
+  if (!state.config.has_claude_api_key) {
+    alert('Claude API key not configured. Add it in Project Settings.');
+    return;
+  }
+
+  // Show loading
+  const btn = document.getElementById('processAllBtn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Processing...';
+  btn.disabled = true;
+
+  const loading = document.getElementById('loadingOverlay');
+  loading.innerHTML = '<div class="loading-spinner"></div><p>Processing ' + unprocessed.length +
+    ' entries with Claude AI...</p><p style="font-size:0.8rem;color:var(--text-light);">This may take 30\u201360 seconds.</p>';
+  loading.classList.remove('hidden');
+
+  try {
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'processTranscripts', data: {} }),
+      redirect: 'follow'
+    });
+    const result = await resp.json();
+
+    loading.classList.add('hidden');
+
+    if (result.error) {
+      alert('Processing failed: ' + result.error);
+      btn.textContent = originalText;
+      btn.disabled = false;
+      return;
+    }
+
+    openReviewModal(result.proposals, result.processed_entry_ids);
+  } catch (e) {
+    loading.classList.add('hidden');
+    alert('Processing failed: ' + e.message);
+  }
+
+  btn.textContent = originalText;
+  btn.disabled = false;
+}
+
+// ---- Review Modal ----
+
+let pendingProposals = null;
+let pendingEntryIds = null;
+
+function openReviewModal(proposals, entryIds) {
+  pendingProposals = proposals;
+  pendingEntryIds = entryIds;
+
+  const body = document.getElementById('reviewModalBody');
+  let html = '';
+
+  // Summary
+  if (proposals.summary) {
+    html += `<div class="review-section">
+      <h3 class="review-section-title">Summary</h3>
+      <p class="review-summary">${escapeHtml(proposals.summary)}</p>
+    </div>`;
+  }
+
+  // Matched activities (informational)
+  if (proposals.matched_activities && proposals.matched_activities.length > 0) {
+    html += `<div class="review-section">
+      <h3 class="review-section-title">Matched Activities</h3>
+      <div class="review-activities">
+        ${proposals.matched_activities.map(id => {
+          const act = getActivity(id);
+          return `<span class="review-activity-badge">${escapeHtml(id)}${act ? ': ' + escapeHtml(truncate(act.title, 40)) : ''}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Answered questions (with checkboxes)
+  if (proposals.answered_questions && proposals.answered_questions.length > 0) {
+    html += `<div class="review-section">
+      <h3 class="review-section-title">Proposed Question Answers (${proposals.answered_questions.length})</h3>
+      ${proposals.answered_questions.map((aq, i) => {
+        const q = getQuestion(aq.id);
+        return `<div class="review-item">
+          <label class="review-checkbox">
+            <input type="checkbox" checked data-review-type="question" data-review-idx="${i}">
+            <div class="review-item-content">
+              <div class="review-item-id">${escapeHtml(aq.id)}</div>
+              <div class="review-item-question">${q ? escapeHtml(q.question_text) : 'Unknown question'}</div>
+              <div class="review-item-answer"><strong>Proposed answer:</strong> ${escapeHtml(aq.answer)}</div>
+            </div>
+          </label>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Completed todos (with checkboxes)
+  if (proposals.completed_todos && proposals.completed_todos.length > 0) {
+    html += `<div class="review-section">
+      <h3 class="review-section-title">Proposed Todo Completions (${proposals.completed_todos.length})</h3>
+      ${proposals.completed_todos.map((ct, i) => {
+        const t = getTodo(ct.id);
+        return `<div class="review-item">
+          <label class="review-checkbox">
+            <input type="checkbox" checked data-review-type="todo" data-review-idx="${i}">
+            <div class="review-item-content">
+              <div class="review-item-id">${escapeHtml(ct.id)}</div>
+              <div class="review-item-todo">${t ? escapeHtml(t.text) : 'Unknown todo'}</div>
+              <div class="review-item-note"><strong>Reason:</strong> ${escapeHtml(ct.note || '')}</div>
+            </div>
+          </label>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  if (!proposals.answered_questions?.length && !proposals.completed_todos?.length) {
+    html += `<div class="review-section">
+      <p class="review-empty">No specific question answers or todo completions were identified. The entries will still be marked as processed.</p>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+  document.getElementById('reviewModal').style.display = 'flex';
+}
+
+function applySelectedProposals() {
+  if (!pendingProposals || !pendingEntryIds) return;
+
+  const modal = document.getElementById('reviewModal');
+
+  // Apply checked question answers
+  if (pendingProposals.answered_questions) {
+    modal.querySelectorAll('[data-review-type="question"]').forEach(cb => {
+      if (cb.checked) {
+        const idx = parseInt(cb.dataset.reviewIdx);
+        const aq = pendingProposals.answered_questions[idx];
+        const q = getQuestion(aq.id);
+        if (q) {
+          q.answer = aq.answer;
+          q.is_answered = true;
+          queueWrite('updateQuestion', { id: aq.id, answer: aq.answer, is_answered: true });
+        }
+      }
+    });
+  }
+
+  // Apply checked todo completions
+  if (pendingProposals.completed_todos) {
+    modal.querySelectorAll('[data-review-type="todo"]').forEach(cb => {
+      if (cb.checked) {
+        const idx = parseInt(cb.dataset.reviewIdx);
+        const ct = pendingProposals.completed_todos[idx];
+        const t = getTodo(ct.id);
+        if (t) {
+          t.is_done = true;
+          queueWrite('updateTodo', { id: ct.id, is_done: true });
+        }
+      }
+    });
+  }
+
+  // Update each processed entry with summary and mark as processed
+  if (pendingProposals.entry_summaries) {
+    pendingProposals.entry_summaries.forEach(es => {
+      const entry = state.transcripts.find(t => t.id === es.id);
+      if (entry) {
+        entry.summary = es.summary || '';
+        entry.activity_id = es.activity_id || '';
+        entry.processed = true;
+        queueWrite('updateTranscript', {
+          id: es.id,
+          summary: es.summary || '',
+          activity_id: es.activity_id || '',
+          processed: true
+        });
+      }
+    });
+  } else {
+    // Fallback: mark all as processed with overall summary
+    pendingEntryIds.forEach(id => {
+      const entry = state.transcripts.find(t => t.id === id);
+      if (entry) {
+        entry.summary = pendingProposals.summary || '';
+        entry.processed = true;
+        queueWrite('updateTranscript', {
+          id: id,
+          summary: pendingProposals.summary || '',
+          processed: true
+        });
+      }
+    });
+  }
+
+  pendingProposals = null;
+  pendingEntryIds = null;
+
+  closeModal('reviewModal');
+  saveToLocalCache();
+  renderAll();
+  attachExpandedEvents();
+}
+
+function cancelReview() {
+  pendingProposals = null;
+  pendingEntryIds = null;
+  closeModal('reviewModal');
+}
+
 // ---- Settings ----
 
 function openSettings() {
@@ -2222,6 +2644,11 @@ function openSettings() {
   updateDurationHint();
   document.getElementById('cfgDurationUnit').addEventListener('change', updateDurationHint);
   document.getElementById('cfgApiUrl').value = CONFIG.API_URL || '';
+  // Claude API key: show placeholder if configured, empty if not
+  document.getElementById('cfgClaudeApiKey').value = '';
+  document.getElementById('cfgClaudeApiKey').placeholder = state.config.has_claude_api_key
+    ? '(key configured \u2014 leave blank to keep)'
+    : 'Enter your Anthropic API key';
   document.getElementById('settingsModal').style.display = 'flex';
 }
 
@@ -2243,6 +2670,14 @@ async function saveSettings() {
 
   Object.assign(state.config, newConfig);
   queueWrite('updateConfig', newConfig);
+
+  // Claude API key: only send if user entered a new value (avoid overwriting with empty)
+  const claudeApiKey = document.getElementById('cfgClaudeApiKey').value.trim();
+  if (claudeApiKey) {
+    queueWrite('updateConfig', { claude_api_key: claudeApiKey });
+    state.config.has_claude_api_key = true;
+  }
+
   // Config changes are critical — flush to API immediately, don't wait for debounce
   clearTimeout(debounceTimer);
   flushWrites();
@@ -2415,14 +2850,40 @@ async function init() {
 
   // Delegated event listeners on stable containers (registered once, not per-render)
 
-  // Nav panel: delegate clicks for phase scroll-to
+  // Nav panel: delegate clicks for phase scroll-to and Raw Data button
   document.getElementById('navPanel').addEventListener('click', (e) => {
     const btn = e.target.closest('.nav-phase');
     if (btn) {
       const section = document.querySelector(`[data-phase-section="${btn.dataset.phase}"]`);
       if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const rawDataBtn = e.target.closest('.nav-rawdata-btn');
+    if (rawDataBtn) {
+      const section = document.getElementById('rawDataStore');
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
+
+  // Raw Data Store: delegate clicks for transcript entries
+  const rawDataStore = document.getElementById('rawDataStore');
+  if (rawDataStore) {
+    rawDataStore.addEventListener('click', (e) => {
+      const target = e.target;
+
+      // Delete transcript entry
+      const deleteBtn = target.closest('.transcript-delete');
+      if (deleteBtn) { e.stopPropagation(); deleteTranscript(deleteBtn.dataset.transcriptId); return; }
+
+      // Click entry row to expand/collapse
+      const entryRow = target.closest('.transcript-entry-row');
+      if (entryRow && !target.closest('.transcript-delete')) {
+        const entry = entryRow.closest('.transcript-entry');
+        if (entry) toggleTranscriptExpand(entry.dataset.transcriptId);
+        return;
+      }
+    });
+  }
 
   // Status bar: delegate click for time entry button
   document.querySelector('.top-bar').addEventListener('click', (e) => {

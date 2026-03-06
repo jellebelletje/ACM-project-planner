@@ -77,12 +77,27 @@
           <section class="time-comparison-box" id="timeComparisonBox">
             <!-- Rendered by JS -->
           </section>
+          <div class="sow-box">
+            <button class="btn sow-btn" onclick="openSowModal()">SOW</button>
+          </div>
         </div>
 
         <!-- Activity Phases -->
         <div id="phasesContainer">
           <!-- Phase sections and activity cards rendered by JS -->
         </div>
+
+        <!-- Raw Data Store -->
+        <section class="raw-data-store" id="rawDataStore">
+          <div class="raw-data-header">
+            <h2>Raw Data Store</h2>
+            <div class="raw-data-actions">
+              <button class="btn-primary" onclick="openTranscriptUploadModal()">+ Add Entry</button>
+              <button class="btn-primary" id="processAllBtn" onclick="processAllTranscripts()" disabled style="opacity:0.5">Process All</button>
+            </div>
+          </div>
+          <div id="transcriptList"></div>
+        </section>
       </main>
     </div>
 
@@ -116,6 +131,7 @@
             <span class="field-hint" id="durationHint" style="display:none;">1 day = 8 hours</span>
           </label>
           <label>API URL<input type="text" id="cfgApiUrl" placeholder="https://script.google.com/macros/s/.../exec"></label>
+          <label>Claude API Key<input type="password" id="cfgClaudeApiKey" placeholder="Enter your Anthropic API key"></label>
           <div class="modal-actions">
             <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
           </div>
@@ -157,6 +173,73 @@
             <button class="btn-primary" id="msSaveBtn" onclick="saveMilestone()">Save</button>
             <button class="btn-danger" id="msDeleteBtn" onclick="deleteMilestoneAction()" style="display:none;">Delete</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOW Modal -->
+    <div class="modal-overlay" id="sowModal" style="display:none" onclick="if(event.target===this)closeModal('sowModal')">
+      <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+          <h2>Statement of Work</h2>
+          <button class="modal-close" onclick="closeModal('sowModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <textarea id="sowContent" rows="15" placeholder="Paste your Statement of Work here..." style="width:100%;resize:vertical;font-family:inherit;font-size:0.9rem;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text)"></textarea>
+          <input id="sowRemarks" placeholder="Remarks (optional)" style="width:100%;margin-top:0.75rem;padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);font-size:0.85rem">
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.5rem;border-top:1px solid var(--border);">
+          <span id="sowStatus" style="font-size:0.8rem;color:var(--text-light)"></span>
+          <button class="btn-primary" onclick="saveSow()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transcript Upload Modal -->
+    <div class="modal-overlay" id="transcriptUploadModal" style="display:none;" onclick="if(event.target===this)closeModal('transcriptUploadModal')">
+      <div class="modal" style="max-width:600px">
+        <div class="modal-header">
+          <h2>Add Raw Data Entry</h2>
+          <button class="modal-close" onclick="closeModal('transcriptUploadModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label>Date<input type="date" id="trUploadDate"></label>
+          <label>Participants<input type="text" id="trUploadParticipants" placeholder="e.g. John, Sarah, Client Team"></label>
+          <label>Context<input type="text" id="trUploadContext" placeholder="e.g. Kickoff meeting, Sprint review, Stakeholder workshop"></label>
+          <div class="tr-type-toggle">
+            <span class="tr-type-label">Meeting type:</span>
+            <button type="button" class="tr-type-btn" id="trTypeInternal" onclick="setTranscriptType('internal')">Internal</button>
+            <button type="button" class="tr-type-btn active" id="trTypeExternal" onclick="setTranscriptType('external')">External</button>
+          </div>
+          <label>Content
+            <textarea id="trUploadContent" rows="12" placeholder="Paste transcript or notes here..." oninput="updateTranscriptCharCount()"></textarea>
+          </label>
+          <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem;">
+            <label style="margin-bottom:0;flex:1;">Or upload .txt file
+              <input type="file" id="trUploadFile" accept=".txt,.text" onchange="handleTranscriptFile()">
+            </label>
+            <span id="trCharCount" style="font-size:0.75rem;color:var(--text-light);"></span>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-primary" onclick="saveTranscriptEntry()">Save Entry</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Proposals Modal -->
+    <div class="modal-overlay" id="reviewModal" style="display:none;" onclick="if(event.target===this)cancelReview()">
+      <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+          <h2>Review AI Proposals</h2>
+          <button class="modal-close" onclick="cancelReview()">&times;</button>
+        </div>
+        <div class="modal-body" id="reviewModalBody">
+          <!-- Rendered by JS -->
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:0.5rem;padding:0.75rem 1.25rem;border-top:1px solid var(--border);">
+          <button class="btn-small" onclick="cancelReview()">Cancel</button>
+          <button class="btn-primary" onclick="applySelectedProposals()">Apply Selected</button>
         </div>
       </div>
     </div>

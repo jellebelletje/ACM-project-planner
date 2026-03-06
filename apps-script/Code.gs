@@ -15,7 +15,9 @@ const SHEET_NAMES = {
   TIMESHEET: 'Timesheet',  // Legacy — kept for backwards compat
   TIME_SPENT: 'Time_Spent',
   TIME_BILLED: 'Time_Billed',
-  CONFIG: 'Project_Config'
+  SOW: 'SOW',
+  CONFIG: 'Project_Config',
+  TRANSCRIPTS: 'Transcripts'
 };
 
 // ---- Router ----
@@ -128,6 +130,21 @@ function doPost(e) {
       case 'deleteTimeBilledEntry':
         result = deleteTimeBilledEntry(body.data);
         break;
+      case 'addSowEntry':
+        result = addSowEntry(body.data);
+        break;
+      case 'addTranscriptEntry':
+        result = addTranscriptEntry(body.data);
+        break;
+      case 'updateTranscript':
+        result = updateTranscript(body.data);
+        break;
+      case 'deleteTranscriptEntry':
+        result = deleteTranscriptEntry(body.data);
+        break;
+      case 'processTranscripts':
+        result = processTranscripts(body.data);
+        break;
       case 'addActivity':
         result = addActivity(body.data);
         break;
@@ -156,6 +173,11 @@ function doPost(e) {
 // ---- Read Operations ----
 
 function getAll() {
+  var config = getConfig();
+  var hasClaudeKey = !!config.claude_api_key;
+  delete config.claude_api_key;  // Never send API key to browser
+  config.has_claude_api_key = hasClaudeKey;
+
   return {
     activities: getActivities(),
     todos: getTodosAll(),
@@ -165,7 +187,9 @@ function getAll() {
     timesheet: getTimesheetAll(),  // Legacy
     time_spent: getTimeSpentAll(),
     time_billed: getTimeBilledAll(),
-    config: getConfig()
+    sow: getSowAll(),
+    transcripts: getTranscriptsAll(),
+    config: config
   };
 }
 
@@ -212,6 +236,16 @@ function getTimeSpentAll() {
 
 function getTimeBilledAll() {
   try { return getSheetData(SHEET_NAMES.TIME_BILLED); }
+  catch (e) { return []; }
+}
+
+function getSowAll() {
+  try { return getSheetData(SHEET_NAMES.SOW); }
+  catch (e) { return []; }
+}
+
+function getTranscriptsAll() {
+  try { return getSheetData(SHEET_NAMES.TRANSCRIPTS); }
   catch (e) { return []; }
 }
 
@@ -269,6 +303,154 @@ function deleteTimeBilledEntry(data) {
   if (rowIdx === -1) return { error: 'Entry not found: ' + data.id };
   sheet.deleteRow(rowIdx);
   return { success: true, id: data.id };
+}
+
+function addSowEntry(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.SOW);
+  if (!sheet) return { error: 'SOW sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true };
+}
+
+// ---- Transcript Operations ----
+
+function addTranscriptEntry(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TRANSCRIPTS);
+  if (!sheet) return { error: 'Transcripts sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: data.id };
+}
+
+function updateTranscript(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TRANSCRIPTS);
+  if (!sheet) return { error: 'Transcripts sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, data.id);
+  if (rowIdx === -1) return { error: 'Transcript not found: ' + data.id };
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = sheet.getRange(rowIdx, 1, 1, headers.length).getValues()[0];
+
+  for (const key in data) {
+    if (key === 'id') continue;
+    const colIdx = headers.indexOf(key);
+    if (colIdx !== -1) {
+      row[colIdx] = data[key];
+    }
+  }
+
+  sheet.getRange(rowIdx, 1, 1, headers.length).setValues([row]);
+  return { success: true, id: data.id };
+}
+
+function deleteTranscriptEntry(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TRANSCRIPTS);
+  if (!sheet) return { error: 'Transcripts sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, data.id);
+  if (rowIdx === -1) return { error: 'Entry not found: ' + data.id };
+  sheet.deleteRow(rowIdx);
+  return { success: true, id: data.id };
+}
+
+function processTranscripts(data) {
+  // 1. Get all unprocessed entries
+  var transcripts = getTranscriptsAll();
+  var unprocessed = transcripts.filter(function(t) {
+    return !t.processed || t.processed === 'FALSE' || t.processed === false;
+  });
+  if (unprocessed.length === 0) return { error: 'No unprocessed entries found.' };
+
+  // 2. Read context data
+  var activities = getActivities();
+  var questions = getSheetData(SHEET_NAMES.QUESTIONS).filter(function(q) {
+    return !q.is_answered || q.is_answered === 'FALSE' || q.is_answered === false;
+  });
+  var todos = getSheetData(SHEET_NAMES.TODOS).filter(function(t) {
+    return !t.is_done || t.is_done === 'FALSE' || t.is_done === false;
+  });
+
+  // 3. Get API key from config (read directly, never sent to browser)
+  var config = getConfig();
+  var apiKey = config.claude_api_key;
+  if (!apiKey) return { error: 'Claude API key not configured. Add it in Project Settings.' };
+
+  // 4. Build combined content from all unprocessed entries
+  var combinedContent = unprocessed.map(function(entry) {
+    var convType = entry.meeting_type || 'external';
+    return '--- Entry ' + entry.id + ' (' + (entry.date || 'no date') + ', ' +
+           (entry.participants || 'no participants') + ', ' + convType +
+           (entry.context ? ', context: ' + entry.context : '') + ') ---\n' + entry.transcript_note;
+  }).join('\n\n');
+
+  // 5. Build context strings
+  var activitiesContext = activities.map(function(a) {
+    return a.id + ': ' + a.title + ' — ' + (a.intro_text || '');
+  }).join('\n');
+
+  var questionsContext = questions.map(function(q) {
+    return q.id + ' (Activity ' + q.activity_id + '): ' + q.question_text;
+  }).join('\n');
+
+  var todosContext = todos.map(function(t) {
+    return t.id + ' (Activity ' + t.activity_id + '): ' + t.text;
+  }).join('\n');
+
+  // 6. Build prompt
+  var prompt = 'You are analyzing conversation transcripts and notes for a change management project. ' +
+    'Entries are tagged as "external" (conversations with the client) or "internal" (internal team conversations). ' +
+    'Treat both types equally when extracting insights, but include the meeting type in your analysis.\n' +
+    'There are ' + unprocessed.length + ' new entries to process.\n\n' +
+    'CONTENT:\n' + combinedContent + '\n\n' +
+    'ACTIVITIES:\n' + activitiesContext + '\n\n' +
+    'OPEN QUESTIONS:\n' + questionsContext + '\n\n' +
+    'INCOMPLETE TODOS:\n' + todosContext + '\n\n' +
+    'Analyze ALL the content and return a JSON object with:\n' +
+    '1. "matched_activities": array of activity IDs that this content primarily addresses\n' +
+    '2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "source_entry_id": which entry ID the answer came from } for questions answered in the content\n' +
+    '3. "completed_todos": array of { "id": todo_id, "note": brief explanation, "source_entry_id": which entry ID } for todos completed based on the content\n' +
+    '4. "summary": a paragraph summarizing what insights were extracted across all entries\n' +
+    '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n\n' +
+    'Only include questions/todos where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
+    'Return ONLY valid JSON, no markdown formatting.';
+
+  // 7. Call Claude API
+  try {
+    var response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      payload: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }]
+      }),
+      muteHttpExceptions: true
+    });
+
+    var result = JSON.parse(response.getContentText());
+    if (result.error) return { error: 'Claude API error: ' + result.error.message };
+
+    // 8. Parse Claude's response (handle potential markdown fencing)
+    var responseText = result.content[0].text.trim();
+    if (responseText.startsWith('```')) {
+      responseText = responseText.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+    }
+    var analysis = JSON.parse(responseText);
+
+    return {
+      success: true,
+      processed_entry_ids: unprocessed.map(function(e) { return e.id; }),
+      proposals: analysis
+    };
+  } catch (err) {
+    return { error: 'Processing failed: ' + err.message };
+  }
 }
 
 function getConfig() {
@@ -501,6 +683,10 @@ function batchUpdate(operations) {
         case 'deleteTimeSpentEntry': r = deleteTimeSpentEntry(op.data); break;
         case 'addTimeBilledEntry': r = addTimeBilledEntry(op.data); break;
         case 'deleteTimeBilledEntry': r = deleteTimeBilledEntry(op.data); break;
+        case 'addSowEntry': r = addSowEntry(op.data); break;
+        case 'addTranscriptEntry': r = addTranscriptEntry(op.data); break;
+        case 'updateTranscript': r = updateTranscript(op.data); break;
+        case 'deleteTranscriptEntry': r = deleteTranscriptEntry(op.data); break;
         default: r = { error: 'Unknown batch action: ' + op.action };
       }
       results.push(r);
