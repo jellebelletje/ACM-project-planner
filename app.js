@@ -2829,17 +2829,28 @@ function openReviewModal(proposals, entryIds, promptSource) {
   // Answered agreements (with checkboxes)
   if (proposals.answered_agreements && proposals.answered_agreements.length > 0) {
     html += `<div class="review-section">
-      <h3 class="review-section-title">Proposed Agreement Updates (${proposals.answered_agreements.length})</h3>
+      <h3 class="review-section-title">Agreements (${proposals.answered_agreements.length})</h3>
       ${proposals.answered_agreements.map((aa, i) => {
-        const ag = getAgreement(aa.id);
-        const isUpdate = aa.is_update && ag && ag.agreement;
-        const label = isUpdate ? 'New information to append' : 'Proposed agreement';
+        const isNew = aa.id === 'NEW';
+        const ag = isNew ? null : getAgreement(aa.id);
+        const isUpdate = !isNew && aa.is_update && ag && ag.agreement;
+        const typeBadge = isNew ? (aa.internal ? 'Internal' : 'External') : '';
+        let label, questionText, idLabel;
+        if (isNew) {
+          label = 'New agreement discovered';
+          questionText = aa.question_agreed || 'Untitled agreement';
+          idLabel = `<span class="review-new-badge">New ${typeBadge}</span>`;
+        } else {
+          label = isUpdate ? 'New information to append' : 'Proposed agreement';
+          questionText = ag ? ag.question_agreed : 'Unknown agreement';
+          idLabel = `${escapeHtml(aa.id)}${isUpdate ? ' <span class="review-update-badge">Update</span>' : ''}`;
+        }
         return `<div class="review-item">
           <label class="review-checkbox">
             <input type="checkbox" checked data-review-type="agreement" data-review-idx="${i}">
             <div class="review-item-content">
-              <div class="review-item-id">${escapeHtml(aa.id)}${isUpdate ? ' <span class="review-update-badge">Update</span>' : ''}</div>
-              <div class="review-item-question">${ag ? escapeHtml(ag.question_agreed) : 'Unknown agreement'}</div>
+              <div class="review-item-id">${idLabel}</div>
+              <div class="review-item-question">${escapeHtml(questionText)}</div>
               ${isUpdate ? `<div class="review-item-existing"><strong>Current agreement:</strong> ${escapeHtml(truncate(ag.agreement, 200))}</div>` : ''}
               <div class="review-item-answer"><strong>${label}:</strong> ${escapeHtml(aa.answer)}</div>
               ${aa.source_document ? `<div class="review-item-source">Source: ${escapeHtml(aa.source_document)}</div>` : ''}
@@ -2916,35 +2927,57 @@ function applySelectedProposals() {
   }
 
   // Apply checked agreement answers
+  let agreementsChanged = false;
   if (pendingProposals.answered_agreements) {
     modal.querySelectorAll('[data-review-type="agreement"]').forEach(cb => {
       if (cb.checked) {
         const idx = parseInt(cb.dataset.reviewIdx);
         const aa = pendingProposals.answered_agreements[idx];
-        const ag = getAgreement(aa.id);
-        if (ag) {
-          const sourceDoc = aa.source_document || 'transcript';
-          let fullAgreement;
-          if (aa.is_update && ag.agreement) {
-            const attribution = '\n\n[updated by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
-            fullAgreement = ag.agreement + '\n\n' + aa.answer + attribution;
-          } else {
-            const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
-            fullAgreement = aa.answer + attribution;
+        const sourceDoc = aa.source_document || 'transcript';
+
+        if (aa.id === 'NEW') {
+          // Create a new agreement card
+          const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+          const newAg = {
+            id: generateId('AG'),
+            question_agreed: aa.question_agreed || '',
+            agreement: aa.answer + attribution,
+            internal: aa.internal === true || aa.internal === 'true' || aa.internal === 'TRUE',
+            active: true,
+            added_by: 'AI',
+            added_on: todayStr
+          };
+          state.agreements.push(newAg);
+          queueWrite('addAgreement', newAg);
+          agreementsChanged = true;
+        } else {
+          // Update existing agreement
+          const ag = getAgreement(aa.id);
+          if (ag) {
+            let fullAgreement;
+            if (aa.is_update && ag.agreement) {
+              const attribution = '\n\n[updated by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+              fullAgreement = ag.agreement + '\n\n' + aa.answer + attribution;
+            } else {
+              const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
+              fullAgreement = aa.answer + attribution;
+            }
+            ag.agreement = fullAgreement;
+            const updateData = { id: aa.id, agreement: fullAgreement };
+            if (!ag.added_by) {
+              ag.added_by = 'AI';
+              ag.added_on = todayStr;
+              updateData.added_by = 'AI';
+              updateData.added_on = todayStr;
+            }
+            queueWrite('updateAgreement', updateData);
+            agreementsChanged = true;
           }
-          ag.agreement = fullAgreement;
-          const updateData = { id: aa.id, agreement: fullAgreement };
-          if (!ag.added_by) {
-            ag.added_by = 'AI';
-            ag.added_on = todayStr;
-            updateData.added_by = 'AI';
-            updateData.added_on = todayStr;
-          }
-          queueWrite('updateAgreement', updateData);
         }
       }
     });
   }
+  if (agreementsChanged) renderAgreements();
 
   // Track matched activities for the "New info!" badge
   if (pendingProposals.matched_activities) {

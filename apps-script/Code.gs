@@ -563,17 +563,21 @@ function processTranscripts(data) {
       'OPEN QUESTIONS (unanswered):\n' + questionsContext + '\n\n' +
       'PREVIOUSLY ANSWERED QUESTIONS (only add NEW information if the content provides meaningful additions):\n' + (answeredQuestionsContext || '(none)') + '\n\n' +
       'INCOMPLETE TODOS:\n' + todosContext + '\n\n' +
-      'AGREEMENTS (update existing or fill empty agreements if the content addresses them):\n' + (agreementsContext || '(none)') + '\n\n' +
-      'Analyze ALL the content and return a JSON object with:\n' +
+      'EXISTING AGREEMENTS (update if new information adds to them, or fill empty agreements if the content addresses them):\n' + (agreementsContext || '(none)') + '\n\n' +
+      'Analyze ALL the content. Pay special attention to any agreements, decisions, or commitments made in the transcript — these should be captured as agreements.\n\n' +
+      'Return a JSON object with:\n' +
       '1. "matched_activities": array of activity IDs that this content primarily addresses\n' +
       '2. "answered_questions": array of { "id": question_id, "answer": extracted answer text, "is_update": boolean, "source_entry_id": which entry ID the answer came from, "source_document": the source_document name from that entry } for questions answered or updated. For previously answered questions, set "is_update" to true and provide ONLY the new information.\n' +
       '3. "completed_todos": array of { "id": todo_id, "note": brief explanation, "source_entry_id": which entry ID, "source_document": the source_document name from that entry } for todos completed based on the content\n' +
       '4. "summary": a paragraph shortly listing the items that are to be added to the sheet\n' +
       '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n' +
-      '6. "answered_agreements": array of { "id": agreement_id, "answer": the agreement text, "is_update": boolean, "source_entry_id": which entry ID, "source_document": the source_document name from that entry } for agreements where the content provides or updates the answer\n\n' +
+      '6. "answered_agreements": array for BOTH updating existing agreements AND proposing new ones. Two types:\n' +
+      '   - Update existing: { "id": agreement_id, "answer": text, "is_update": boolean, "source_entry_id": entry ID, "source_document": source name }\n' +
+      '   - Propose new: { "id": "NEW", "question_agreed": concise topic, "answer": agreement text, "internal": boolean, "source_entry_id": entry ID, "source_document": source name }\n\n' +
       'Only include questions/todos/agreements where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
       'For previously answered questions, only include them if the transcript adds genuinely NEW information not already in the existing answer.\n' +
-      'For agreements: provide the agreement text if the content clearly establishes one. For existing agreements, only include if the transcript adds genuinely NEW information. Set "is_update" to true for existing agreements.\n' +
+      'For existing agreements: provide the agreement text if the content clearly establishes one. Only include if the transcript adds genuinely NEW information. Set "is_update" to true for updates.\n' +
+      'DISCOVERING NEW AGREEMENTS: Actively scan for agreements, decisions, or commitments that do NOT match any existing agreement card. Use "id": "NEW" and set "internal" based on the entry meeting type (internal entry = internal agreement, external entry = external agreement).\n' +
       'Return ONLY valid JSON, no markdown formatting.';
   }
 

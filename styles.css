@@ -1370,6 +1370,17 @@ body {
   margin-left: 4px;
 }
 
+.review-new-badge {
+  display: inline-block;
+  background: #d1fae5;
+  color: #065f46;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 8px;
+  vertical-align: middle;
+}
+
 .review-item-existing {
   font-size: 0.8rem;
   color: var(--text-light);
