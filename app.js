@@ -4722,11 +4722,33 @@ async function startAiConfiguration() {
     return;
   }
 
-  // Show loading
+  // Show loading with fun animation
   const loading = document.getElementById('loadingOverlay');
-  loading.innerHTML = '<div class="loading-spinner"></div>' +
-    '<p>Analysing your SOW and project structure...</p>' +
-    '<p style="font-size:0.8rem;color:var(--text-light);">This may take 30\u201360 seconds.</p>';
+  loading.innerHTML =
+    '<div class="ai-loading-scene">' +
+      '<div class="ai-loading-cards">' +
+        '<div class="ai-loading-card"></div>' +
+        '<div class="ai-loading-card"></div>' +
+        '<div class="ai-loading-card"></div>' +
+        '<div class="ai-loading-card"></div>' +
+        '<div class="ai-loading-card"></div>' +
+      '</div>' +
+      '<div class="ai-loading-sparks">' +
+        '<div class="ai-loading-spark"></div>' +
+        '<div class="ai-loading-spark"></div>' +
+        '<div class="ai-loading-spark"></div>' +
+        '<div class="ai-loading-spark"></div>' +
+        '<div class="ai-loading-spark"></div>' +
+      '</div>' +
+      '<div class="ai-loading-brain">\uD83E\uDDE0</div>' +
+    '</div>' +
+    '<p style="font-size:1rem;font-weight:600;color:var(--text-on-dark);">Analysing your SOW and project structure\u2026</p>' +
+    '<div class="ai-loading-progress">' +
+      '<div class="ai-loading-dot"></div>' +
+      '<div class="ai-loading-dot"></div>' +
+      '<div class="ai-loading-dot"></div>' +
+    '</div>' +
+    '<p style="font-size:0.8rem;color:rgba(241,245,249,0.6);margin-top:0.75rem;">This may take 30\u201360 seconds</p>';
   loading.classList.remove('hidden');
 
   try {
