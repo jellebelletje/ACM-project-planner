@@ -929,6 +929,24 @@ function seedAll(data) {
     clearDataRows(trSheet);
   }
 
+  // Clear Time_Spent
+  var tsSheet = ss.getSheetByName(SHEET_NAMES.TIME_SPENT);
+  if (tsSheet) {
+    clearDataRows(tsSheet);
+  }
+
+  // Clear Time_Billed
+  var tbSheet = ss.getSheetByName(SHEET_NAMES.TIME_BILLED);
+  if (tbSheet) {
+    clearDataRows(tbSheet);
+  }
+
+  // Clear SOW (total project duration)
+  var sowSheet = ss.getSheetByName(SHEET_NAMES.SOW);
+  if (sowSheet) {
+    clearDataRows(sowSheet);
+  }
+
   // Set config
   if (data.config) {
     updateConfig(data.config);
