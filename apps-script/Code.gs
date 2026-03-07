@@ -892,7 +892,7 @@ function processTranscripts(data) {
       },
       payload: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        max_tokens: 16384,
         messages: [{ role: 'user', content: prompt }]
       }),
       muteHttpExceptions: true
@@ -901,7 +901,13 @@ function processTranscripts(data) {
     var result = JSON.parse(response.getContentText());
     if (result.error) return { error: 'Claude API error: ' + result.error.message };
 
-    // 8. Parse Claude's response (handle potential markdown fencing)
+    // 8. Check for truncation (stop_reason !== 'end_turn' means output was cut off)
+    var stopReason = result.stop_reason;
+    if (stopReason === 'max_tokens') {
+      return { error: 'Claude response was truncated (too long). Try processing fewer entries at once.' };
+    }
+
+    // 9. Parse Claude's response (handle potential markdown fencing)
     var responseText = result.content[0].text.trim();
     if (responseText.startsWith('```')) {
       responseText = responseText.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
