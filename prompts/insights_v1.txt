@@ -1,0 +1,131 @@
+You are an expert Adoption & Change Management (ACM) consultant performing a health assessment of a change management project.
+
+Your PRIMARY focus is assessing alignment between what is actually being done in the project and what is promised in the Statement of Work (SOW). The SOW defines the scope, deliverables, and commitments — the project execution must be coherent with it.
+
+PROJECT OVERVIEW:
+{{PROJECT_CONTEXT}}
+
+CURRENT STATISTICS:
+{{STATS}}
+
+ALL ACTIVITIES (with status and PDCA phase):
+{{ACTIVITIES}}
+
+OPEN TO-DOS (incomplete):
+{{OPEN_TODOS}}
+
+OPEN QUESTIONS (unanswered):
+{{OPEN_QUESTIONS}}
+
+AGREEMENTS (decisions and commitments):
+{{AGREEMENTS}}
+
+MILESTONES:
+{{MILESTONES}}
+
+TECHNICAL SUMMARY (context about the technical project the ACM work supports):
+{{TECHNICAL_SUMMARY}}
+
+STATEMENT OF WORK:
+{{SOW}}
+
+CONSULTANT NOTES (project-level observations from the consultant):
+{{USER_NOTES}}
+
+Based on this comprehensive project data, perform a health assessment. Your analysis must:
+
+1. SOW ALIGNMENT (most important):
+   - Compare every activity and area of work against the SOW
+   - Flag activities or work being done that are NOT reflected in the SOW (scope creep, out-of-scope work)
+   - Identify SOW commitments, deliverables, or promises that have NO corresponding activities or are not being addressed
+   - Surface any consultant notes that indicate misalignment with the SOW
+   - Assess overall coherence between project execution and SOW promises
+
+2. PROJECT HEALTH:
+   - Overall progress across PDCA phases
+   - Ratio of completed vs blocked activities
+   - Unanswered questions that could block progress
+   - Missing or empty agreements that indicate unresolved decisions
+   - Milestone delays
+   - Balance of work across phases (is the project stuck in one phase?)
+   - Stakeholder engagement signals
+
+Return a JSON object with this exact structure:
+{
+  "health_score": <number 0-100, where 100 is perfect health>,
+  "executive_summary": "<2-3 sentence overall assessment focusing on SOW alignment and project health>",
+  "sow_alignment": {
+    "overall_coherence": "<High|Medium|Low>",
+    "summary": "<2-3 sentence assessment of how well project execution aligns with the SOW>",
+    "in_scope": ["<activity or work area clearly covered by SOW>"],
+    "out_of_scope": [
+      {
+        "item": "<activity or work being done outside SOW scope>",
+        "concern": "<why this is a concern>"
+      }
+    ],
+    "unaddressed_commitments": [
+      {
+        "sow_commitment": "<SOW promise or deliverable not being addressed>",
+        "recommendation": "<what should be done about it>"
+      }
+    ]
+  },
+  "risk_areas": [
+    {
+      "area": "<risk area name>",
+      "severity": "<High|Medium|Low>",
+      "description": "<1-2 sentence explanation>"
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "<specific actionable recommendation>",
+      "priority": "<High|Medium|Low>",
+      "rationale": "<why this matters>"
+    }
+  ],
+  "pdca_analysis": {
+    "Plan I: Diagnosis": {
+      "status": "<On Track|Behind|At Risk|Complete>",
+      "summary": "<1-2 sentence phase assessment>"
+    },
+    "Plan II: Design + Activate Champions": {
+      "status": "<On Track|Behind|At Risk|Complete>",
+      "summary": "<1-2 sentence phase assessment>"
+    },
+    "Do: Deployment": {
+      "status": "<On Track|Behind|At Risk|Complete>",
+      "summary": "<1-2 sentence phase assessment>"
+    },
+    "Check: Analysis": {
+      "status": "<On Track|Behind|At Risk|Complete>",
+      "summary": "<1-2 sentence phase assessment>"
+    },
+    "Act: Handover, Anchor & Learn": {
+      "status": "<On Track|Behind|At Risk|Complete>",
+      "summary": "<1-2 sentence phase assessment>"
+    }
+  },
+  "stakeholder_engagement": {
+    "summary": "<overall stakeholder engagement assessment>",
+    "gaps": ["<gap 1>", "<gap 2>"]
+  },
+  "focus_areas": [
+    "<top priority focus area for next period>",
+    "<second priority>",
+    "<third priority>"
+  ]
+}
+
+Scoring guidelines for health_score:
+- 80-100: Project well on track, strong SOW alignment, most activities progressing, few blockers
+- 60-79: Generally healthy but some SOW alignment concerns or areas needing attention
+- 40-59: Significant concerns — SOW misalignment, multiple blockers, or stalled areas
+- 20-39: Project at risk — major SOW gaps or intervention needed
+- 0-19: Critical state — project may fail without immediate action
+
+Provide 3-5 risk areas, 3-5 recommendations, and 3 focus areas.
+Be specific and reference actual activity IDs, question IDs, or agreement IDs where relevant.
+If the SOW is empty or not defined, note this as a critical risk and score accordingly.
+Return ONLY valid JSON, no markdown formatting.

@@ -20,7 +20,9 @@ const SHEET_NAMES = {
   TRANSCRIPTS: 'Transcripts',
   PROMPTS: 'Prompts',
   AGREEMENTS: 'Agreements',
-  TEMPLATE_CHANGES: 'Template_Changes'
+  TEMPLATE_CHANGES: 'Template_Changes',
+  INSIGHTS: 'Insights',
+  PROJECT_NOTES: 'Project_Notes'
 };
 
 // ---- Router ----
@@ -190,6 +192,21 @@ function doPost(e) {
       case 'deletePrompt':
         result = deletePrompt(body.data.key);
         break;
+      case 'generateInsights':
+        result = generateInsights(body.data);
+        break;
+      case 'addInsight':
+        result = addInsight(body.data);
+        break;
+      case 'addProjectNote':
+        result = addProjectNote(body.data);
+        break;
+      case 'updateProjectNote':
+        result = updateProjectNote(body.data);
+        break;
+      case 'deleteProjectNote':
+        result = deleteProjectNote(body.data.id);
+        break;
       case 'seedAll':
         result = seedAll(body.data);
         break;
@@ -227,6 +244,8 @@ function getAll() {
     agreements: getAgreementsAll(),
     template_changes: getTemplateChangesAll(),
     prompts: getPromptsAll(),
+    insights: getInsightsAll(),
+    project_notes: getProjectNotesAll(),
     config: config
   };
 }
@@ -354,6 +373,16 @@ function getAgreementsAll() {
     });
     return rows;
   }
+  catch (e) { return []; }
+}
+
+function getInsightsAll() {
+  try { return getSheetData(SHEET_NAMES.INSIGHTS); }
+  catch (e) { return []; }
+}
+
+function getProjectNotesAll() {
+  try { return getSheetData(SHEET_NAMES.PROJECT_NOTES); }
   catch (e) { return []; }
 }
 
@@ -677,6 +706,48 @@ function deleteAgreement(id) {
   return deleteRowById(SHEET_NAMES.AGREEMENTS, id);
 }
 
+// ---- Insight Operations ----
+
+function addInsight(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.INSIGHTS);
+  if (!sheet) return { error: 'Insights sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: data.id };
+}
+
+// ---- Project Note Operations ----
+
+function addProjectNote(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.PROJECT_NOTES);
+  if (!sheet) return { error: 'Project_Notes sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: data.id };
+}
+
+function updateProjectNote(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.PROJECT_NOTES);
+  if (!sheet) return { error: 'Project_Notes sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, data.id);
+  if (rowIdx === -1) return { error: 'Project note not found: ' + data.id };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = sheet.getRange(rowIdx, 1, 1, headers.length).getValues()[0];
+  for (const key in data) {
+    if (key === 'id') continue;
+    const colIdx = headers.indexOf(key);
+    if (colIdx !== -1) row[colIdx] = data[key];
+  }
+  sheet.getRange(rowIdx, 1, 1, headers.length).setValues([row]);
+  return { success: true, id: data.id };
+}
+
+function deleteProjectNote(id) {
+  return deleteRowById(SHEET_NAMES.PROJECT_NOTES, id);
+}
+
 function processTranscripts(data) {
   // 1. Get all unprocessed entries
   var transcripts = getTranscriptsAll();
@@ -821,6 +892,193 @@ function processTranscripts(data) {
     };
   } catch (err) {
     return { error: 'Processing failed: ' + err.message };
+  }
+}
+
+// ---- Generate Insights (AI) ----
+
+function generateInsights(data) {
+  // 1. Gather all project data
+  var activities = getActivities();
+  var allTodos = getSheetData(SHEET_NAMES.TODOS);
+  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
+  var milestones = getMilestones();
+  var agreements = getAgreementsAll();
+  var sow = getSowAll();
+  var config = getConfig();
+  var projectNotes = getProjectNotesAll();
+
+  // 2. Compute summary statistics
+  var doneTodos = allTodos.filter(function(t) {
+    return t.is_done === true || t.is_done === 'TRUE' || t.is_done === 'true';
+  });
+  var openTodos = allTodos.filter(function(t) {
+    return !t.is_done || t.is_done === 'FALSE' || t.is_done === 'false';
+  });
+  var answeredQuestions = allQuestions.filter(function(q) {
+    return q.is_answered === true || q.is_answered === 'TRUE' || q.is_answered === 'true' || (q.answer && String(q.answer).trim());
+  });
+  var openQuestions = allQuestions.filter(function(q) {
+    return !q.is_answered || q.is_answered === 'FALSE' || q.is_answered === 'false';
+  });
+  var activeAgreements = agreements.filter(function(a) {
+    return a.active !== false && a.active !== 'FALSE';
+  });
+  var filledAgreements = activeAgreements.filter(function(a) {
+    return a.agreement && String(a.agreement).trim();
+  });
+
+  // Activity status counts
+  var statusCounts = { not_started: 0, in_progress: 0, completed: 0, blocked: 0, inactive: 0 };
+  activities.forEach(function(a) {
+    var s = a.status || 'not_started';
+    if (statusCounts[s] !== undefined) statusCounts[s]++;
+  });
+
+  // PDCA phase distribution
+  var phaseCount = {};
+  activities.forEach(function(a) {
+    var phase = a.pdca_phase || 'Unknown';
+    if (!phaseCount[phase]) phaseCount[phase] = { total: 0, completed: 0, in_progress: 0, not_started: 0, blocked: 0 };
+    phaseCount[phase].total++;
+    var s = a.status || 'not_started';
+    if (phaseCount[phase][s] !== undefined) phaseCount[phase][s]++;
+  });
+
+  var stats = {
+    total_activities: activities.length,
+    activity_statuses: statusCounts,
+    total_todos: allTodos.length,
+    done_todos: doneTodos.length,
+    open_todos: openTodos.length,
+    total_questions: allQuestions.length,
+    answered_questions: answeredQuestions.length,
+    open_questions: openQuestions.length,
+    total_agreements: activeAgreements.length,
+    filled_agreements: filledAgreements.length,
+    empty_agreements: activeAgreements.length - filledAgreements.length,
+    total_milestones: milestones.length,
+    completed_milestones: milestones.filter(function(m) { return m.status === 'completed'; }).length,
+    delayed_milestones: milestones.filter(function(m) { return m.status === 'delayed'; }).length,
+    phase_distribution: phaseCount
+  };
+
+  // 3. Build context strings
+  var activitiesContext = activities.map(function(a) {
+    return a.id + ': ' + a.title + ' [' + (a.status || 'not_started') + '] Phase: ' + (a.pdca_phase || 'unknown') + ' — ' + (a.intro_text || '');
+  }).join('\n');
+
+  var openTodosContext = openTodos.slice(0, 30).map(function(t) {
+    return t.id + ' (Activity ' + t.activity_id + '): ' + t.text;
+  }).join('\n');
+
+  var openQuestionsContext = openQuestions.map(function(q) {
+    return q.id + ' (Activity ' + q.activity_id + '): ' + q.question_text;
+  }).join('\n');
+
+  var agreementsContext = activeAgreements.map(function(ag) {
+    var type = (ag.internal === true || ag.internal === 'TRUE' || ag.internal === 'true') ? 'Internal' : 'External';
+    var answer = (ag.agreement || '').replace(/\n\n\[answered by AI on [^\]]+\]/g, '').replace(/\n\n\[updated by AI on [^\]]+\]/g, '').trim();
+    return ag.id + ' (' + type + '): ' + (ag.question_agreed || '(no question)') + (answer ? '\nAgreement: ' + answer : '\n(Empty — no agreement recorded)');
+  }).join('\n\n');
+
+  var milestonesContext = milestones.map(function(m) {
+    return m.name + ' [' + (m.status || 'planned') + '] ' + (m.timeline_type || '') + ' — ' + (m.date || 'no date');
+  }).join('\n');
+
+  var sowContext = sow.length > 0 ? sow[0].content || '(no SOW content)' : '(no SOW defined)';
+  var technicalSummaryContext = sow.length > 0 && sow[0].technical_summary ? sow[0].technical_summary : '(no technical summary provided)';
+
+  var projectContext = 'Project: ' + (config.project_name || 'Unknown') +
+    '\nClient: ' + (config.client_name || 'Unknown') +
+    '\nConsultant: ' + (config.consultant_name || 'Unknown') +
+    '\nStart: ' + (config.start_date || 'Unknown') +
+    '\nEnd: ' + (config.end_date || 'Unknown') +
+    '\nDuration: ' + (config.total_duration || 'Unknown');
+
+  var userNotesContext = projectNotes.length > 0
+    ? projectNotes.map(function(n) {
+        return '[' + (n.created_at || 'no date') + '] ' + (n.content || '');
+      }).join('\n')
+    : '(no project notes)';
+
+  // 4. Get API key
+  var apiKey = getClaudeApiKey();
+  if (!apiKey) return { error: 'Claude API key not configured. Add it to the master sheet Config tab.' };
+
+  // 5. Build prompt from Prompts sheet or fallback
+  var promptTemplate = getLatestPrompt('insights');
+  var promptSource = promptTemplate ? 'sheet' : 'fallback';
+
+  var prompt;
+  if (promptTemplate) {
+    prompt = promptTemplate
+      .replace(/\{\{PROJECT_CONTEXT\}\}/g, projectContext)
+      .replace(/\{\{STATS\}\}/g, JSON.stringify(stats, null, 2))
+      .replace(/\{\{ACTIVITIES\}\}/g, activitiesContext)
+      .replace(/\{\{OPEN_TODOS\}\}/g, openTodosContext || '(none)')
+      .replace(/\{\{OPEN_QUESTIONS\}\}/g, openQuestionsContext || '(none)')
+      .replace(/\{\{AGREEMENTS\}\}/g, agreementsContext || '(none)')
+      .replace(/\{\{MILESTONES\}\}/g, milestonesContext || '(none)')
+      .replace(/\{\{TECHNICAL_SUMMARY\}\}/g, technicalSummaryContext)
+      .replace(/\{\{SOW\}\}/g, sowContext)
+      .replace(/\{\{USER_NOTES\}\}/g, userNotesContext);
+  } else {
+    // Hardcoded fallback
+    prompt = 'You are an expert Adoption & Change Management (ACM) consultant performing a health assessment of a change management project.\n' +
+      'Your PRIMARY focus is assessing alignment between what is being done in the project and what is promised in the Statement of Work (SOW).\n\n' +
+      'PROJECT OVERVIEW:\n' + projectContext + '\n\n' +
+      'CURRENT STATISTICS:\n' + JSON.stringify(stats, null, 2) + '\n\n' +
+      'ALL ACTIVITIES (with status and PDCA phase):\n' + activitiesContext + '\n\n' +
+      'OPEN TO-DOS (incomplete):\n' + (openTodosContext || '(none)') + '\n\n' +
+      'OPEN QUESTIONS (unanswered):\n' + (openQuestionsContext || '(none)') + '\n\n' +
+      'AGREEMENTS (decisions and commitments):\n' + (agreementsContext || '(none)') + '\n\n' +
+      'MILESTONES:\n' + (milestonesContext || '(none)') + '\n\n' +
+      'TECHNICAL SUMMARY (context about the technical project the ACM work supports):\n' + technicalSummaryContext + '\n\n' +
+      'STATEMENT OF WORK:\n' + sowContext + '\n\n' +
+      'CONSULTANT NOTES:\n' + userNotesContext + '\n\n' +
+      'Analyze this project and return a JSON object with: health_score (0-100), executive_summary, ' +
+      'sow_alignment (overall_coherence, summary, in_scope items, out_of_scope items with concerns, unaddressed_commitments), ' +
+      'risk_areas (area, severity High/Medium/Low, description), recommendations (action, priority, rationale), ' +
+      'pdca_analysis (for each phase: status On Track/Behind/At Risk/Complete and summary), ' +
+      'stakeholder_engagement (summary, gaps array), focus_areas (top 3 priorities).\n' +
+      'Return ONLY valid JSON, no markdown formatting.';
+  }
+
+  // 6. Call Claude API
+  try {
+    var response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      payload: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }]
+      }),
+      muteHttpExceptions: true
+    });
+
+    var result = JSON.parse(response.getContentText());
+    if (result.error) return { error: 'Claude API error: ' + result.error.message };
+
+    var responseText = result.content[0].text.trim();
+    if (responseText.startsWith('```')) {
+      responseText = responseText.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+    }
+    var analysis = JSON.parse(responseText);
+
+    return {
+      success: true,
+      insight: analysis,
+      stats: stats,
+      prompt_source: promptSource
+    };
+  } catch (err) {
+    return { error: 'Insight generation failed: ' + err.message };
   }
 }
 
@@ -1065,6 +1323,10 @@ function batchUpdate(operations) {
         case 'updateTemplateChange': r = updateTemplateChange(op.data); break;
         case 'addPrompt': r = addPrompt(op.data); break;
         case 'updatePrompt': r = updatePrompt(op.data); break;
+        case 'addInsight': r = addInsight(op.data); break;
+        case 'addProjectNote': r = addProjectNote(op.data); break;
+        case 'updateProjectNote': r = updateProjectNote(op.data); break;
+        case 'deleteProjectNote': r = deleteProjectNote(op.data.id); break;
         default: r = { error: 'Unknown batch action: ' + op.action };
       }
       results.push(r);

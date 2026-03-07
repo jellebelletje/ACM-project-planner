@@ -69,7 +69,9 @@ const state = {
   expandedTranscriptId: null,
   agreements: [],
   templateChanges: [],
-  prompts: []
+  prompts: [],
+  insights: [],
+  projectNotes: []
 };
 
 // ---- Debounce & Sync ----
@@ -135,6 +137,8 @@ function saveToLocalCache() {
     agreements: state.agreements,
     templateChanges: state.templateChanges,
     prompts: state.prompts,
+    insights: state.insights,
+    projectNotes: state.projectNotes,
     config: state.config,
     timestamp: Date.now()
   };
@@ -161,6 +165,8 @@ function loadFromLocalCache() {
         agreements: data.agreements || [],
         templateChanges: data.templateChanges || [],
         prompts: data.prompts || [],
+        insights: data.insights || [],
+        projectNotes: data.projectNotes || [],
         config: data.config || {}
       });
       normalizePhaseNames();
@@ -191,6 +197,8 @@ async function fetchAll() {
         state.agreements = data.agreements || [];
         state.templateChanges = data.template_changes || [];
         state.prompts = data.prompts || [];
+        state.insights = data.insights || [];
+        state.projectNotes = data.project_notes || [];
         state.config = data.config || {};
         normalizePhaseNames();
         normalizeAgreements();
@@ -214,6 +222,8 @@ async function fetchAll() {
       state.agreements = data.agreements || [];
       state.templateChanges = data.template_changes || [];
       state.prompts = data.prompts || [];
+      state.insights = data.insights || [];
+      state.projectNotes = data.project_notes || [];
       state.config = data.config || {};
       normalizePhaseNames();
       normalizeAgreements();
@@ -245,6 +255,8 @@ async function fetchAll() {
     state.agreements = data.agreements || [];
     state.templateChanges = data.template_changes || [];
     state.prompts = data.prompts || [];
+    state.insights = data.insights || [];
+    state.projectNotes = data.project_notes || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
     if (localConfig) {
       Object.assign(state.config, localConfig);
@@ -295,6 +307,8 @@ function retrySyncFromBanner() {
       state.timeSpent = data.time_spent || [];
       state.timeBilled = data.time_billed || [];
       state.transcripts = data.transcripts || [];
+      state.insights = data.insights || [];
+      state.projectNotes = data.project_notes || [];
       state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
       saveToLocalCache();
       const banner = document.getElementById('syncErrorBanner');
@@ -1977,7 +1991,8 @@ function attachExpandedEvents() {
       const todo = getTodo(todoId);
       if (todo) {
         todo.is_done = cb.checked;
-        queueWrite('updateTodo', { id: todoId, is_done: cb.checked });
+        todo.completed_at = cb.checked ? new Date().toISOString() : '';
+        queueWrite('updateTodo', { id: todoId, is_done: cb.checked, completed_at: todo.completed_at });
         renderPhases();
         renderStatusBar();
         renderNav();
@@ -2101,7 +2116,9 @@ function attachExpandedEvents() {
         if (q) {
           q.answer = answer;
           q.is_answered = !!answer.trim();
-          queueWrite('updateQuestion', { id: qId, answer: answer, is_answered: q.is_answered });
+          if (answer.trim() && !q.answered_at) q.answered_at = new Date().toISOString();
+          if (!answer.trim()) q.answered_at = '';
+          queueWrite('updateQuestion', { id: qId, answer: answer, is_answered: q.is_answered, answered_at: q.answered_at || '' });
           renderStatusBar();
           renderNav();
           renderWhatsNext();
@@ -2473,16 +2490,19 @@ function closeModal(id) {
 // ---- SOW (Statement of Work) ----
 
 function openSowModal() {
+  const techSummary = document.getElementById('sowTechnicalSummary');
   const textarea = document.getElementById('sowContent');
   const remarks = document.getElementById('sowRemarks');
   const status = document.getElementById('sowStatus');
   // Load latest SOW entry
   if (state.sow.length > 0) {
     const latest = state.sow.reduce((a, b) => (a.date_added || '') >= (b.date_added || '') ? a : b);
+    techSummary.value = latest.technical_summary || '';
     textarea.value = latest.content || '';
     remarks.value = latest.remarks || '';
     status.textContent = latest.date_added ? 'Last saved: ' + latest.date_added : '';
   } else {
+    techSummary.value = '';
     textarea.value = '';
     remarks.value = '';
     status.textContent = '';
@@ -2491,16 +2511,17 @@ function openSowModal() {
 }
 
 function saveSow() {
+  const technicalSummary = document.getElementById('sowTechnicalSummary').value.trim();
   const content = document.getElementById('sowContent').value.trim();
   const remarks = document.getElementById('sowRemarks').value.trim();
   const status = document.getElementById('sowStatus');
-  if (!content) {
-    status.textContent = 'Please enter the Statement of Work content.';
+  if (!content && !technicalSummary) {
+    status.textContent = 'Please enter the Statement of Work or Technical Summary.';
     return;
   }
   const now = new Date();
   const dateAdded = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-  const entry = { date_added: dateAdded, content: content, remarks: remarks };
+  const entry = { date_added: dateAdded, technical_summary: technicalSummary, content: content, remarks: remarks };
   // Replace existing or add new
   state.sow = [entry];
   queueWrite('addSowEntry', entry);
@@ -3028,7 +3049,8 @@ function applySelectedProposals() {
           }
           q.answer = fullAnswer;
           q.is_answered = true;
-          queueWrite('updateQuestion', { id: aq.id, answer: fullAnswer, is_answered: true });
+          if (!q.answered_at) q.answered_at = new Date().toISOString();
+          queueWrite('updateQuestion', { id: aq.id, answer: fullAnswer, is_answered: true, answered_at: q.answered_at });
           if (q.activity_id) aiUpdatedIds.add(q.activity_id);
         }
       }
@@ -3048,7 +3070,8 @@ function applySelectedProposals() {
           const noteText = (ct.note ? ct.note + ' ' : '') + attribution;
           t.is_done = true;
           t.notes = noteText;
-          queueWrite('updateTodo', { id: ct.id, is_done: true, notes: noteText });
+          t.completed_at = new Date().toISOString();
+          queueWrite('updateTodo', { id: ct.id, is_done: true, notes: noteText, completed_at: t.completed_at });
           if (t.activity_id) aiUpdatedIds.add(t.activity_id);
         }
       }
@@ -3192,6 +3215,413 @@ function cancelReview() {
   pendingProposals = null;
   pendingEntryIds = null;
   closeModal('reviewModal');
+}
+
+// ---- Latest Modal ----
+
+function openLatestModal() {
+  const body = document.getElementById('latestModalBody');
+
+  // Last 5 completed todos (sorted by completed_at descending)
+  const completedTodos = state.todos
+    .filter(t => isTodoDone(t) && t.completed_at)
+    .sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''))
+    .slice(0, 5);
+
+  // Last 5 answered questions (sorted by answered_at descending)
+  const answeredQuestions = state.questions
+    .filter(q => isQuestionAnswered(q) && q.answered_at)
+    .sort((a, b) => (b.answered_at || '').localeCompare(a.answered_at || ''))
+    .slice(0, 5);
+
+  // Last 5 agreements (sorted by added_on descending)
+  const recentAgreements = state.agreements
+    .filter(a => a.active !== false && a.active !== 'FALSE' && a.agreement && a.added_on)
+    .sort((a, b) => (b.added_on || '').localeCompare(a.added_on || ''))
+    .slice(0, 5);
+
+  let html = '';
+
+  // Completed Todos section
+  html += '<h3 class="latest-section-title">Recently Completed To-dos</h3>';
+  if (completedTodos.length === 0) {
+    html += '<p class="latest-empty">No completed to-dos yet.</p>';
+  } else {
+    completedTodos.forEach(t => {
+      const act = getActivity(t.activity_id);
+      const actTitle = act ? act.title : t.activity_id;
+      html += `<div class="latest-item">
+        <div class="latest-item-text">${escapeHtml(t.text)}</div>
+        <div class="latest-item-meta">${escapeHtml(actTitle)} &middot; ${formatDate(t.completed_at)}</div>
+      </div>`;
+    });
+  }
+
+  // Answered Questions section
+  html += '<h3 class="latest-section-title">Recently Answered Questions</h3>';
+  if (answeredQuestions.length === 0) {
+    html += '<p class="latest-empty">No answered questions yet.</p>';
+  } else {
+    answeredQuestions.forEach(q => {
+      const act = getActivity(q.activity_id);
+      const actTitle = act ? act.title : q.activity_id;
+      html += `<div class="latest-item">
+        <div class="latest-item-text">${escapeHtml(q.question_text)}</div>
+        <div class="latest-item-answer">${escapeHtml(truncate(q.answer, 120))}</div>
+        <div class="latest-item-meta">${escapeHtml(actTitle)} &middot; ${formatDate(q.answered_at)}</div>
+      </div>`;
+    });
+  }
+
+  // Recent Agreements section
+  html += '<h3 class="latest-section-title">Recent Agreements</h3>';
+  if (recentAgreements.length === 0) {
+    html += '<p class="latest-empty">No agreements yet.</p>';
+  } else {
+    recentAgreements.forEach(ag => {
+      const type = (ag.internal === true || ag.internal === 'TRUE') ? 'Internal' : 'External';
+      html += `<div class="latest-item">
+        <div class="latest-item-text">${escapeHtml(ag.question_agreed || '(no question)')}</div>
+        <div class="latest-item-answer">${escapeHtml(truncate(ag.agreement, 120))}</div>
+        <div class="latest-item-meta">${type} &middot; ${escapeHtml(ag.added_on || 'no date')}</div>
+      </div>`;
+    });
+  }
+
+  body.innerHTML = html;
+  document.getElementById('latestModal').style.display = 'flex';
+}
+
+// ---- Insights ----
+
+let _pendingInsight = null;
+
+function openInsightsModal() {
+  _pendingInsight = null;
+  const body = document.getElementById('insightsModalBody');
+  const footer = document.getElementById('insightsModalFooter');
+
+  let html = '<div class="insights-tabs">' +
+    '<button class="insights-tab active" data-tab="generate" onclick="switchInsightsTab(\'generate\')">Generate Insight</button>' +
+    '<button class="insights-tab" data-tab="history" onclick="switchInsightsTab(\'history\')">History (' + state.insights.length + ')</button>' +
+    '</div>';
+
+  html += '<div class="insights-tab-content" id="insightsTabGenerate">' +
+    '<div class="insights-generate-intro"><p>Generate an AI-powered health assessment of your project, focused on alignment between actual project work and the Statement of Work.</p></div>' +
+    '<div id="insightsResult"></div>' +
+    '</div>';
+
+  html += '<div class="insights-tab-content" id="insightsTabHistory" style="display:none;">' +
+    renderInsightsHistory() +
+    '</div>';
+
+  body.innerHTML = html;
+
+  footer.innerHTML = '<span id="insightsStatus" style="font-size:0.8rem;color:var(--text-light);"></span>' +
+    '<div style="display:flex;gap:0.5rem;">' +
+    '<button class="btn-primary btn-insights-generate" id="generateInsightBtn" onclick="generateInsight()">Generate New Insight</button>' +
+    '<button class="btn-primary btn-success" id="logInsightBtn" onclick="logInsight()" style="display:none;">Log This Insight</button>' +
+    '</div>';
+
+  document.getElementById('insightsModal').style.display = 'flex';
+}
+
+function switchInsightsTab(tab) {
+  document.querySelectorAll('.insights-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('insightsTabGenerate').style.display = tab === 'generate' ? '' : 'none';
+  document.getElementById('insightsTabHistory').style.display = tab === 'history' ? '' : 'none';
+}
+
+async function generateInsight() {
+  if (!CONFIG.API_URL) { alert('No API URL configured.'); return; }
+
+  const btn = document.getElementById('generateInsightBtn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Generating...';
+  btn.disabled = true;
+
+  const resultDiv = document.getElementById('insightsResult');
+  resultDiv.innerHTML = '<div class="insights-loading"><div class="loading-spinner"></div>' +
+    '<p>Analyzing project data with Claude AI...</p>' +
+    '<p style="font-size:0.8rem;color:var(--text-light);">This may take 30\u201360 seconds.</p></div>';
+
+  try {
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'generateInsights', data: {} }),
+      redirect: 'follow'
+    });
+    const result = await resp.json();
+
+    if (result.error) {
+      resultDiv.innerHTML = '<p style="color:var(--danger);padding:1rem;">' + escapeHtml(result.error) + '</p>';
+      btn.textContent = originalText;
+      btn.disabled = false;
+      return;
+    }
+
+    _pendingInsight = result.insight;
+    _pendingInsight._prompt_source = result.prompt_source;
+
+    resultDiv.innerHTML = renderInsightDetail(result.insight);
+    document.getElementById('logInsightBtn').style.display = '';
+  } catch (e) {
+    resultDiv.innerHTML = '<p style="color:var(--danger);padding:1rem;">Generation failed: ' + escapeHtml(e.message) + '</p>';
+  }
+
+  btn.textContent = originalText;
+  btn.disabled = false;
+}
+
+function logInsight() {
+  if (!_pendingInsight) return;
+  const now = new Date();
+  const createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
+  const entry = {
+    id: generateId('INS'),
+    created_at: createdAt,
+    health_score: _pendingInsight.health_score || 0,
+    executive_summary: _pendingInsight.executive_summary || '',
+    full_response: JSON.stringify(_pendingInsight),
+    prompt_version: _pendingInsight._prompt_source || 'unknown'
+  };
+
+  state.insights.unshift(entry);
+  queueWrite('addInsight', entry);
+  saveToLocalCache();
+
+  document.getElementById('logInsightBtn').style.display = 'none';
+  document.getElementById('insightsStatus').textContent = 'Insight logged!';
+  const historyTab = document.querySelector('.insights-tab[data-tab="history"]');
+  if (historyTab) historyTab.textContent = 'History (' + state.insights.length + ')';
+  const historyContent = document.getElementById('insightsTabHistory');
+  if (historyContent) historyContent.innerHTML = renderInsightsHistory();
+  _pendingInsight = null;
+}
+
+function renderInsightDetail(insight) {
+  const score = insight.health_score || 0;
+  const scoreClass = score >= 70 ? 'score-good' : score >= 40 ? 'score-warning' : 'score-critical';
+  const scoreLabel = score >= 70 ? 'Healthy' : score >= 40 ? 'Needs Attention' : 'Critical';
+
+  let html = '<div class="insight-detail">';
+
+  // Health Score
+  html += '<div class="insight-score-row"><div class="insight-score-badge ' + scoreClass + '">' +
+    '<span class="insight-score-number">' + score + '</span>' +
+    '<span class="insight-score-label">' + scoreLabel + '</span></div></div>';
+
+  // Executive Summary
+  html += '<div class="insight-section"><h4 class="insight-section-title">Executive Summary</h4>' +
+    '<p class="insight-section-text">' + escapeHtml(insight.executive_summary || '') + '</p></div>';
+
+  // SOW Alignment
+  if (insight.sow_alignment) {
+    const sa = insight.sow_alignment;
+    const coherenceClass = 'sow-coherence-' + (sa.overall_coherence || 'medium').toLowerCase();
+    html += '<div class="insight-section"><h4 class="insight-section-title">SOW Alignment</h4>';
+    html += '<span class="insight-sow-coherence ' + coherenceClass + '">' + escapeHtml(sa.overall_coherence || '') + ' Coherence</span>';
+    html += '<p class="insight-section-text">' + escapeHtml(sa.summary || '') + '</p>';
+
+    if (sa.out_of_scope && sa.out_of_scope.length > 0) {
+      html += '<h4 class="insight-section-title" style="margin-top:0.75rem;color:#dc2626;">Out of Scope</h4>';
+      sa.out_of_scope.forEach(function(item) {
+        html += '<div class="insight-sow-item"><strong>' + escapeHtml(item.item || '') + '</strong>' +
+          '<div class="sow-concern">' + escapeHtml(item.concern || '') + '</div></div>';
+      });
+    }
+
+    if (sa.unaddressed_commitments && sa.unaddressed_commitments.length > 0) {
+      html += '<h4 class="insight-section-title" style="margin-top:0.75rem;color:#d97706;">Unaddressed SOW Commitments</h4>';
+      sa.unaddressed_commitments.forEach(function(item) {
+        html += '<div class="insight-sow-item"><strong>' + escapeHtml(item.sow_commitment || '') + '</strong>' +
+          '<div class="sow-concern">' + escapeHtml(item.recommendation || '') + '</div></div>';
+      });
+    }
+    html += '</div>';
+  }
+
+  // Risk Areas
+  if (insight.risk_areas && insight.risk_areas.length > 0) {
+    html += '<div class="insight-section"><h4 class="insight-section-title">Risk Areas</h4><ul class="insight-list">';
+    insight.risk_areas.forEach(function(r) {
+      const sevClass = 'risk-' + (r.severity || 'medium').toLowerCase();
+      html += '<li class="' + sevClass + '"><strong>' + escapeHtml(r.area || '') +
+        '<span class="insight-risk-severity">' + escapeHtml(r.severity || '') + '</span></strong>' +
+        '<p>' + escapeHtml(r.description || '') + '</p></li>';
+    });
+    html += '</ul></div>';
+  }
+
+  // Recommendations
+  if (insight.recommendations && insight.recommendations.length > 0) {
+    html += '<div class="insight-section"><h4 class="insight-section-title">Recommendations</h4><ol class="insight-list">';
+    insight.recommendations.forEach(function(r) {
+      html += '<li><strong>' + escapeHtml(r.action || '') +
+        '<span class="insight-priority">' + escapeHtml(r.priority || '') + '</span></strong>' +
+        '<p>' + escapeHtml(r.rationale || '') + '</p></li>';
+    });
+    html += '</ol></div>';
+  }
+
+  // PDCA Analysis
+  if (insight.pdca_analysis) {
+    html += '<div class="insight-section"><h4 class="insight-section-title">PDCA Phase Analysis</h4><div class="insight-pdca-grid">';
+    Object.keys(insight.pdca_analysis).forEach(function(phase) {
+      const analysis = insight.pdca_analysis[phase];
+      html += '<div class="insight-pdca-card"><div class="insight-pdca-phase">' + escapeHtml(phase) + '</div>' +
+        '<div class="insight-pdca-status">' + escapeHtml(analysis.status || '') + '</div>' +
+        '<p>' + escapeHtml(analysis.summary || '') + '</p></div>';
+    });
+    html += '</div></div>';
+  }
+
+  // Stakeholder Engagement
+  if (insight.stakeholder_engagement) {
+    html += '<div class="insight-section"><h4 class="insight-section-title">Stakeholder Engagement</h4>' +
+      '<p class="insight-section-text">' + escapeHtml(insight.stakeholder_engagement.summary || '') + '</p>';
+    if (insight.stakeholder_engagement.gaps && insight.stakeholder_engagement.gaps.length > 0) {
+      html += '<ul class="insight-list">';
+      insight.stakeholder_engagement.gaps.forEach(function(g) {
+        html += '<li>' + escapeHtml(g) + '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+
+  // Focus Areas
+  if (insight.focus_areas && insight.focus_areas.length > 0) {
+    html += '<div class="insight-section"><h4 class="insight-section-title">Focus Areas for Next Period</h4><ul class="insight-list">';
+    insight.focus_areas.forEach(function(f) {
+      html += '<li>' + escapeHtml(f) + '</li>';
+    });
+    html += '</ul></div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function renderInsightsHistory() {
+  if (state.insights.length === 0) {
+    return '<p class="insights-empty">No insights logged yet. Generate your first insight!</p>';
+  }
+
+  const sorted = [...state.insights].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  let html = '<div class="insights-history-list">';
+
+  sorted.forEach(function(entry) {
+    const score = parseInt(entry.health_score) || 0;
+    const scoreClass = score >= 70 ? 'score-good' : score >= 40 ? 'score-warning' : 'score-critical';
+    const dateStr = entry.created_at ? formatDate(entry.created_at.split(' ')[0]) : 'Unknown date';
+
+    html += '<div class="insights-history-card" onclick="toggleInsightHistory(\'' + entry.id + '\')">' +
+      '<div class="insights-history-header">' +
+      '<div class="insight-score-badge-small ' + scoreClass + '">' + score + '</div>' +
+      '<div class="insights-history-meta">' +
+      '<span class="insights-history-date">' + dateStr + '</span>' +
+      '<span class="insights-history-summary">' + escapeHtml(truncate(entry.executive_summary, 100)) + '</span>' +
+      '</div>' +
+      '<span class="insights-history-chevron" id="chevron_' + entry.id + '">&#9654;</span>' +
+      '</div>' +
+      '<div class="insights-history-detail" id="detail_' + entry.id + '" style="display:none;">' +
+      renderInsightDetailFromEntry(entry) +
+      '</div></div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function toggleInsightHistory(id) {
+  const detail = document.getElementById('detail_' + id);
+  const chevron = document.getElementById('chevron_' + id);
+  if (detail.style.display === 'none') {
+    detail.style.display = '';
+    chevron.innerHTML = '&#9660;';
+  } else {
+    detail.style.display = 'none';
+    chevron.innerHTML = '&#9654;';
+  }
+}
+
+function renderInsightDetailFromEntry(entry) {
+  try {
+    const insight = JSON.parse(entry.full_response);
+    return renderInsightDetail(insight);
+  } catch (e) {
+    return '<p class="insight-section-text">' + escapeHtml(entry.executive_summary || 'No detail available.') + '</p>';
+  }
+}
+
+// ---- Project Notes ----
+
+function openNotesModal() {
+  const body = document.getElementById('notesModalBody');
+  body.innerHTML = renderProjectNotes();
+  document.getElementById('notesModal').style.display = 'flex';
+}
+
+function renderProjectNotes() {
+  if (state.projectNotes.length === 0) {
+    return '<p class="project-notes-empty">No project notes yet. Add your first note!</p>';
+  }
+
+  const sorted = [...state.projectNotes].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  let html = '<div class="project-notes-list">';
+
+  sorted.forEach(function(note) {
+    const dateStr = note.created_at ? formatDate(note.created_at.split(' ')[0]) : '';
+    const updatedStr = note.updated_at && note.updated_at !== note.created_at ? ' (edited)' : '';
+    html += '<div class="project-note-card">' +
+      '<textarea class="project-note-textarea" data-note-id="' + note.id + '" onblur="saveProjectNote(\'' + note.id + '\', this)">' +
+      escapeHtml(note.content || '') + '</textarea>' +
+      '<div class="project-note-meta"><span>' + dateStr + updatedStr + '</span>' +
+      '<button class="project-note-delete" onclick="deleteProjectNote(\'' + note.id + '\')" title="Delete note">&times; Delete</button>' +
+      '</div></div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function addProjectNote() {
+  const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const note = {
+    id: generateId('PN'),
+    content: '',
+    created_at: now,
+    updated_at: now
+  };
+  state.projectNotes.unshift(note);
+  queueWrite('addProjectNote', note);
+  saveToLocalCache();
+
+  const body = document.getElementById('notesModalBody');
+  body.innerHTML = renderProjectNotes();
+  // Focus the new textarea
+  const firstTextarea = body.querySelector('.project-note-textarea');
+  if (firstTextarea) firstTextarea.focus();
+}
+
+function deleteProjectNote(id) {
+  state.projectNotes = state.projectNotes.filter(n => n.id !== id);
+  queueWrite('deleteProjectNote', { id: id });
+  saveToLocalCache();
+  const body = document.getElementById('notesModalBody');
+  body.innerHTML = renderProjectNotes();
+}
+
+function saveProjectNote(id, textarea) {
+  const content = textarea.value;
+  const note = state.projectNotes.find(n => n.id === id);
+  if (!note || note.content === content) return;
+  note.content = content;
+  note.updated_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  queueWrite('updateProjectNote', { id: id, content: content, updated_at: note.updated_at });
+  saveToLocalCache();
 }
 
 // ---- Template Changes Modal ----

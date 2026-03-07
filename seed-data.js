@@ -7098,5 +7098,8 @@ window.SEED_DATA = {
       "active": true,
       "added_on": ""
     }
-  ]
+  ],
+  "sow": [],
+  "insights": [],
+  "project_notes": []
 };

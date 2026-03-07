@@ -80,6 +80,10 @@
           <div class="sow-box">
             <button class="btn sow-btn" onclick="openSowModal()">SOW</button>
           </div>
+          <button class="btn action-bookend btn-notes" onclick="openNotesModal()">Notes</button>
+          <button class="btn action-bookend btn-latest" onclick="openLatestModal()">Latest</button>
+          <button class="btn action-bookend btn-insights" onclick="openInsightsModal()">Insights</button>
+          <button class="btn action-bookend btn-chat" onclick="alert('Coming soon')">Chat</button>
         </div>
 
         <!-- Activity Phases -->
@@ -204,6 +208,9 @@
           <button class="modal-close" onclick="closeModal('sowModal')">&times;</button>
         </div>
         <div class="modal-body">
+          <label for="sowTechnicalSummary" style="font-weight:600;font-size:0.85rem;color:var(--text);margin-bottom:0.25rem;display:block;">Technical Summary</label>
+          <textarea id="sowTechnicalSummary" rows="6" placeholder="Provide a technical summary of the project to give context to the ACM work (e.g. systems being implemented, technical scope, integration points)..." style="width:100%;resize:vertical;font-family:inherit;font-size:0.9rem;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);margin-bottom:1rem;"></textarea>
+          <label for="sowContent" style="font-weight:600;font-size:0.85rem;color:var(--text);margin-bottom:0.25rem;display:block;">Statement of Work</label>
           <textarea id="sowContent" rows="15" placeholder="Paste your Statement of Work here..." style="width:100%;resize:vertical;font-family:inherit;font-size:0.9rem;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text)"></textarea>
           <input id="sowRemarks" placeholder="Remarks (optional)" style="width:100%;margin-top:0.75rem;padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);font-size:0.85rem">
         </div>
@@ -296,6 +303,43 @@
             <button class="btn-primary btn-success" onclick="savePrompt()">Save This Version</button>
             <button class="btn-primary" onclick="createNewPromptVersion()">Create New Version</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest Modal -->
+    <div class="modal-overlay" id="latestModal" style="display:none;" onclick="if(event.target===this)closeModal('latestModal')">
+      <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+          <h2>Latest Activity</h2>
+          <button class="modal-close" onclick="closeModal('latestModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="latestModalBody"></div>
+      </div>
+    </div>
+
+    <!-- Insights Modal -->
+    <div class="modal-overlay" id="insightsModal" style="display:none;" onclick="if(event.target===this)closeModal('insightsModal')">
+      <div class="modal" style="max-width:750px">
+        <div class="modal-header">
+          <h2>Project Insights</h2>
+          <button class="modal-close" onclick="closeModal('insightsModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="insightsModalBody"></div>
+        <div class="modal-footer" id="insightsModalFooter" style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.5rem;border-top:1px solid var(--border);"></div>
+      </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div class="modal-overlay" id="notesModal" style="display:none;" onclick="if(event.target===this)closeModal('notesModal')">
+      <div class="modal" style="max-width:600px">
+        <div class="modal-header">
+          <h2>Project Notes</h2>
+          <button class="modal-close" onclick="closeModal('notesModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="notesModalBody"></div>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:0.5rem;padding:0.75rem 1.5rem;border-top:1px solid var(--border);">
+          <button class="btn-primary btn-notes-color" onclick="addProjectNote()">Add Note</button>
         </div>
       </div>
     </div>
