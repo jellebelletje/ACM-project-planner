@@ -1847,6 +1847,7 @@ function batchUpdate(operations) {
 
   // ---- Map add actions to sheet names for bulk appending ----
   var addSheetMap = {
+    'addActivity': SHEET_NAMES.ACTIVITIES,
     'addTodo': SHEET_NAMES.TODOS,
     'addQuestion': SHEET_NAMES.QUESTIONS,
     'addNote': SHEET_NAMES.NOTES_LINKS,

@@ -504,9 +504,9 @@ function checkPhaseAdvance() {
   const idx = phases.indexOf(current);
   if (idx === -1 || idx >= phases.length - 1) return; // unknown or already last phase
 
-  // Check if all non-inactive activities in the current phase are completed
+  // Check if all non-inactive, non-deprioritised activities in the current phase are completed
   const acts = getPhaseActivities(current);
-  const activeActs = acts.filter(a => a.status !== 'inactive');
+  const activeActs = acts.filter(a => a.status !== 'inactive' && !a.deprioritised);
   if (activeActs.length === 0) return; // no activities to complete
   const allDone = activeActs.every(a => a.status === 'completed');
   if (!allDone) return;
@@ -562,6 +562,7 @@ function getWhatsNext() {
   for (const phase of phases) {
     const acts = getPhaseActivities(phase);
     for (const act of acts) {
+      if (act.deprioritised) continue;
       if (act.status === 'not_started' || act.status === 'in_progress') {
         const todos = getActivityTodos(act.id).filter(t => t.active !== false);
         const questions = getActivityQuestions(act.id).filter(q => q.active !== false);
@@ -617,7 +618,7 @@ function renderNav() {
   const phases = getPhases();
 
   nav.innerHTML = phases.map(phase => {
-    const acts = getPhaseActivities(phase).filter(a => a.status !== 'inactive');
+    const acts = getPhaseActivities(phase).filter(a => a.status !== 'inactive' && !a.deprioritised);
     const completed = acts.filter(a => a.status === 'completed').length;
     const total = acts.length;
     const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -833,11 +834,11 @@ function getActivityAllocatedPct(act) {
 
 function getEffectiveAllocatedPct(actId) {
   const act = getActivity(actId);
-  if (!act || act.status === 'inactive') return 0;
+  if (!act || act.status === 'inactive' || act.deprioritised) return 0;
   const rawPct = getActivityAllocatedPct(act);
   if (_cache.sumActivePct === undefined) {
     _cache.sumActivePct = state.activities
-      .filter(a => a.status !== 'inactive')
+      .filter(a => a.status !== 'inactive' && !a.deprioritised)
       .reduce((sum, a) => sum + getActivityAllocatedPct(a), 0);
   }
   const sumActive = _cache.sumActivePct;
@@ -917,13 +918,14 @@ function addTimeSpentEntry(activityId, spentMinutes, note) {
 
 function renderStatusBar() {
   const bar = document.getElementById('statusBar');
-  const activeActivities = state.activities.filter(a => a.status !== 'inactive');
+  const depriIds = new Set(state.activities.filter(a => a.deprioritised).map(a => a.id));
+  const activeActivities = state.activities.filter(a => a.status !== 'inactive' && !a.deprioritised);
   const total = activeActivities.length;
   const completed = activeActivities.filter(a => a.status === 'completed').length;
-  const activeTodos = state.todos.filter(t => t.active !== false);
+  const activeTodos = state.todos.filter(t => t.active !== false && !depriIds.has(t.activity_id));
   const allTodos = activeTodos.length;
   const doneTodos = activeTodos.filter(t => isTodoDone(t)).length;
-  const activeQs = state.questions.filter(q => q.active !== false);
+  const activeQs = state.questions.filter(q => q.active !== false && !depriIds.has(q.activity_id));
   const allQs = activeQs.length;
   const answeredQs = activeQs.filter(q => isQuestionAnswered(q)).length;
   const currentPhase = state.config.current_phase || getPhases()[0] || '';
@@ -999,7 +1001,7 @@ function renderTimeEntryPopover() {
   }
 
   const unit = state.config.duration_unit || 'hours';
-  const activeActs = state.activities.filter(a => a.status !== 'inactive');
+  const activeActs = state.activities.filter(a => a.status !== 'inactive' && !a.deprioritised);
   const actOptions = activeActs.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.id)} — ${escapeHtml(a.title)}</option>`).join('');
 
   let durationHtml;
@@ -1196,12 +1198,12 @@ function renderPhases() {
 
   container.innerHTML = phases.map((phase, idx) => {
     const acts = getPhaseActivities(phase);
-    const activeActs = acts.filter(a => a.status !== 'inactive');
-    const inactiveActs = acts.filter(a => a.status === 'inactive');
-    const showInactive = state.showInactive && state.showInactive[phase];
-    const visibleActiveActs = activeActs.filter(a => activityMatchesSearch(a) && activityMatchesFilter(a));
-    const visibleInactiveActs = inactiveActs.filter(a => activityMatchesSearch(a) && activityMatchesFilter(a));
-    const completed = activeActs.filter(a => a.status === 'completed').length;
+    const mainActs = acts.filter(a => !a.deprioritised);
+    const depriActs = acts.filter(a => a.deprioritised);
+    const showDepri = state.showInactive && state.showInactive[phase];
+    const visibleMainActs = mainActs.filter(a => activityMatchesSearch(a) && activityMatchesFilter(a));
+    const visibleDepriActs = depriActs.filter(a => activityMatchesSearch(a) && activityMatchesFilter(a));
+    const completed = mainActs.filter(a => a.status === 'completed').length;
 
     const phaseLower = phase.toLowerCase();
     const pdcaType = phaseLower.startsWith('plan') ? 'plan'
@@ -1210,12 +1212,12 @@ function renderPhases() {
       : phaseLower.startsWith('act') ? 'act' : 'default';
 
     let depriSection = '';
-    if (inactiveActs.length > 0) {
+    if (depriActs.length > 0) {
       depriSection = `<div class="phase-deprioritised-section">
-        <details class="phase-depri-details"${showInactive ? ' open' : ''}>
-          <summary class="phase-depri-summary" data-phase="${escapeHtml(phase)}">Deprioritised (${inactiveActs.length})</summary>
+        <details class="phase-depri-details"${showDepri ? ' open' : ''}>
+          <summary class="phase-depri-summary" data-phase="${escapeHtml(phase)}">Deprioritised (${depriActs.length})</summary>
           <div class="cards-grid cards-grid-deprioritised">
-            ${visibleInactiveActs.map(a => renderCard(a)).join('')}
+            ${visibleDepriActs.map(a => renderCard(a)).join('')}
           </div>
         </details>
       </div>`;
@@ -1224,11 +1226,11 @@ function renderPhases() {
     return `<section class="phase-section phase-${pdcaType}" data-phase-section="${escapeHtml(phase)}" data-phase-idx="${idx}">
       <div class="phase-header">
         <span class="phase-title" contenteditable="true" data-phase="${escapeHtml(phase)}">${escapeHtml(phase)}</span>
-        <span class="phase-count">${completed}/${activeActs.length} done</span>
+        <span class="phase-count">${completed}/${mainActs.length} done</span>
         <button class="btn-small phase-add-btn" data-phase="${escapeHtml(phase)}">+ Activity</button>
       </div>
       <div class="cards-grid">
-        ${visibleActiveActs.map(a => renderCard(a)).join('')}
+        ${visibleMainActs.map(a => renderCard(a)).join('')}
       </div>
       ${depriSection}
     </section>`;
@@ -4865,7 +4867,7 @@ function renderAiConfigStep1(configuration, promptSource) {
   }
 
   body.innerHTML = html;
-  body.querySelectorAll('.ai-config-prioritised').forEach(list => setupAiConfigDragDrop(list));
+  setupAiConfigDragDrop();
 }
 
 // ---- Step 2: Refine Todos & Questions ----
@@ -4891,8 +4893,8 @@ function renderAiConfigStep2(refinements, promptSource) {
   }
 
   if (deactTodos.length > 0) {
-    html += '<div class="review-section"><h3 class="review-section-title">Suggested Todo Deactivations (' + deactTodos.length + ')</h3>' +
-      '<p class="ai-config-rename-explainer">These todos appear irrelevant to your SOW. Checked items will be hidden from view. Uncheck any you want to keep.</p>';
+    html += '<div class="review-section"><h3 class="review-section-title">Suggested Todo Removals (' + deactTodos.length + ')</h3>' +
+      '<p class="ai-config-rename-explainer">These todos appear irrelevant to your SOW. Checked items will be permanently removed. Uncheck any you want to keep.</p>';
     deactTodos.forEach((item, idx) => {
       const originalText = getOriginalText('todo', item.id);
       const activityId = item.activity_id || '';
@@ -4913,8 +4915,8 @@ function renderAiConfigStep2(refinements, promptSource) {
   }
 
   if (deactQuestions.length > 0) {
-    html += '<div class="review-section"><h3 class="review-section-title">Suggested Question Deactivations (' + deactQuestions.length + ')</h3>' +
-      '<p class="ai-config-rename-explainer">These questions appear irrelevant to your SOW. Checked items will be hidden from view. Uncheck any you want to keep.</p>';
+    html += '<div class="review-section"><h3 class="review-section-title">Suggested Question Removals (' + deactQuestions.length + ')</h3>' +
+      '<p class="ai-config-rename-explainer">These questions appear irrelevant to your SOW. Checked items will be permanently removed. Uncheck any you want to keep.</p>';
     deactQuestions.forEach((item, idx) => {
       const originalText = getOriginalText('question', item.id);
       const activityId = item.activity_id || '';
@@ -5030,13 +5032,15 @@ function applyStep1FromModal() {
         if (!act) { console.warn('[AI Config] Activity not found in state:', itemId); aiConfigApplyStats.notFound++; return; }
         if (cb && cb.checked) {
           act.sequence = seqIdx;
+          act.deprioritised = false;
+          act.pdca_phase = phaseData.phase; // supports cross-phase drag
           if (act.status === 'inactive') act.status = 'not_started';
-          queueWrite('updateActivity', { id: act.id, sequence: seqIdx, status: act.status });
+          queueWrite('updateActivity', { id: act.id, sequence: seqIdx, deprioritised: false, status: act.status, pdca_phase: phaseData.phase });
           prioritisedIds.push(act.id);
           aiConfigApplyStats.prioritised++;
         } else {
-          act.status = 'inactive';
-          queueWrite('updateActivity', { id: act.id, status: 'inactive' });
+          act.deprioritised = true;
+          queueWrite('updateActivity', { id: act.id, deprioritised: true });
           aiConfigApplyStats.deprioritised++;
         }
       });
@@ -5050,13 +5054,14 @@ function applyStep1FromModal() {
         const act = findActivityById(itemId);
         if (!act) { console.warn('[AI Config] Depri activity not found in state:', itemId); aiConfigApplyStats.notFound++; return; }
         if (cb && cb.checked) {
+          act.deprioritised = false;
           if (act.status === 'inactive') act.status = 'not_started';
-          queueWrite('updateActivity', { id: act.id, status: act.status });
+          queueWrite('updateActivity', { id: act.id, deprioritised: false, status: act.status });
           prioritisedIds.push(act.id);
           aiConfigApplyStats.prioritised++;
         } else {
-          act.status = 'inactive';
-          queueWrite('updateActivity', { id: act.id, status: 'inactive' });
+          act.deprioritised = true;
+          queueWrite('updateActivity', { id: act.id, deprioritised: true });
           aiConfigApplyStats.deprioritised++;
         }
       });
@@ -5079,7 +5084,7 @@ function applyStep1FromModal() {
           id: actId, title: newAct.title, intro_text: newAct.intro_text || '', full_description: '',
           pdca_phase: phaseData.phase, sequence: 999 + idx, status: 'not_started',
           due_date: '', depends_on: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-          allocated_pct: '', actual_minutes: '', activity_type: ''
+          allocated_pct: '', actual_minutes: '', activity_type: '', deprioritised: false
         };
         state.activities.push(activity);
         queueWrite('addActivity', activity);
@@ -5125,8 +5130,8 @@ function applyStep2FromModal() {
     if (!item) return;
     const todo = findTodoById(item.id);
     if (todo) {
-      todo.active = false;
-      queueWrite('updateTodo', { id: todo.id, active: false });
+      state.todos = state.todos.filter(t => t.id !== todo.id);
+      queueWrite('deleteTodo', { id: todo.id });
       aiConfigApplyStats.todosDeactivated++;
     } else {
       console.warn('[AI Config] Todo not found:', item.id);
@@ -5140,15 +5145,15 @@ function applyStep2FromModal() {
     if (!item) return;
     const q = findQuestionById(item.id);
     if (q) {
-      q.active = false;
-      queueWrite('updateQuestion', { id: q.id, active: false });
+      state.questions = state.questions.filter(x => x.id !== q.id);
+      queueWrite('deleteQuestion', { id: q.id });
       aiConfigApplyStats.questionsDeactivated++;
     } else {
       console.warn('[AI Config] Question not found:', item.id);
     }
   });
 
-  console.log('[AI Config] Step 2 applied:', aiConfigApplyStats.todosDeactivated, 'todos deactivated,', aiConfigApplyStats.questionsDeactivated, 'questions deactivated');
+  console.log('[AI Config] Step 2 applied:', aiConfigApplyStats.todosDeactivated, 'todos removed,', aiConfigApplyStats.questionsDeactivated, 'questions removed');
 }
 
 function applyStep3FromModal() {
@@ -5270,8 +5275,8 @@ function aiConfigFinishEarly() {
   if (s.prioritised) parts.push(s.prioritised + ' prioritised');
   if (s.deprioritised) parts.push(s.deprioritised + ' deprioritised');
   if (s.newActivities) parts.push(s.newActivities + ' new activities');
-  if (s.todosDeactivated) parts.push(s.todosDeactivated + ' todos hidden');
-  if (s.questionsDeactivated) parts.push(s.questionsDeactivated + ' questions hidden');
+  if (s.todosDeactivated) parts.push(s.todosDeactivated + ' todos removed');
+  if (s.questionsDeactivated) parts.push(s.questionsDeactivated + ' questions removed');
   if (s.renamed) parts.push(s.renamed + ' items renamed');
   if (s.notFound) parts.push(s.notFound + ' items not found');
 
@@ -5308,38 +5313,63 @@ function renderAiConfigItem(item, phaseIdx, group, idx, checked) {
   '</div>';
 }
 
-function setupAiConfigDragDrop(list) {
+function setupAiConfigDragDrop() {
   let draggedEl = null;
-  list.addEventListener('dragstart', (e) => {
-    const item = e.target.closest('.ai-config-item');
-    if (!item) return;
-    draggedEl = item;
-    item.classList.add('ai-config-dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', item.dataset.aiItemId);
-  });
-  list.addEventListener('dragend', (e) => {
-    const item = e.target.closest('.ai-config-item');
-    if (item) item.classList.remove('ai-config-dragging');
-    draggedEl = null;
-    document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
-  });
-  list.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    const afterEl = getDragAfterElement(list, e.clientY);
-    if (afterEl) afterEl.classList.add('ai-config-drag-over');
-  });
-  list.addEventListener('dragleave', (e) => {
-    const item = e.target.closest('.ai-config-item');
-    if (item) item.classList.remove('ai-config-drag-over');
-  });
-  list.addEventListener('drop', (e) => {
-    e.preventDefault();
-    document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
-    if (!draggedEl) return;
-    const afterEl = getDragAfterElement(list, e.clientY);
-    if (afterEl) { list.insertBefore(draggedEl, afterEl); } else { list.appendChild(draggedEl); }
+  const lists = document.querySelectorAll('.ai-config-prioritised');
+
+  lists.forEach(list => {
+    list.addEventListener('dragstart', (e) => {
+      const item = e.target.closest('.ai-config-item');
+      if (!item) return;
+      draggedEl = item;
+      item.classList.add('ai-config-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', item.dataset.aiItemId);
+    });
+
+    list.addEventListener('dragend', (e) => {
+      const item = e.target.closest('.ai-config-item');
+      if (item) item.classList.remove('ai-config-dragging');
+      draggedEl = null;
+      document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
+    });
+
+    list.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      // Clear all previous indicators
+      document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
+      const afterEl = getDragAfterElement(list, e.clientY);
+      if (afterEl) {
+        afterEl.classList.add('ai-config-drag-over');
+      } else {
+        list.classList.add('ai-config-drag-over');
+      }
+    });
+
+    list.addEventListener('dragleave', (e) => {
+      const item = e.target.closest('.ai-config-item');
+      if (item) item.classList.remove('ai-config-drag-over');
+      if (e.target === list) list.classList.remove('ai-config-drag-over');
+    });
+
+    list.addEventListener('drop', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
+      list.classList.remove('ai-config-drag-over');
+      if (!draggedEl) return;
+
+      // Update phase attribute when dropped in a different phase's list
+      const targetPhase = list.dataset.aiPhase;
+      if (draggedEl.dataset.aiPhase !== targetPhase) {
+        draggedEl.dataset.aiPhase = targetPhase;
+        const cb = draggedEl.querySelector('input[type="checkbox"]');
+        if (cb) cb.dataset.aiPhase = targetPhase;
+      }
+
+      const afterEl = getDragAfterElement(list, e.clientY);
+      if (afterEl) { list.insertBefore(draggedEl, afterEl); } else { list.appendChild(draggedEl); }
+    });
   });
 }
 
