@@ -4983,12 +4983,42 @@ function renderAiConfigStep3(tailoring, promptSource) {
 }
 
 // ---- Apply helpers ----
+// Robust ID lookup: trim whitespace, try exact match then case-insensitive
+function findActivityById(itemId) {
+  if (!itemId) return null;
+  const id = itemId.trim();
+  return state.activities.find(a => a.id === id)
+    || state.activities.find(a => a.id?.trim() === id)
+    || state.activities.find(a => a.id?.trim().toLowerCase() === id.toLowerCase());
+}
+function findTodoById(itemId) {
+  if (!itemId) return null;
+  const id = itemId.trim();
+  return state.todos.find(t => t.id === id)
+    || state.todos.find(t => t.id?.trim() === id)
+    || state.todos.find(t => t.id?.trim().toLowerCase() === id.toLowerCase());
+}
+function findQuestionById(itemId) {
+  if (!itemId) return null;
+  const id = itemId.trim();
+  return state.questions.find(q => q.id === id)
+    || state.questions.find(q => q.id?.trim() === id)
+    || state.questions.find(q => q.id?.trim().toLowerCase() === id.toLowerCase());
+}
+
+// Counters for summary
+let aiConfigApplyStats = { deprioritised: 0, prioritised: 0, newActivities: 0, todosDeactivated: 0, questionsDeactivated: 0, renamed: 0, notFound: 0 };
+
 function applyStep1FromModal() {
   const modal = document.getElementById('aiConfigModal');
   const configuration = aiWizard.step1Data;
   if (!configuration || !configuration.phases) return [];
 
   const prioritisedIds = [];
+  aiConfigApplyStats.deprioritised = 0;
+  aiConfigApplyStats.prioritised = 0;
+  aiConfigApplyStats.newActivities = 0;
+  aiConfigApplyStats.notFound = 0;
 
   configuration.phases.forEach((phaseData, phaseIdx) => {
     const priList = modal.querySelector('.ai-config-prioritised[data-ai-phase="' + phaseIdx + '"]');
@@ -4996,16 +5026,18 @@ function applyStep1FromModal() {
       priList.querySelectorAll('.ai-config-item').forEach((el, seqIdx) => {
         const cb = el.querySelector('input[type="checkbox"]');
         const itemId = el.dataset.aiItemId;
-        const act = state.activities.find(a => a.id === itemId);
-        if (!act) return;
+        const act = findActivityById(itemId);
+        if (!act) { console.warn('[AI Config] Activity not found in state:', itemId); aiConfigApplyStats.notFound++; return; }
         if (cb && cb.checked) {
           act.sequence = seqIdx;
           if (act.status === 'inactive') act.status = 'not_started';
           queueWrite('updateActivity', { id: act.id, sequence: seqIdx, status: act.status });
           prioritisedIds.push(act.id);
+          aiConfigApplyStats.prioritised++;
         } else {
           act.status = 'inactive';
           queueWrite('updateActivity', { id: act.id, status: 'inactive' });
+          aiConfigApplyStats.deprioritised++;
         }
       });
     }
@@ -5015,26 +5047,32 @@ function applyStep1FromModal() {
       depriList.querySelectorAll('.ai-config-item').forEach(el => {
         const cb = el.querySelector('input[type="checkbox"]');
         const itemId = el.dataset.aiItemId;
-        const act = state.activities.find(a => a.id === itemId);
-        if (!act) return;
+        const act = findActivityById(itemId);
+        if (!act) { console.warn('[AI Config] Depri activity not found in state:', itemId); aiConfigApplyStats.notFound++; return; }
         if (cb && cb.checked) {
           if (act.status === 'inactive') act.status = 'not_started';
           queueWrite('updateActivity', { id: act.id, status: act.status });
           prioritisedIds.push(act.id);
+          aiConfigApplyStats.prioritised++;
         } else {
           act.status = 'inactive';
           queueWrite('updateActivity', { id: act.id, status: 'inactive' });
+          aiConfigApplyStats.deprioritised++;
         }
       });
     }
 
-    // New activities
+    // New activities — prevent duplicates
     if (phaseData.new_activities) {
       modal.querySelectorAll('[data-ai-type="new"][data-ai-phase="' + phaseIdx + '"]').forEach(cb => {
         if (!cb.checked) return;
         const idx = parseInt(cb.dataset.aiIdx);
         const newAct = phaseData.new_activities[idx];
         if (!newAct) return;
+
+        // Skip if activity with same title already exists in this phase
+        const duplicate = state.activities.find(a => a.title?.trim().toLowerCase() === newAct.title?.trim().toLowerCase() && a.pdca_phase === phaseData.phase);
+        if (duplicate) { console.log('[AI Config] Skipping duplicate new activity:', newAct.title); return; }
 
         const actId = generateId('A');
         const activity = {
@@ -5046,6 +5084,7 @@ function applyStep1FromModal() {
         state.activities.push(activity);
         queueWrite('addActivity', activity);
         prioritisedIds.push(actId);
+        aiConfigApplyStats.newActivities++;
 
         if (newAct.todos) {
           newAct.todos.forEach((todoText, tIdx) => {
@@ -5065,6 +5104,7 @@ function applyStep1FromModal() {
     }
   });
 
+  console.log('[AI Config] Step 1 applied:', aiConfigApplyStats.prioritised, 'prioritised,', aiConfigApplyStats.deprioritised, 'deprioritised,', aiConfigApplyStats.newActivities, 'new,', aiConfigApplyStats.notFound, 'not found');
   return prioritisedIds;
 }
 
@@ -5075,16 +5115,21 @@ function applyStep2FromModal() {
 
   const deactTodos = refinements.deactivate_todos || [];
   const deactQuestions = refinements.deactivate_questions || [];
+  aiConfigApplyStats.todosDeactivated = 0;
+  aiConfigApplyStats.questionsDeactivated = 0;
 
   modal.querySelectorAll('[data-ai-type="deact-todo"]').forEach(cb => {
     if (!cb.checked) return;
     const idx = parseInt(cb.dataset.deactIdx);
     const item = deactTodos[idx];
     if (!item) return;
-    const todo = state.todos.find(t => t.id === item.id);
+    const todo = findTodoById(item.id);
     if (todo) {
       todo.active = false;
-      queueWrite('updateTodo', { id: item.id, active: false });
+      queueWrite('updateTodo', { id: todo.id, active: false });
+      aiConfigApplyStats.todosDeactivated++;
+    } else {
+      console.warn('[AI Config] Todo not found:', item.id);
     }
   });
 
@@ -5093,12 +5138,17 @@ function applyStep2FromModal() {
     const idx = parseInt(cb.dataset.deactIdx);
     const item = deactQuestions[idx];
     if (!item) return;
-    const q = state.questions.find(x => x.id === item.id);
+    const q = findQuestionById(item.id);
     if (q) {
       q.active = false;
-      queueWrite('updateQuestion', { id: item.id, active: false });
+      queueWrite('updateQuestion', { id: q.id, active: false });
+      aiConfigApplyStats.questionsDeactivated++;
+    } else {
+      console.warn('[AI Config] Question not found:', item.id);
     }
   });
+
+  console.log('[AI Config] Step 2 applied:', aiConfigApplyStats.todosDeactivated, 'todos deactivated,', aiConfigApplyStats.questionsDeactivated, 'questions deactivated');
 }
 
 function applyStep3FromModal() {
@@ -5107,6 +5157,7 @@ function applyStep3FromModal() {
   if (!tailoring) return;
 
   const renames = tailoring.renames || [];
+  aiConfigApplyStats.renamed = 0;
 
   modal.querySelectorAll('[data-ai-type="rename"]').forEach(cb => {
     if (!cb.checked) return;
@@ -5115,16 +5166,21 @@ function applyStep3FromModal() {
     if (!rename) return;
 
     if (rename.type === 'activity') {
-      const act = state.activities.find(a => a.id === rename.id);
-      if (act) { act.title = rename.proposed; queueWrite('updateActivity', { id: rename.id, title: rename.proposed }); }
+      const act = findActivityById(rename.id);
+      if (act) { act.title = rename.proposed; queueWrite('updateActivity', { id: act.id, title: rename.proposed }); aiConfigApplyStats.renamed++; }
+      else console.warn('[AI Config] Rename: activity not found:', rename.id);
     } else if (rename.type === 'todo') {
-      const todo = state.todos.find(t => t.id === rename.id);
-      if (todo) { todo.text = rename.proposed; queueWrite('updateTodo', { id: rename.id, text: rename.proposed }); }
+      const todo = findTodoById(rename.id);
+      if (todo) { todo.text = rename.proposed; queueWrite('updateTodo', { id: todo.id, text: rename.proposed }); aiConfigApplyStats.renamed++; }
+      else console.warn('[AI Config] Rename: todo not found:', rename.id);
     } else if (rename.type === 'question') {
-      const q = state.questions.find(x => x.id === rename.id);
-      if (q) { q.question_text = rename.proposed; queueWrite('updateQuestion', { id: rename.id, question_text: rename.proposed }); }
+      const q = findQuestionById(rename.id);
+      if (q) { q.question_text = rename.proposed; queueWrite('updateQuestion', { id: q.id, question_text: rename.proposed }); aiConfigApplyStats.renamed++; }
+      else console.warn('[AI Config] Rename: question not found:', rename.id);
     }
   });
+
+  console.log('[AI Config] Step 3 applied:', aiConfigApplyStats.renamed, 'items renamed');
 }
 
 // ---- Wizard navigation ----
@@ -5207,6 +5263,27 @@ function aiConfigFinishEarly() {
   saveToLocalCache();
   renderAll();
   attachExpandedEvents();
+
+  // Show summary toast
+  const s = aiConfigApplyStats;
+  const parts = [];
+  if (s.prioritised) parts.push(s.prioritised + ' prioritised');
+  if (s.deprioritised) parts.push(s.deprioritised + ' deprioritised');
+  if (s.newActivities) parts.push(s.newActivities + ' new activities');
+  if (s.todosDeactivated) parts.push(s.todosDeactivated + ' todos hidden');
+  if (s.questionsDeactivated) parts.push(s.questionsDeactivated + ' questions hidden');
+  if (s.renamed) parts.push(s.renamed + ' items renamed');
+  if (s.notFound) parts.push(s.notFound + ' items not found');
+
+  if (parts.length > 0) {
+    const toast = document.createElement('div');
+    toast.className = 'ai-config-toast';
+    toast.textContent = 'AI Configuration applied: ' + parts.join(', ');
+    if (s.notFound > 0) toast.classList.add('ai-config-toast-warn');
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.classList.add('show'); }, 50);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 6000);
+  }
 }
 
 // ---- Shared helpers (unchanged) ----

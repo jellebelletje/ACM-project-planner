@@ -3794,6 +3794,33 @@ mark {
   color: var(--text-on-dark);
 }
 
+/* AI Config summary toast */
+.ai-config-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #166534;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  max-width: 90vw;
+  text-align: center;
+}
+.ai-config-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.ai-config-toast-warn {
+  background: #92400e;
+}
+
 /* ---- AI Configuration Modal layout ---- */
 #aiConfigModal > .modal {
   display: flex;

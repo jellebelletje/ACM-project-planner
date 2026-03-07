@@ -1159,6 +1159,40 @@ function callClaudeForJson(apiKey, prompt, errorPrefix) {
   return { success: true, data: JSON.parse(responseText) };
 }
 
+// Batch-read all project data needed by AI Config steps (minimises sheet API calls)
+// Instead of 5 separate getSheetData() calls (each opening the spreadsheet + 2 getRange calls),
+// this opens the spreadsheet once and reads all 5 sheets = ~10 getRange calls saved per step.
+function readAllProjectData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  function parseSheet(sheetName) {
+    try {
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) return [];
+      var lastRow = sheet.getLastRow();
+      if (lastRow < 2) return [];
+      var lastCol = sheet.getLastColumn();
+      var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+      var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+      return data.map(function(row) {
+        var obj = {};
+        headers.forEach(function(h, i) { obj[h] = row[i]; });
+        return obj;
+      });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  return {
+    activities: parseSheet(SHEET_NAMES.ACTIVITIES),
+    todos: parseSheet(SHEET_NAMES.TODOS),
+    questions: parseSheet(SHEET_NAMES.QUESTIONS),
+    sow: parseSheet(SHEET_NAMES.SOW),
+    milestones: parseSheet(SHEET_NAMES.MILESTONES)
+  };
+}
+
 // Step 1: Prioritise activities (lightweight — no todo/question details)
 function aiConfigure(data) {
   var acmTouchLevel = data.acm_touch_level || 'full';
@@ -1166,11 +1200,13 @@ function aiConfigure(data) {
   var apiKey = getClaudeApiKey();
   if (!apiKey) return { error: 'Claude API key not configured. Add it to the master sheet Config tab.' };
 
-  var activities = getActivities();
-  var allTodos = getSheetData(SHEET_NAMES.TODOS);
-  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
-  var sow = getSowAll();
-  var milestones = getMilestones();
+  // Batch-read all sheets once (saves ~8 redundant API calls vs individual reads)
+  var projectData = readAllProjectData();
+  var activities = projectData.activities;
+  var allTodos = projectData.todos;
+  var allQuestions = projectData.questions;
+  var sow = projectData.sow;
+  var milestones = projectData.milestones;
 
   var sowContent = sow.length > 0 ? sow[0].content || '' : '';
   var technicalSummary = sow.length > 0 && sow[0].technical_summary ? sow[0].technical_summary : '';
@@ -1245,13 +1281,15 @@ function aiConfigStep2(data) {
   var apiKey = getClaudeApiKey();
   if (!apiKey) return { error: 'Claude API key not configured.' };
 
-  var sow = getSowAll();
+  // Batch-read all sheets once
+  var projectData = readAllProjectData();
+  var sow = projectData.sow;
   var sowContent = sow.length > 0 ? sow[0].content || '' : '';
   var technicalSummary = sow.length > 0 && sow[0].technical_summary ? sow[0].technical_summary : '';
 
-  var activities = getActivities();
-  var allTodos = getSheetData(SHEET_NAMES.TODOS);
-  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
+  var activities = projectData.activities;
+  var allTodos = projectData.todos;
+  var allQuestions = projectData.questions;
 
   // Only include prioritised activities with their full todo/question details
   var activitiesWithDetails = activities.filter(function(a) {
@@ -1318,13 +1356,15 @@ function aiConfigStep3(data) {
   var apiKey = getClaudeApiKey();
   if (!apiKey) return { error: 'Claude API key not configured.' };
 
-  var sow = getSowAll();
+  // Batch-read all sheets once
+  var projectData = readAllProjectData();
+  var sow = projectData.sow;
   var sowContent = sow.length > 0 ? sow[0].content || '' : '';
   var technicalSummary = sow.length > 0 && sow[0].technical_summary ? sow[0].technical_summary : '';
 
-  var activities = getActivities();
-  var allTodos = getSheetData(SHEET_NAMES.TODOS);
-  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
+  var activities = projectData.activities;
+  var allTodos = projectData.todos;
+  var allQuestions = projectData.questions;
 
   // Send activity titles + a sample of todos/questions for rename consideration
   var activitiesForRename = activities.filter(function(a) {
@@ -1786,53 +1826,199 @@ function deleteActivity(id) {
 // ---- Batch Update (for debounced writes) ----
 
 function batchUpdate(operations) {
-  const results = [];
-  for (const op of operations) {
+  if (!operations || operations.length === 0) return { success: true, results: [] };
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var results = new Array(operations.length);
+
+  // ---- Map update actions to sheet names for bulk processing ----
+  var updateSheetMap = {
+    'updateActivity': SHEET_NAMES.ACTIVITIES,
+    'updateTodo': SHEET_NAMES.TODOS,
+    'updateQuestion': SHEET_NAMES.QUESTIONS,
+    'updateNote': SHEET_NAMES.NOTES_LINKS,
+    'updateMilestone': SHEET_NAMES.MILESTONES,
+    'updateTranscript': SHEET_NAMES.TRANSCRIPTS,
+    'updateAgreement': SHEET_NAMES.AGREEMENTS,
+    'updateTemplateChange': SHEET_NAMES.TEMPLATE_CHANGES,
+    'updatePrompt': SHEET_NAMES.PROMPTS,
+    'updateProjectNote': SHEET_NAMES.PROJECT_NOTES
+  };
+
+  // ---- Map add actions to sheet names for bulk appending ----
+  var addSheetMap = {
+    'addTodo': SHEET_NAMES.TODOS,
+    'addQuestion': SHEET_NAMES.QUESTIONS,
+    'addNote': SHEET_NAMES.NOTES_LINKS,
+    'addTimesheetEntry': SHEET_NAMES.TIMESHEET,
+    'addTimeSpentEntry': SHEET_NAMES.TIME_SPENT,
+    'addTimeBilledEntry': SHEET_NAMES.TIME_BILLED,
+    'addSowEntry': SHEET_NAMES.SOW,
+    'addTranscriptEntry': SHEET_NAMES.TRANSCRIPTS,
+    'addAgreement': SHEET_NAMES.AGREEMENTS,
+    'addTemplateChange': SHEET_NAMES.TEMPLATE_CHANGES,
+    'addPrompt': SHEET_NAMES.PROMPTS,
+    'addInsight': SHEET_NAMES.INSIGHTS,
+    'addProjectNote': SHEET_NAMES.PROJECT_NOTES,
+    'addChatEntry': SHEET_NAMES.CHAT_LOG
+  };
+
+  // ---- Categorise operations ----
+  var updateGroups = {};  // sheetName → [{ opIdx, data, action }]
+  var addGroups = {};     // sheetName → [{ opIdx, data }]
+  var otherOps = [];      // everything else (deletes, updateConfig, etc.)
+
+  operations.forEach(function(op, idx) {
+    var updateSheet = updateSheetMap[op.action];
+    var addSheet = addSheetMap[op.action];
+
+    if (updateSheet && op.data && op.data.id) {
+      if (!updateGroups[updateSheet]) updateGroups[updateSheet] = [];
+      updateGroups[updateSheet].push({ opIdx: idx, data: op.data, action: op.action });
+    } else if (addSheet && op.data) {
+      if (!addGroups[addSheet]) addGroups[addSheet] = [];
+      addGroups[addSheet].push({ opIdx: idx, data: op.data });
+    } else {
+      otherOps.push({ opIdx: idx, op: op });
+    }
+  });
+
+  // ---- Process grouped UPDATE operations: one read per sheet ----
+  // Before: N updates × (findRowIndex + getHeaders + getRow + setRow) = ~4N API calls
+  // After:  1 getHeaders + 1 getAllData + N setRow = ~(2 + N) API calls
+  for (var sheetName in updateGroups) {
+    var group = updateGroups[sheetName];
     try {
-      let r;
-      switch (op.action) {
-        case 'updateActivity': r = updateActivity(op.data); break;
-        case 'updateTodo': r = updateTodo(op.data); break;
-        case 'addTodo': r = addTodo(op.data); break;
-        case 'deleteTodo': r = deleteTodo(op.data.id); break;
-        case 'updateQuestion': r = updateQuestion(op.data); break;
-        case 'addQuestion': r = addQuestion(op.data); break;
-        case 'deleteQuestion': r = deleteQuestion(op.data.id); break;
-        case 'addNote': r = addNote(op.data); break;
-        case 'updateNote': r = updateNote(op.data); break;
-        case 'deleteNote': r = deleteNote(op.data.id); break;
-        case 'updateMilestone': r = updateMilestone(op.data); break;
-        case 'deleteMilestone': r = deleteMilestone(op.data.id); break;
-        case 'updateConfig': r = updateConfig(op.data); break;
-        case 'addTimesheetEntry': r = addTimesheetEntry(op.data); break;
-        case 'deleteTimesheetEntry': r = deleteTimesheetEntry(op.data); break;
-        case 'addTimeSpentEntry': r = addTimeSpentEntry(op.data); break;
-        case 'deleteTimeSpentEntry': r = deleteTimeSpentEntry(op.data); break;
-        case 'addTimeBilledEntry': r = addTimeBilledEntry(op.data); break;
-        case 'deleteTimeBilledEntry': r = deleteTimeBilledEntry(op.data); break;
-        case 'addSowEntry': r = addSowEntry(op.data); break;
-        case 'addTranscriptEntry': r = addTranscriptEntry(op.data); break;
-        case 'updateTranscript': r = updateTranscript(op.data); break;
-        case 'deleteTranscriptEntry': r = deleteTranscriptEntry(op.data); break;
-        case 'addAgreement': r = addAgreement(op.data); break;
-        case 'updateAgreement': r = updateAgreement(op.data); break;
-        case 'deleteAgreement': r = deleteAgreement(op.data.id); break;
-        case 'addTemplateChange': r = addTemplateChange(op.data); break;
-        case 'updateTemplateChange': r = updateTemplateChange(op.data); break;
-        case 'addPrompt': r = addPrompt(op.data); break;
-        case 'updatePrompt': r = updatePrompt(op.data); break;
-        case 'addInsight': r = addInsight(op.data); break;
-        case 'addProjectNote': r = addProjectNote(op.data); break;
-        case 'updateProjectNote': r = updateProjectNote(op.data); break;
-        case 'deleteProjectNote': r = deleteProjectNote(op.data.id); break;
-        case 'addChatEntry': r = addChatEntry(op.data); break;
-        default: r = { error: 'Unknown batch action: ' + op.action };
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        group.forEach(function(item) { results[item.opIdx] = { error: 'Sheet not found: ' + sheetName }; });
+        continue;
       }
-      results.push(r);
+
+      var lastRow = sheet.getLastRow();
+      var lastCol = sheet.getLastColumn();
+      var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+      var allData = lastRow >= 2 ? sheet.getRange(2, 1, lastRow - 1, lastCol).getValues() : [];
+      var idCol = headers.indexOf('id');
+
+      // Build ID → row index lookup for fast matching
+      var idMap = {};
+      allData.forEach(function(row, i) {
+        var id = String(row[idCol]).trim();
+        idMap[id] = i;
+      });
+
+      var modifiedRows = {};
+
+      group.forEach(function(item) {
+        var dataId = String(item.data.id).trim();
+        var rowIdx = idMap[dataId];
+
+        if (rowIdx === undefined) {
+          results[item.opIdx] = { error: 'Not found: ' + item.data.id };
+          return;
+        }
+
+        // Apply changes to in-memory row (direct reference so subsequent ops on same row accumulate)
+        var row = allData[rowIdx];
+        for (var key in item.data) {
+          if (key === 'id') continue;
+          var colIdx = headers.indexOf(key);
+          if (colIdx !== -1) row[colIdx] = item.data[key];
+        }
+
+        // Special handling: updated_at for Activities
+        if (sheetName === SHEET_NAMES.ACTIVITIES) {
+          var updatedAtIdx = headers.indexOf('updated_at');
+          if (updatedAtIdx !== -1) row[updatedAtIdx] = new Date();
+        }
+
+        // Special handling: auto is_answered for Questions
+        if (sheetName === SHEET_NAMES.QUESTIONS) {
+          var answerIdx = headers.indexOf('answer');
+          var isAnsweredIdx = headers.indexOf('is_answered');
+          if (answerIdx !== -1 && isAnsweredIdx !== -1) {
+            row[isAnsweredIdx] = row[answerIdx] !== '' && row[answerIdx] !== null;
+          }
+        }
+
+        modifiedRows[rowIdx] = true;
+        results[item.opIdx] = { success: true, id: item.data.id };
+      });
+
+      // Write back all modified rows
+      for (var ridx in modifiedRows) {
+        var sheetRow = parseInt(ridx) + 2; // +2: row 1 = header, array is 0-indexed
+        sheet.getRange(sheetRow, 1, 1, headers.length).setValues([allData[parseInt(ridx)]]);
+      }
     } catch (err) {
-      results.push({ error: err.message });
+      group.forEach(function(item) {
+        if (!results[item.opIdx]) results[item.opIdx] = { error: err.message };
+      });
     }
   }
+
+  // ---- Process grouped ADD operations: one bulk append per sheet ----
+  // Before: N appends × (getHeaders + appendRow) = ~2N API calls
+  // After:  1 getHeaders + 1 setValues = ~2 API calls per sheet
+  for (var addSheet in addGroups) {
+    var addGroup = addGroups[addSheet];
+    try {
+      var aSheet = ss.getSheetByName(addSheet);
+      if (!aSheet) {
+        addGroup.forEach(function(item) { results[item.opIdx] = { error: 'Sheet not found: ' + addSheet }; });
+        continue;
+      }
+
+      var aHeaders = aSheet.getRange(1, 1, 1, aSheet.getLastColumn()).getValues()[0];
+      var newRows = [];
+
+      addGroup.forEach(function(item) {
+        var row = aHeaders.map(function(h) { return item.data[h] !== undefined ? item.data[h] : ''; });
+        newRows.push(row);
+        results[item.opIdx] = { success: true, id: item.data.id || '(new)' };
+      });
+
+      if (newRows.length > 0) {
+        var startRow = aSheet.getLastRow() + 1;
+        aSheet.getRange(startRow, 1, newRows.length, aHeaders.length).setValues(newRows);
+      }
+    } catch (err) {
+      addGroup.forEach(function(item) {
+        if (!results[item.opIdx]) results[item.opIdx] = { error: err.message };
+      });
+    }
+  }
+
+  // ---- Process remaining operations individually (deletes, updateConfig, etc.) ----
+  otherOps.forEach(function(item) {
+    try {
+      var r;
+      switch (item.op.action) {
+        case 'updateConfig': r = updateConfig(item.op.data); break;
+        case 'deleteTodo': r = deleteTodo(item.op.data.id); break;
+        case 'deleteQuestion': r = deleteQuestion(item.op.data.id); break;
+        case 'deleteNote': r = deleteNote(item.op.data.id); break;
+        case 'deleteMilestone': r = deleteMilestone(item.op.data.id); break;
+        case 'deleteTimesheetEntry': r = deleteTimesheetEntry(item.op.data); break;
+        case 'deleteTimeSpentEntry': r = deleteTimeSpentEntry(item.op.data); break;
+        case 'deleteTimeBilledEntry': r = deleteTimeBilledEntry(item.op.data); break;
+        case 'deleteTranscriptEntry': r = deleteTranscriptEntry(item.op.data); break;
+        case 'deleteAgreement': r = deleteAgreement(item.op.data.id); break;
+        case 'deleteProjectNote': r = deleteProjectNote(item.op.data.id); break;
+        default: r = { error: 'Unknown batch action: ' + item.op.action };
+      }
+      results[item.opIdx] = r;
+    } catch (err) {
+      results[item.opIdx] = { error: err.message };
+    }
+  });
+
+  // Fill any gaps (defensive)
+  for (var i = 0; i < results.length; i++) {
+    if (!results[i]) results[i] = { error: 'Operation not processed' };
+  }
+
   return { success: true, results: results };
 }
 
