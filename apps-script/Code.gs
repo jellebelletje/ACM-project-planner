@@ -910,6 +910,25 @@ function seedAll(data) {
   // Clear Technical_Milestones
   clearDataRows(ss.getSheetByName(SHEET_NAMES.MILESTONES));
 
+  // Clear and populate Agreements
+  var agSheet = ss.getSheetByName(SHEET_NAMES.AGREEMENTS);
+  if (agSheet) {
+    clearDataRows(agSheet);
+    if (data.agreements && data.agreements.length > 0) {
+      var agHeaders = agSheet.getRange(1, 1, 1, agSheet.getLastColumn()).getValues()[0];
+      var agRows = data.agreements.map(function(a) { return agHeaders.map(function(h) { return a[h] !== undefined ? a[h] : ''; }); });
+      if (agRows.length > 0) {
+        agSheet.getRange(2, 1, agRows.length, agHeaders.length).setValues(agRows);
+      }
+    }
+  }
+
+  // Clear Transcripts
+  var trSheet = ss.getSheetByName(SHEET_NAMES.TRANSCRIPTS);
+  if (trSheet) {
+    clearDataRows(trSheet);
+  }
+
   // Set config
   if (data.config) {
     updateConfig(data.config);
@@ -979,8 +998,13 @@ function deleteRowsById(sheetName, colName, value) {
 function clearDataRows(sheet) {
   if (!sheet) return;
   const lastRow = sheet.getLastRow();
-  if (lastRow > 1) {
-    sheet.deleteRows(2, lastRow - 1);
+  if (lastRow < 2) return;
+  // Clear content first (always safe)
+  sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).clearContent();
+  // Delete excess rows but always keep at least one data row to avoid
+  // "cannot delete all non-frozen rows" error
+  if (lastRow > 2) {
+    sheet.deleteRows(3, lastRow - 2);
   }
 }
 
