@@ -573,11 +573,11 @@ function processTranscripts(data) {
       '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n' +
       '6. "answered_agreements": array for BOTH updating existing agreements AND proposing new ones. Two types:\n' +
       '   - Update existing: { "id": agreement_id, "answer": text, "is_update": boolean, "source_entry_id": entry ID, "source_document": source name }\n' +
-      '   - Propose new: { "id": "NEW", "question_agreed": concise topic, "answer": agreement text, "internal": boolean, "source_entry_id": entry ID, "source_document": source name }\n\n' +
+      '   - Propose new: { "id": "NEW", "question_agreed": the agreement reformulated as a question (e.g. "Who owns the communication in the pilot phase?"), "answer": the answer to that question (e.g. "The ACM consultant in coordination with the internal project lead"), "internal": boolean, "source_entry_id": entry ID, "source_document": source name }\n\n' +
       'Only include questions/todos/agreements where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
       'For previously answered questions, only include them if the transcript adds genuinely NEW information not already in the existing answer.\n' +
       'For existing agreements: provide the agreement text if the content clearly establishes one. Only include if the transcript adds genuinely NEW information. Set "is_update" to true for updates.\n' +
-      'DISCOVERING NEW AGREEMENTS: Actively scan for agreements, decisions, or commitments that do NOT match any existing agreement card. Use "id": "NEW" and set "internal" based on the entry meeting type (internal entry = internal agreement, external entry = external agreement).\n' +
+      'DISCOVERING NEW AGREEMENTS: Actively scan for agreements, decisions, or commitments that do NOT match any existing agreement card. Use "id": "NEW" and reformulate each agreement as a question-answer pair: "question_agreed" is the agreement phrased as a question, "answer" is the answer. Set "internal" based on the entry meeting type (internal entry = internal agreement, external entry = external agreement).\n' +
       'Return ONLY valid JSON, no markdown formatting.';
   }
 
