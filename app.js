@@ -4778,7 +4778,7 @@ async function startAiConfiguration() {
 
   // Show full-page loading for step 1
   const loading = document.getElementById('loadingOverlay');
-  loading.innerHTML = aiConfigLoadingHtml('Analysing your SOW and project structure\u2026');
+  loading.innerHTML = aiConfigLoadingHtml('Step 1 of 3: Analysing activity priorities\u2026');
   loading.classList.remove('hidden');
 
   try {
@@ -4836,7 +4836,7 @@ function renderAiConfigStep1(configuration, promptSource) {
       }
 
       if (phaseData.deprioritised && phaseData.deprioritised.length > 0) {
-        html += '<div class="ai-config-group"><details class="ai-config-depri-details">' +
+        html += '<div class="ai-config-group"><details class="ai-config-depri-details" open>' +
           '<summary class="ai-config-group-title ai-config-depri-summary">Deprioritised (' + phaseData.deprioritised.length + ')</summary>' +
           '<div class="ai-config-list ai-config-deprioritised" data-ai-phase="' + phaseIdx + '" data-ai-group="deprioritised">';
         phaseData.deprioritised.forEach((item, idx) => {
@@ -5137,7 +5137,7 @@ async function aiConfigNextStep() {
     // Show in-modal loading
     document.getElementById('aiConfigStepper').innerHTML = renderAiConfigStepper(2);
     const body = document.getElementById('aiConfigModalBody');
-    body.innerHTML = '<div class="ai-config-inline-loading">' + aiConfigLoadingHtml('Reviewing todos and questions\u2026') + '</div>';
+    body.innerHTML = '<div class="ai-config-inline-loading">' + aiConfigLoadingHtml('Step 2 of 3: Reviewing todos and questions\u2026') + '</div>';
     document.getElementById('aiConfigModalFooter').innerHTML = '';
 
     try {
@@ -5163,7 +5163,7 @@ async function aiConfigNextStep() {
 
     document.getElementById('aiConfigStepper').innerHTML = renderAiConfigStepper(3);
     const body = document.getElementById('aiConfigModalBody');
-    body.innerHTML = '<div class="ai-config-inline-loading">' + aiConfigLoadingHtml('Tailoring wording to your SOW\u2026') + '</div>';
+    body.innerHTML = '<div class="ai-config-inline-loading">' + aiConfigLoadingHtml('Step 3 of 3: Tailoring wording to your SOW\u2026') + '</div>';
     document.getElementById('aiConfigModalFooter').innerHTML = '';
 
     try {
