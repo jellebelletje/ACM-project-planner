@@ -1086,7 +1086,7 @@ function generateInsights(data) {
       },
       payload: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        max_tokens: 16384,
         messages: [{ role: 'user', content: prompt }]
       }),
       muteHttpExceptions: true
@@ -1094,6 +1094,11 @@ function generateInsights(data) {
 
     var result = JSON.parse(response.getContentText());
     if (result.error) return { error: 'Claude API error: ' + result.error.message };
+
+    var stopReason = result.stop_reason;
+    if (stopReason === 'max_tokens') {
+      return { error: 'Claude response was truncated (too long). Try again with fewer data.' };
+    }
 
     var responseText = result.content[0].text.trim();
     if (responseText.startsWith('```')) {
@@ -1285,7 +1290,7 @@ function handleChatQuestion(data) {
       },
       payload: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        max_tokens: 16384,
         messages: [{ role: 'user', content: prompt }]
       }),
       muteHttpExceptions: true
