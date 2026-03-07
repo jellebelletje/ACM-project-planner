@@ -4708,242 +4708,531 @@ function updateTouchLevelHint() {
 
 // ---- AI Configuration ----
 
-let pendingAiConfig = null;
+// ---- AI Configuration Wizard (3-step) ----
+let aiWizard = { step: 0, step1Data: null, step2Data: null, step3Data: null, prioritisedIds: [] };
+
+function aiConfigLoadingHtml(msg) {
+  return '<div class="ai-loading-scene">' +
+    '<div class="ai-loading-cards">' +
+      '<div class="ai-loading-card"></div><div class="ai-loading-card"></div>' +
+      '<div class="ai-loading-card"></div><div class="ai-loading-card"></div><div class="ai-loading-card"></div>' +
+    '</div>' +
+    '<div class="ai-loading-sparks">' +
+      '<div class="ai-loading-spark"></div><div class="ai-loading-spark"></div>' +
+      '<div class="ai-loading-spark"></div><div class="ai-loading-spark"></div><div class="ai-loading-spark"></div>' +
+    '</div>' +
+    '<div class="ai-loading-brain">\uD83E\uDDE0</div>' +
+  '</div>' +
+  '<p style="font-size:1rem;font-weight:600;color:var(--text-on-dark);">' + escapeHtml(msg) + '</p>' +
+  '<div class="ai-loading-progress">' +
+    '<div class="ai-loading-dot"></div><div class="ai-loading-dot"></div><div class="ai-loading-dot"></div>' +
+  '</div>' +
+  '<p style="font-size:0.8rem;color:rgba(241,245,249,0.6);margin-top:0.75rem;">This is a big deal \u2014 it may take a few minutes</p>';
+}
+
+function renderAiConfigStepper(currentStep) {
+  const steps = [
+    { num: 1, label: 'Prioritise', sub: 'Activities' },
+    { num: 2, label: 'Refine', sub: 'Todos & Questions' },
+    { num: 3, label: 'Tailor', sub: 'Wording' }
+  ];
+  return '<div class="ai-config-stepper">' + steps.map((s, i) => {
+    let cls = 'ai-config-step';
+    if (s.num < currentStep) cls += ' completed';
+    else if (s.num === currentStep) cls += ' active';
+    return '<div class="' + cls + '">' +
+      '<div class="ai-config-step-circle">' + (s.num < currentStep ? '\u2713' : s.num) + '</div>' +
+      '<div class="ai-config-step-label">' + s.label + '</div>' +
+      '<div class="ai-config-step-sub">' + s.sub + '</div>' +
+    '</div>' + (i < steps.length - 1 ? '<div class="ai-config-step-line' + (s.num < currentStep ? ' completed' : '') + '"></div>' : '');
+  }).join('') + '</div>';
+}
+
+function updateAiConfigFooter(stepNum) {
+  const footer = document.getElementById('aiConfigModalFooter');
+  if (stepNum === 1) {
+    footer.innerHTML = '<button class="btn-small" onclick="aiConfigSkipRemaining()">Apply & Close</button>' +
+      '<button class="btn-primary" onclick="aiConfigNextStep()">Next: Refine \u2192</button>';
+  } else if (stepNum === 2) {
+    footer.innerHTML = '<button class="btn-small" onclick="aiConfigSkipRemaining()">Apply & Close</button>' +
+      '<button class="btn-primary" onclick="aiConfigNextStep()">Next: Tailor \u2192</button>';
+  } else {
+    footer.innerHTML = '<button class="btn-small" onclick="closeModal(\'aiConfigModal\')">Cancel</button>' +
+      '<button class="btn-primary" onclick="aiConfigFinish()">Apply & Close</button>';
+  }
+  footer.style.cssText = 'display:flex;justify-content:flex-end;gap:0.5rem;padding:0.75rem 1.25rem;border-top:1px solid var(--border);';
+}
 
 async function startAiConfiguration() {
-  // Phase 1: Validate SOW
   if (!state.sow || state.sow.length === 0 || !state.sow[0].content) {
-    alert('Please fill in the Statement of Work (SOW) first. The AI Configuration needs your SOW to make relevant recommendations.');
+    alert('Please fill in the Statement of Work (SOW) first.');
     return;
   }
-
   if (!CONFIG.API_URL) {
     alert('No API URL configured. Please set your API URL in Settings first.');
     return;
   }
 
-  // Show loading with fun animation
+  // Reset wizard state
+  aiWizard = { step: 1, step1Data: null, step2Data: null, step3Data: null, prioritisedIds: [] };
+
+  // Show full-page loading for step 1
   const loading = document.getElementById('loadingOverlay');
-  loading.innerHTML =
-    '<div class="ai-loading-scene">' +
-      '<div class="ai-loading-cards">' +
-        '<div class="ai-loading-card"></div>' +
-        '<div class="ai-loading-card"></div>' +
-        '<div class="ai-loading-card"></div>' +
-        '<div class="ai-loading-card"></div>' +
-        '<div class="ai-loading-card"></div>' +
-      '</div>' +
-      '<div class="ai-loading-sparks">' +
-        '<div class="ai-loading-spark"></div>' +
-        '<div class="ai-loading-spark"></div>' +
-        '<div class="ai-loading-spark"></div>' +
-        '<div class="ai-loading-spark"></div>' +
-        '<div class="ai-loading-spark"></div>' +
-      '</div>' +
-      '<div class="ai-loading-brain">\uD83E\uDDE0</div>' +
-    '</div>' +
-    '<p style="font-size:1rem;font-weight:600;color:var(--text-on-dark);">Analysing your SOW and project structure\u2026</p>' +
-    '<div class="ai-loading-progress">' +
-      '<div class="ai-loading-dot"></div>' +
-      '<div class="ai-loading-dot"></div>' +
-      '<div class="ai-loading-dot"></div>' +
-    '</div>' +
-    '<p style="font-size:0.8rem;color:rgba(241,245,249,0.6);margin-top:0.75rem;">This is a big deal \u2014 it may take a few minutes</p>';
+  loading.innerHTML = aiConfigLoadingHtml('Analysing your SOW and project structure\u2026');
   loading.classList.remove('hidden');
 
   try {
     const resp = await fetch(CONFIG.API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'aiConfigure',
-        data: { acm_touch_level: state.config.acm_touch_level || 'full' }
-      }),
+      body: JSON.stringify({ action: 'aiConfigure', data: { acm_touch_level: state.config.acm_touch_level || 'full' } }),
       redirect: 'follow'
     });
     const result = await resp.json();
-
     loading.classList.add('hidden');
 
-    if (result.error) {
-      alert('AI Configuration failed: ' + result.error);
-      return;
-    }
+    if (result.error) { alert('AI Configuration failed: ' + result.error); return; }
 
-    // Phase 2: Show the modal
-    openAiConfigModal(result.configuration, result.prompt_source);
+    aiWizard.step1Data = result.configuration;
+
+    // Open modal and render step 1
+    document.getElementById('aiConfigStepper').innerHTML = renderAiConfigStepper(1);
+    renderAiConfigStep1(result.configuration, result.prompt_source);
+    updateAiConfigFooter(1);
+    document.getElementById('aiConfigModal').style.display = 'flex';
   } catch (e) {
     loading.classList.add('hidden');
     alert('AI Configuration failed: ' + e.message);
   }
 }
 
-function openAiConfigModal(configuration, promptSource) {
-  pendingAiConfig = configuration;
+// ---- Step 1: Prioritise Activities ----
+function renderAiConfigStep1(configuration, promptSource) {
   const body = document.getElementById('aiConfigModalBody');
   let html = '';
 
-  // Fallback prompt warning
   if (promptSource === 'fallback') {
-    html += `<div class="review-fallback-warning" style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:1rem;font-size:0.78rem;color:#92400e;">
-      Using default prompt. Add an <strong>ai_configure_v1</strong> prompt to the Prompts sheet for better results.
-    </div>`;
+    html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:1rem;font-size:0.78rem;color:#92400e;">' +
+      'Using default prompt. Add an <strong>ai_config_step1_v1</strong> prompt to the Prompts sheet for better results.</div>';
   }
 
-  // Summary
   if (configuration.summary) {
-    html += `<div class="review-section">
-      <h3 class="review-section-title">Summary</h3>
-      <div class="review-summary">${escapeHtml(configuration.summary)}</div>
-    </div>`;
+    html += '<div class="review-section"><h3 class="review-section-title">Summary</h3>' +
+      '<div class="review-summary">' + escapeHtml(configuration.summary) + '</div></div>';
   }
 
-  // Per-phase sections
   if (configuration.phases && configuration.phases.length > 0) {
     configuration.phases.forEach((phaseData, phaseIdx) => {
-      html += `<div class="ai-config-phase" data-ai-phase-idx="${phaseIdx}">
-        <h3 class="ai-config-phase-title">${escapeHtml(phaseData.phase)}</h3>`;
+      html += '<div class="ai-config-phase" data-ai-phase-idx="' + phaseIdx + '">' +
+        '<h3 class="ai-config-phase-title">' + escapeHtml(phaseData.phase) + '</h3>';
 
-      // Prioritised activities
       if (phaseData.prioritised && phaseData.prioritised.length > 0) {
-        html += `<div class="ai-config-group">
-          <h4 class="ai-config-group-title">Prioritised Activities</h4>
-          <div class="ai-config-list ai-config-prioritised" data-ai-phase="${phaseIdx}" data-ai-group="prioritised">`;
+        html += '<div class="ai-config-group"><h4 class="ai-config-group-title">Prioritised Activities</h4>' +
+          '<div class="ai-config-list ai-config-prioritised" data-ai-phase="' + phaseIdx + '" data-ai-group="prioritised">';
         phaseData.prioritised.forEach((item, idx) => {
           html += renderAiConfigItem(item, phaseIdx, 'prioritised', idx, true);
         });
-        html += `</div></div>`;
+        html += '</div></div>';
       }
 
-      // Deprioritised activities
       if (phaseData.deprioritised && phaseData.deprioritised.length > 0) {
-        html += `<div class="ai-config-group">
-          <details class="ai-config-depri-details">
-            <summary class="ai-config-group-title ai-config-depri-summary">Deprioritised (${phaseData.deprioritised.length})</summary>
-            <div class="ai-config-list ai-config-deprioritised" data-ai-phase="${phaseIdx}" data-ai-group="deprioritised">`;
+        html += '<div class="ai-config-group"><details class="ai-config-depri-details">' +
+          '<summary class="ai-config-group-title ai-config-depri-summary">Deprioritised (' + phaseData.deprioritised.length + ')</summary>' +
+          '<div class="ai-config-list ai-config-deprioritised" data-ai-phase="' + phaseIdx + '" data-ai-group="deprioritised">';
         phaseData.deprioritised.forEach((item, idx) => {
           html += renderAiConfigItem(item, phaseIdx, 'deprioritised', idx, false);
         });
-        html += `</div></details></div>`;
+        html += '</div></details></div>';
       }
 
-      // New activities
       if (phaseData.new_activities && phaseData.new_activities.length > 0) {
-        html += `<div class="ai-config-group">
-          <h4 class="ai-config-group-title">New Activities</h4>
-          <div class="ai-config-list">`;
+        html += '<div class="ai-config-group"><h4 class="ai-config-group-title">New Activities</h4><div class="ai-config-list">';
         phaseData.new_activities.forEach((item, idx) => {
-          html += `<div class="ai-config-item ai-config-new-item">
-            <label class="review-checkbox">
-              <input type="checkbox" checked data-ai-type="new" data-ai-phase="${phaseIdx}" data-ai-idx="${idx}">
-              <div class="review-item-content">
-                <span class="ai-config-badge ai-config-badge-new">NEW</span>
-                <div class="ai-config-item-title">${escapeHtml(item.title)}</div>
-                <div class="ai-config-item-rationale">${escapeHtml(item.rationale || '')}</div>
-                ${item.intro_text ? `<div class="ai-config-item-intro">${escapeHtml(item.intro_text)}</div>` : ''}
-              </div>
-            </label>
-          </div>`;
+          html += '<div class="ai-config-item ai-config-new-item"><label class="review-checkbox">' +
+            '<input type="checkbox" checked data-ai-type="new" data-ai-phase="' + phaseIdx + '" data-ai-idx="' + idx + '">' +
+            '<div class="review-item-content">' +
+              '<span class="ai-config-badge ai-config-badge-new">NEW</span>' +
+              '<div class="ai-config-item-title">' + escapeHtml(item.title) + '</div>' +
+              '<div class="ai-config-item-rationale">' + escapeHtml(item.rationale || '') + '</div>' +
+              (item.intro_text ? '<div class="ai-config-item-intro">' + escapeHtml(item.intro_text) + '</div>' : '') +
+            '</div></label></div>';
         });
-        html += `</div></div>`;
+        html += '</div></div>';
       }
 
-      html += `</div>`;
+      html += '</div>';
     });
-  }
-
-  // Renamed items section (across all phases)
-  const allRenames = [];
-  if (configuration.phases) {
-    configuration.phases.forEach((phaseData, phaseIdx) => {
-      if (phaseData.prioritised) {
-        phaseData.prioritised.forEach(item => {
-          if (item.renamed) {
-            allRenames.push({ type: 'activity', id: item.id, original: item.original_title, proposed: item.title, phaseIdx });
-          }
-          if (item.todo_renames) {
-            item.todo_renames.forEach(tr => allRenames.push({ type: 'todo', id: tr.id, original: null, proposed: tr.new_text, phaseIdx }));
-          }
-          if (item.question_renames) {
-            item.question_renames.forEach(qr => allRenames.push({ type: 'question', id: qr.id, original: null, proposed: qr.new_text, phaseIdx }));
-          }
-        });
-      }
-    });
-  }
-
-  if (allRenames.length > 0) {
-    html += `<div class="review-section">
-      <h3 class="review-section-title">Suggested Renames (${allRenames.length})</h3>
-      <p class="ai-config-rename-explainer">These items will be renamed to better match your SOW context. Uncheck any you want to keep as-is.</p>`;
-    allRenames.forEach((r, idx) => {
-      const original = r.original || getOriginalText(r.type, r.id);
-      html += `<div class="review-item ai-config-rename-item">
-        <label class="review-checkbox">
-          <input type="checkbox" checked data-ai-type="rename" data-rename-idx="${idx}">
-          <div class="review-item-content">
-            <div class="ai-config-rename-header">
-              <span class="ai-config-badge ai-config-badge-rename">${escapeHtml(r.type.toUpperCase())}</span>
-              <span class="review-item-id">${escapeHtml(r.id)}</span>
-            </div>
-            <div class="ai-config-rename-row">
-              <span class="ai-config-rename-from">${escapeHtml(original || '(unknown)')}</span>
-              <span class="ai-config-rename-arrow">&rarr;</span>
-              <span class="ai-config-rename-to">${escapeHtml(r.proposed)}</span>
-            </div>
-          </div>
-        </label>
-      </div>`;
-    });
-    html += `</div>`;
   }
 
   body.innerHTML = html;
-
-  // Attach drag-and-drop to prioritised lists
-  body.querySelectorAll('.ai-config-prioritised').forEach(list => {
-    setupAiConfigDragDrop(list);
-  });
-
-  // Store renames for apply
-  pendingAiConfig._allRenames = allRenames;
-
-  document.getElementById('aiConfigModal').style.display = 'flex';
+  body.querySelectorAll('.ai-config-prioritised').forEach(list => setupAiConfigDragDrop(list));
 }
 
-function getOriginalText(type, id) {
-  if (type === 'activity') {
-    const a = state.activities.find(x => x.id === id);
-    return a ? a.title : id;
-  } else if (type === 'todo') {
-    const t = state.todos.find(x => x.id === id);
-    return t ? t.text : id;
-  } else if (type === 'question') {
-    const q = state.questions.find(x => x.id === id);
-    return q ? q.question_text : id;
+// ---- Step 2: Refine Todos & Questions ----
+function renderAiConfigStep2(refinements, promptSource) {
+  const body = document.getElementById('aiConfigModalBody');
+  let html = '';
+
+  if (promptSource === 'fallback') {
+    html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:1rem;font-size:0.78rem;color:#92400e;">' +
+      'Using default prompt. Add an <strong>ai_config_step2_v1</strong> prompt to the Prompts sheet for better results.</div>';
   }
+
+  if (refinements.summary) {
+    html += '<div class="review-section"><h3 class="review-section-title">Summary</h3>' +
+      '<div class="review-summary">' + escapeHtml(refinements.summary) + '</div></div>';
+  }
+
+  const deactTodos = refinements.deactivate_todos || [];
+  const deactQuestions = refinements.deactivate_questions || [];
+
+  if (deactTodos.length === 0 && deactQuestions.length === 0) {
+    html += '<div class="review-section"><p style="color:var(--text-secondary);font-style:italic;">No irrelevant items found \u2014 all todos and questions look relevant to your SOW.</p></div>';
+  }
+
+  if (deactTodos.length > 0) {
+    html += '<div class="review-section"><h3 class="review-section-title">Suggested Todo Deactivations (' + deactTodos.length + ')</h3>' +
+      '<p class="ai-config-rename-explainer">These todos appear irrelevant to your SOW. Checked items will be hidden from view. Uncheck any you want to keep.</p>';
+    deactTodos.forEach((item, idx) => {
+      const originalText = getOriginalText('todo', item.id);
+      const activityId = item.activity_id || '';
+      const activity = activityId ? state.activities.find(a => a.id === activityId) : null;
+      html += '<div class="review-item ai-config-deact-item"><label class="review-checkbox">' +
+        '<input type="checkbox" checked data-ai-type="deact-todo" data-deact-idx="' + idx + '">' +
+        '<div class="review-item-content">' +
+          '<div class="ai-config-rename-header">' +
+            '<span class="ai-config-badge" style="background:#fee2e2;color:#991b1b;">TODO</span>' +
+            '<span class="review-item-id">' + escapeHtml(item.id) + '</span>' +
+            (activity ? '<span class="review-item-id" style="margin-left:0.25rem;">\u2190 ' + escapeHtml(activity.title) + '</span>' : '') +
+          '</div>' +
+          '<div class="ai-config-item-title">' + escapeHtml(originalText) + '</div>' +
+          '<div class="ai-config-item-rationale">' + escapeHtml(item.rationale || '') + '</div>' +
+        '</div></label></div>';
+    });
+    html += '</div>';
+  }
+
+  if (deactQuestions.length > 0) {
+    html += '<div class="review-section"><h3 class="review-section-title">Suggested Question Deactivations (' + deactQuestions.length + ')</h3>' +
+      '<p class="ai-config-rename-explainer">These questions appear irrelevant to your SOW. Checked items will be hidden from view. Uncheck any you want to keep.</p>';
+    deactQuestions.forEach((item, idx) => {
+      const originalText = getOriginalText('question', item.id);
+      const activityId = item.activity_id || '';
+      const activity = activityId ? state.activities.find(a => a.id === activityId) : null;
+      html += '<div class="review-item ai-config-deact-item"><label class="review-checkbox">' +
+        '<input type="checkbox" checked data-ai-type="deact-question" data-deact-idx="' + idx + '">' +
+        '<div class="review-item-content">' +
+          '<div class="ai-config-rename-header">' +
+            '<span class="ai-config-badge" style="background:#e0e7ff;color:#3730a3;">QUESTION</span>' +
+            '<span class="review-item-id">' + escapeHtml(item.id) + '</span>' +
+            (activity ? '<span class="review-item-id" style="margin-left:0.25rem;">\u2190 ' + escapeHtml(activity.title) + '</span>' : '') +
+          '</div>' +
+          '<div class="ai-config-item-title">' + escapeHtml(originalText) + '</div>' +
+          '<div class="ai-config-item-rationale">' + escapeHtml(item.rationale || '') + '</div>' +
+        '</div></label></div>';
+    });
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// ---- Step 3: Tailor Wording ----
+function renderAiConfigStep3(tailoring, promptSource) {
+  const body = document.getElementById('aiConfigModalBody');
+  let html = '';
+
+  if (promptSource === 'fallback') {
+    html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:1rem;font-size:0.78rem;color:#92400e;">' +
+      'Using default prompt. Add an <strong>ai_config_step3_v1</strong> prompt to the Prompts sheet for better results.</div>';
+  }
+
+  if (tailoring.summary) {
+    html += '<div class="review-section"><h3 class="review-section-title">Summary</h3>' +
+      '<div class="review-summary">' + escapeHtml(tailoring.summary) + '</div></div>';
+  }
+
+  const renames = tailoring.renames || [];
+
+  if (renames.length === 0) {
+    html += '<div class="review-section"><p style="color:var(--text-secondary);font-style:italic;">No renames suggested \u2014 the current wording already fits your project well.</p></div>';
+  } else {
+    html += '<div class="review-section"><h3 class="review-section-title">Suggested Renames (' + renames.length + ')</h3>' +
+      '<p class="ai-config-rename-explainer">These items will be renamed to better match your SOW context. Uncheck any you want to keep as-is.</p>';
+    renames.forEach((r, idx) => {
+      const original = r.original || getOriginalText(r.type, r.id);
+      html += '<div class="review-item ai-config-rename-item"><label class="review-checkbox">' +
+        '<input type="checkbox" checked data-ai-type="rename" data-rename-idx="' + idx + '">' +
+        '<div class="review-item-content">' +
+          '<div class="ai-config-rename-header">' +
+            '<span class="ai-config-badge ai-config-badge-rename">' + escapeHtml(r.type.toUpperCase()) + '</span>' +
+            '<span class="review-item-id">' + escapeHtml(r.id) + '</span>' +
+          '</div>' +
+          '<div class="ai-config-rename-row">' +
+            '<span class="ai-config-rename-from">' + escapeHtml(original || '(unknown)') + '</span>' +
+            '<span class="ai-config-rename-arrow">&rarr;</span>' +
+            '<span class="ai-config-rename-to">' + escapeHtml(r.proposed) + '</span>' +
+          '</div>' +
+          (r.rationale ? '<div class="ai-config-item-rationale">' + escapeHtml(r.rationale) + '</div>' : '') +
+        '</div></label></div>';
+    });
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// ---- Apply helpers ----
+function applyStep1FromModal() {
+  const modal = document.getElementById('aiConfigModal');
+  const configuration = aiWizard.step1Data;
+  if (!configuration || !configuration.phases) return [];
+
+  const prioritisedIds = [];
+
+  configuration.phases.forEach((phaseData, phaseIdx) => {
+    const priList = modal.querySelector('.ai-config-prioritised[data-ai-phase="' + phaseIdx + '"]');
+    if (priList) {
+      priList.querySelectorAll('.ai-config-item').forEach((el, seqIdx) => {
+        const cb = el.querySelector('input[type="checkbox"]');
+        const itemId = el.dataset.aiItemId;
+        const act = state.activities.find(a => a.id === itemId);
+        if (!act) return;
+        if (cb && cb.checked) {
+          act.sequence = seqIdx;
+          if (act.status === 'inactive') act.status = 'not_started';
+          queueWrite('updateActivity', { id: act.id, sequence: seqIdx, status: act.status });
+          prioritisedIds.push(act.id);
+        } else {
+          act.status = 'inactive';
+          queueWrite('updateActivity', { id: act.id, status: 'inactive' });
+        }
+      });
+    }
+
+    const depriList = modal.querySelector('.ai-config-deprioritised[data-ai-phase="' + phaseIdx + '"]');
+    if (depriList) {
+      depriList.querySelectorAll('.ai-config-item').forEach(el => {
+        const cb = el.querySelector('input[type="checkbox"]');
+        const itemId = el.dataset.aiItemId;
+        const act = state.activities.find(a => a.id === itemId);
+        if (!act) return;
+        if (cb && cb.checked) {
+          if (act.status === 'inactive') act.status = 'not_started';
+          queueWrite('updateActivity', { id: act.id, status: act.status });
+          prioritisedIds.push(act.id);
+        } else {
+          act.status = 'inactive';
+          queueWrite('updateActivity', { id: act.id, status: 'inactive' });
+        }
+      });
+    }
+
+    // New activities
+    if (phaseData.new_activities) {
+      modal.querySelectorAll('[data-ai-type="new"][data-ai-phase="' + phaseIdx + '"]').forEach(cb => {
+        if (!cb.checked) return;
+        const idx = parseInt(cb.dataset.aiIdx);
+        const newAct = phaseData.new_activities[idx];
+        if (!newAct) return;
+
+        const actId = generateId('A');
+        const activity = {
+          id: actId, title: newAct.title, intro_text: newAct.intro_text || '', full_description: '',
+          pdca_phase: phaseData.phase, sequence: 999 + idx, status: 'not_started',
+          due_date: '', depends_on: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+          allocated_pct: '', actual_minutes: '', activity_type: ''
+        };
+        state.activities.push(activity);
+        queueWrite('addActivity', activity);
+        prioritisedIds.push(actId);
+
+        if (newAct.todos) {
+          newAct.todos.forEach((todoText, tIdx) => {
+            const todo = { id: generateId('T'), activity_id: actId, text: todoText, is_done: false, sequence: tIdx, active: true, notes: '', created_at: new Date().toISOString() };
+            state.todos.push(todo);
+            queueWrite('addTodo', todo);
+          });
+        }
+        if (newAct.questions) {
+          newAct.questions.forEach((q, qIdx) => {
+            const question = { id: generateId('Q'), activity_id: actId, question_text: q.question_text || q, sub_topic: q.sub_topic || '', ask_whom: q.ask_whom || '', is_answered: false, answer: '', sequence: qIdx, active: true, created_at: new Date().toISOString() };
+            state.questions.push(question);
+            queueWrite('addQuestion', question);
+          });
+        }
+      });
+    }
+  });
+
+  return prioritisedIds;
+}
+
+function applyStep2FromModal() {
+  const modal = document.getElementById('aiConfigModal');
+  const refinements = aiWizard.step2Data;
+  if (!refinements) return;
+
+  const deactTodos = refinements.deactivate_todos || [];
+  const deactQuestions = refinements.deactivate_questions || [];
+
+  modal.querySelectorAll('[data-ai-type="deact-todo"]').forEach(cb => {
+    if (!cb.checked) return;
+    const idx = parseInt(cb.dataset.deactIdx);
+    const item = deactTodos[idx];
+    if (!item) return;
+    const todo = state.todos.find(t => t.id === item.id);
+    if (todo) {
+      todo.active = false;
+      queueWrite('updateTodo', { id: item.id, active: false });
+    }
+  });
+
+  modal.querySelectorAll('[data-ai-type="deact-question"]').forEach(cb => {
+    if (!cb.checked) return;
+    const idx = parseInt(cb.dataset.deactIdx);
+    const item = deactQuestions[idx];
+    if (!item) return;
+    const q = state.questions.find(x => x.id === item.id);
+    if (q) {
+      q.active = false;
+      queueWrite('updateQuestion', { id: item.id, active: false });
+    }
+  });
+}
+
+function applyStep3FromModal() {
+  const modal = document.getElementById('aiConfigModal');
+  const tailoring = aiWizard.step3Data;
+  if (!tailoring) return;
+
+  const renames = tailoring.renames || [];
+
+  modal.querySelectorAll('[data-ai-type="rename"]').forEach(cb => {
+    if (!cb.checked) return;
+    const idx = parseInt(cb.dataset.renameIdx);
+    const rename = renames[idx];
+    if (!rename) return;
+
+    if (rename.type === 'activity') {
+      const act = state.activities.find(a => a.id === rename.id);
+      if (act) { act.title = rename.proposed; queueWrite('updateActivity', { id: rename.id, title: rename.proposed }); }
+    } else if (rename.type === 'todo') {
+      const todo = state.todos.find(t => t.id === rename.id);
+      if (todo) { todo.text = rename.proposed; queueWrite('updateTodo', { id: rename.id, text: rename.proposed }); }
+    } else if (rename.type === 'question') {
+      const q = state.questions.find(x => x.id === rename.id);
+      if (q) { q.question_text = rename.proposed; queueWrite('updateQuestion', { id: rename.id, question_text: rename.proposed }); }
+    }
+  });
+}
+
+// ---- Wizard navigation ----
+async function aiConfigNextStep() {
+  if (aiWizard.step === 1) {
+    // Apply step 1 and move to step 2
+    aiWizard.prioritisedIds = applyStep1FromModal();
+    aiWizard.step = 2;
+
+    // Show in-modal loading
+    document.getElementById('aiConfigStepper').innerHTML = renderAiConfigStepper(2);
+    const body = document.getElementById('aiConfigModalBody');
+    body.innerHTML = '<div class="ai-config-inline-loading">' + aiConfigLoadingHtml('Reviewing todos and questions\u2026') + '</div>';
+    document.getElementById('aiConfigModalFooter').innerHTML = '';
+
+    try {
+      const resp = await fetch(CONFIG.API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'aiConfigStep2', data: { activity_ids: aiWizard.prioritisedIds } }),
+        redirect: 'follow'
+      });
+      const result = await resp.json();
+      if (result.error) { alert('Step 2 failed: ' + result.error); aiConfigFinishEarly(); return; }
+
+      aiWizard.step2Data = result.refinements;
+      renderAiConfigStep2(result.refinements, result.prompt_source);
+      updateAiConfigFooter(2);
+    } catch (e) {
+      alert('Step 2 failed: ' + e.message);
+      aiConfigFinishEarly();
+    }
+  } else if (aiWizard.step === 2) {
+    // Apply step 2 and move to step 3
+    applyStep2FromModal();
+    aiWizard.step = 3;
+
+    document.getElementById('aiConfigStepper').innerHTML = renderAiConfigStepper(3);
+    const body = document.getElementById('aiConfigModalBody');
+    body.innerHTML = '<div class="ai-config-inline-loading">' + aiConfigLoadingHtml('Tailoring wording to your SOW\u2026') + '</div>';
+    document.getElementById('aiConfigModalFooter').innerHTML = '';
+
+    try {
+      const resp = await fetch(CONFIG.API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'aiConfigStep3', data: { activity_ids: aiWizard.prioritisedIds } }),
+        redirect: 'follow'
+      });
+      const result = await resp.json();
+      if (result.error) { alert('Step 3 failed: ' + result.error); aiConfigFinishEarly(); return; }
+
+      aiWizard.step3Data = result.tailoring;
+      renderAiConfigStep3(result.tailoring, result.prompt_source);
+      updateAiConfigFooter(3);
+    } catch (e) {
+      alert('Step 3 failed: ' + e.message);
+      aiConfigFinishEarly();
+    }
+  }
+}
+
+function aiConfigSkipRemaining() {
+  // Apply the current step and close
+  if (aiWizard.step === 1) {
+    applyStep1FromModal();
+  } else if (aiWizard.step === 2) {
+    applyStep2FromModal();
+  }
+  aiConfigFinishEarly();
+}
+
+function aiConfigFinish() {
+  // Apply step 3 (renames) and close
+  applyStep3FromModal();
+  aiConfigFinishEarly();
+}
+
+function aiConfigFinishEarly() {
+  aiWizard = { step: 0, step1Data: null, step2Data: null, step3Data: null, prioritisedIds: [] };
+  closeModal('aiConfigModal');
+  saveToLocalCache();
+  renderAll();
+  attachExpandedEvents();
+}
+
+// ---- Shared helpers (unchanged) ----
+function getOriginalText(type, id) {
+  if (type === 'activity') { const a = state.activities.find(x => x.id === id); return a ? a.title : id; }
+  if (type === 'todo') { const t = state.todos.find(x => x.id === id); return t ? t.text : id; }
+  if (type === 'question') { const q = state.questions.find(x => x.id === id); return q ? q.question_text : id; }
   return id;
 }
 
 function renderAiConfigItem(item, phaseIdx, group, idx, checked) {
-  const isRenamed = item.renamed && item.original_title;
-  return `<div class="ai-config-item" draggable="${group === 'prioritised' ? 'true' : 'false'}" data-ai-item-id="${escapeHtml(item.id)}" data-ai-phase="${phaseIdx}" data-ai-group="${group}" data-ai-idx="${idx}">
-    <label class="review-checkbox">
-      <input type="checkbox" ${checked ? 'checked' : ''} data-ai-type="${group}" data-ai-phase="${phaseIdx}" data-ai-idx="${idx}">
-      <div class="review-item-content">
-        ${group === 'prioritised' ? '<span class="ai-config-drag-handle">&#9776;</span>' : ''}
-        ${isRenamed ? '<span class="ai-config-badge ai-config-badge-rename">RENAMED</span>' : ''}
-        <div class="ai-config-item-title">${escapeHtml(item.title)}</div>
-        <div class="review-item-id">${escapeHtml(item.id)}</div>
-        <div class="ai-config-item-rationale">${escapeHtml(item.rationale || '')}</div>
-      </div>
-    </label>
-  </div>`;
+  return '<div class="ai-config-item" draggable="' + (group === 'prioritised') + '" data-ai-item-id="' + escapeHtml(item.id) + '" data-ai-phase="' + phaseIdx + '" data-ai-group="' + group + '" data-ai-idx="' + idx + '">' +
+    '<label class="review-checkbox">' +
+      '<input type="checkbox" ' + (checked ? 'checked' : '') + ' data-ai-type="' + group + '" data-ai-phase="' + phaseIdx + '" data-ai-idx="' + idx + '">' +
+      '<div class="review-item-content">' +
+        (group === 'prioritised' ? '<span class="ai-config-drag-handle">&#9776;</span>' : '') +
+        '<div class="ai-config-item-title">' + escapeHtml(item.title) + '</div>' +
+        '<div class="review-item-id">' + escapeHtml(item.id) + '</div>' +
+        '<div class="ai-config-item-rationale">' + escapeHtml(item.rationale || '') + '</div>' +
+      '</div>' +
+    '</label>' +
+  '</div>';
 }
 
 function setupAiConfigDragDrop(list) {
   let draggedEl = null;
-
   list.addEventListener('dragstart', (e) => {
     const item = e.target.closest('.ai-config-item');
     if (!item) return;
@@ -4952,215 +5241,40 @@ function setupAiConfigDragDrop(list) {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', item.dataset.aiItemId);
   });
-
   list.addEventListener('dragend', (e) => {
     const item = e.target.closest('.ai-config-item');
     if (item) item.classList.remove('ai-config-dragging');
     draggedEl = null;
     document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
   });
-
   list.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     const afterEl = getDragAfterElement(list, e.clientY);
-    if (afterEl) {
-      afterEl.classList.add('ai-config-drag-over');
-    }
+    if (afterEl) afterEl.classList.add('ai-config-drag-over');
   });
-
   list.addEventListener('dragleave', (e) => {
     const item = e.target.closest('.ai-config-item');
     if (item) item.classList.remove('ai-config-drag-over');
   });
-
   list.addEventListener('drop', (e) => {
     e.preventDefault();
     document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
     if (!draggedEl) return;
     const afterEl = getDragAfterElement(list, e.clientY);
-    if (afterEl) {
-      list.insertBefore(draggedEl, afterEl);
-    } else {
-      list.appendChild(draggedEl);
-    }
+    if (afterEl) { list.insertBefore(draggedEl, afterEl); } else { list.appendChild(draggedEl); }
   });
 }
 
 function getDragAfterElement(container, y) {
   const items = [...container.querySelectorAll('.ai-config-item:not(.ai-config-dragging)')];
-  let closest = null;
-  let closestOffset = Number.NEGATIVE_INFINITY;
-
+  let closest = null, closestOffset = Number.NEGATIVE_INFINITY;
   items.forEach(child => {
     const box = child.getBoundingClientRect();
     const offset = y - box.top - box.height / 2;
-    if (offset < 0 && offset > closestOffset) {
-      closestOffset = offset;
-      closest = child;
-    }
+    if (offset < 0 && offset > closestOffset) { closestOffset = offset; closest = child; }
   });
-
   return closest;
-}
-
-function applyAiConfiguration() {
-  if (!pendingAiConfig) return;
-
-  const modal = document.getElementById('aiConfigModal');
-
-  // 1. Process prioritised/deprioritised per phase
-  if (pendingAiConfig.phases) {
-    pendingAiConfig.phases.forEach((phaseData, phaseIdx) => {
-      // Get prioritised items from DOM in current order (user may have reordered)
-      const priList = modal.querySelector(`.ai-config-prioritised[data-ai-phase="${phaseIdx}"]`);
-      if (priList) {
-        const priItems = priList.querySelectorAll('.ai-config-item');
-        priItems.forEach((el, seqIdx) => {
-          const cb = el.querySelector('input[type="checkbox"]');
-          const itemId = el.dataset.aiItemId;
-          const act = state.activities.find(a => a.id === itemId);
-          if (!act) return;
-
-          if (cb && cb.checked) {
-            // Prioritised: update sequence, keep active
-            act.sequence = seqIdx;
-            if (act.status === 'inactive') act.status = 'not_started';
-            queueWrite('updateActivity', { id: act.id, sequence: seqIdx, status: act.status });
-          } else {
-            // User unchecked a prioritised item — deprioritise it
-            act.status = 'inactive';
-            queueWrite('updateActivity', { id: act.id, status: 'inactive' });
-          }
-        });
-      }
-
-      // Handle deprioritised items
-      const depriList = modal.querySelector(`.ai-config-deprioritised[data-ai-phase="${phaseIdx}"]`);
-      if (depriList) {
-        depriList.querySelectorAll('.ai-config-item').forEach(el => {
-          const cb = el.querySelector('input[type="checkbox"]');
-          const itemId = el.dataset.aiItemId;
-          const act = state.activities.find(a => a.id === itemId);
-          if (!act) return;
-
-          if (cb && cb.checked) {
-            // User overrode: keep active
-            if (act.status === 'inactive') act.status = 'not_started';
-            queueWrite('updateActivity', { id: act.id, status: act.status });
-          } else {
-            // Deprioritise
-            act.status = 'inactive';
-            queueWrite('updateActivity', { id: act.id, status: 'inactive' });
-          }
-        });
-      }
-
-      // Handle new activities
-      if (phaseData.new_activities) {
-        modal.querySelectorAll(`[data-ai-type="new"][data-ai-phase="${phaseIdx}"]`).forEach(cb => {
-          if (!cb.checked) return;
-          const idx = parseInt(cb.dataset.aiIdx);
-          const newAct = phaseData.new_activities[idx];
-          if (!newAct) return;
-
-          const actId = generateId('A');
-          const activity = {
-            id: actId,
-            title: newAct.title,
-            intro_text: newAct.intro_text || '',
-            full_description: '',
-            pdca_phase: phaseData.phase,
-            sequence: 999 + idx,
-            status: 'not_started',
-            due_date: '',
-            depends_on: '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            allocated_pct: '',
-            actual_minutes: '',
-            activity_type: ''
-          };
-          state.activities.push(activity);
-          queueWrite('addActivity', activity);
-
-          // Add suggested todos
-          if (newAct.todos) {
-            newAct.todos.forEach((todoText, tIdx) => {
-              const todo = {
-                id: generateId('T'),
-                activity_id: actId,
-                text: todoText,
-                is_done: false,
-                sequence: tIdx,
-                active: true,
-                notes: '',
-                created_at: new Date().toISOString()
-              };
-              state.todos.push(todo);
-              queueWrite('addTodo', todo);
-            });
-          }
-
-          // Add suggested questions
-          if (newAct.questions) {
-            newAct.questions.forEach((q, qIdx) => {
-              const question = {
-                id: generateId('Q'),
-                activity_id: actId,
-                question_text: q.question_text || q,
-                sub_topic: q.sub_topic || '',
-                ask_whom: q.ask_whom || '',
-                is_answered: false,
-                answer: '',
-                sequence: qIdx,
-                active: true,
-                created_at: new Date().toISOString()
-              };
-              state.questions.push(question);
-              queueWrite('addQuestion', question);
-            });
-          }
-        });
-      }
-    });
-  }
-
-  // 2. Process renames
-  if (pendingAiConfig._allRenames) {
-    modal.querySelectorAll('[data-ai-type="rename"]').forEach(cb => {
-      if (!cb.checked) return;
-      const idx = parseInt(cb.dataset.renameIdx);
-      const rename = pendingAiConfig._allRenames[idx];
-      if (!rename) return;
-
-      if (rename.type === 'activity') {
-        const act = state.activities.find(a => a.id === rename.id);
-        if (act) {
-          act.title = rename.proposed;
-          queueWrite('updateActivity', { id: rename.id, title: rename.proposed });
-        }
-      } else if (rename.type === 'todo') {
-        const todo = state.todos.find(t => t.id === rename.id);
-        if (todo) {
-          todo.text = rename.proposed;
-          queueWrite('updateTodo', { id: rename.id, text: rename.proposed });
-        }
-      } else if (rename.type === 'question') {
-        const q = state.questions.find(x => x.id === rename.id);
-        if (q) {
-          q.question_text = rename.proposed;
-          queueWrite('updateQuestion', { id: rename.id, question_text: rename.proposed });
-        }
-      }
-    });
-  }
-
-  pendingAiConfig = null;
-  closeModal('aiConfigModal');
-  saveToLocalCache();
-  renderAll();
-  attachExpandedEvents();
 }
 
 // Start

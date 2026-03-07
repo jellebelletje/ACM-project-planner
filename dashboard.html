@@ -289,16 +289,12 @@
     <div class="modal-overlay" id="aiConfigModal" style="display:none;" onclick="if(event.target===this)closeModal('aiConfigModal')">
       <div class="modal" style="max-width:900px">
         <div class="modal-header">
-          <h2>AI Configuration Recommendation</h2>
+          <h2>AI Configuration</h2>
           <button class="modal-close" onclick="closeModal('aiConfigModal')">&times;</button>
         </div>
-        <div class="modal-body" id="aiConfigModalBody">
-          <!-- Rendered by JS -->
-        </div>
-        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:0.5rem;padding:0.75rem 1.25rem;border-top:1px solid var(--border);">
-          <button class="btn-small" onclick="closeModal('aiConfigModal')">Cancel</button>
-          <button class="btn-primary" onclick="applyAiConfiguration()">Apply Configuration</button>
-        </div>
+        <div id="aiConfigStepper"></div>
+        <div class="modal-body" id="aiConfigModalBody"></div>
+        <div class="modal-footer" id="aiConfigModalFooter"></div>
       </div>
     </div>
 
