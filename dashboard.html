@@ -137,6 +137,7 @@
           </label>
           <label>API URL<input type="text" id="cfgApiUrl" placeholder="https://script.google.com/macros/s/.../exec"></label>
           <label>Master Sheet ID<input type="text" id="cfgMasterSheetId" placeholder="The ID from your master registry sheet URL"></label>
+          <label>Template Sheet ID<input type="text" id="cfgTemplateSheetId" placeholder="The ID from your seed data template sheet URL"></label>
           <div class="modal-actions">
             <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
           </div>
@@ -144,6 +145,16 @@
           <div class="modal-actions">
             <button class="btn-danger" onclick="resetProjectData()" style="font-size:0.85rem;">Reset Project Data to Template</button>
             <p style="font-size:0.75rem;color:var(--text-light);margin-top:0.5rem;">Resets all activities, to-dos, and questions to the standard template. Your project name and client are kept.</p>
+          </div>
+          <div class="settings-advanced-toggle" onclick="this.nextElementSibling.classList.toggle('visible')">
+            Advanced Features &#9660;
+          </div>
+          <div class="settings-advanced-section">
+            <p class="settings-warning">
+              Use with caution. Resetting the seed template will revert all changes you have
+              made to the template. You will lose all your customisations.
+            </p>
+            <button class="btn-small btn-danger" onclick="reseedTemplate()">Reset Seed Template</button>
           </div>
         </div>
       </div>
@@ -246,6 +257,18 @@
           <button class="btn-small" onclick="cancelReview()">Cancel</button>
           <button class="btn-primary" onclick="applySelectedProposals()">Apply Selected</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Template Changes Modal -->
+    <div class="modal-overlay" id="templateChangesModal" style="display:none;" onclick="if(event.target===this)closeModal('templateChangesModal')">
+      <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+          <h2>Template Changes</h2>
+          <button class="modal-close" onclick="closeModal('templateChangesModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="templateChangesModalBody"></div>
+        <div class="modal-footer" id="templateChangesModalActions" style="display:flex;justify-content:flex-end;gap:0.5rem;padding:0.75rem 1.25rem;border-top:1px solid var(--border);"></div>
       </div>
     </div>
 

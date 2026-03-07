@@ -67,7 +67,8 @@ const state = {
   timeEntryOpen: false,
   transcripts: [],
   expandedTranscriptId: null,
-  agreements: []
+  agreements: [],
+  templateChanges: []
 };
 
 // ---- Debounce & Sync ----
@@ -131,6 +132,7 @@ function saveToLocalCache() {
     sow: state.sow,
     transcripts: state.transcripts,
     agreements: state.agreements,
+    templateChanges: state.templateChanges,
     config: state.config,
     timestamp: Date.now()
   };
@@ -155,6 +157,7 @@ function loadFromLocalCache() {
         sow: data.sow || [],
         transcripts: data.transcripts || [],
         agreements: data.agreements || [],
+        templateChanges: data.templateChanges || [],
         config: data.config || {}
       });
       normalizePhaseNames();
@@ -183,6 +186,7 @@ async function fetchAll() {
         state.sow = data.sow || [];
         state.transcripts = data.transcripts || [];
         state.agreements = data.agreements || [];
+        state.templateChanges = data.template_changes || [];
         state.config = data.config || {};
         normalizePhaseNames();
         normalizeAgreements();
@@ -204,6 +208,7 @@ async function fetchAll() {
       state.sow = data.sow || [];
       state.transcripts = data.transcripts || [];
       state.agreements = data.agreements || [];
+      state.templateChanges = data.template_changes || [];
       state.config = data.config || {};
       normalizePhaseNames();
       normalizeAgreements();
@@ -233,6 +238,7 @@ async function fetchAll() {
     state.sow = data.sow || [];
     state.transcripts = data.transcripts || [];
     state.agreements = data.agreements || [];
+    state.templateChanges = data.template_changes || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
     if (localConfig) {
       Object.assign(state.config, localConfig);
@@ -422,6 +428,27 @@ function isMetaActivity(act) {
   return act.activity_type === 'meta';
 }
 
+// ---- Template Change Tracking ----
+const TEMPLATE_FIELDS_ACTIVITY = ['title', 'intro_text', 'full_description', 'particularisation_guidance', 'activity_type', 'pdca_phase', 'sequence'];
+
+function trackTemplateChange(changeType, itemType, itemId, field, oldValue, newValue, description) {
+  const change = {
+    id: generateId('TC'),
+    change_type: changeType,
+    item_type: itemType,
+    item_id: itemId,
+    field: field || '',
+    old_value: oldValue !== undefined && oldValue !== null ? String(oldValue) : '',
+    new_value: newValue !== undefined && newValue !== null ? String(newValue) : '',
+    description: description || '',
+    created_at: new Date().toISOString(),
+    status: 'pending'
+  };
+  state.templateChanges.push(change);
+  queueWrite('addTemplateChange', change);
+  renderNav();
+}
+
 function getPhases() {
   // Get unique phases in order, preserving custom phases
   const seen = new Set();
@@ -586,6 +613,17 @@ function renderNav() {
       <span class="nav-rawdata-icon">&#9999;&#65039;</span>
       Agreements
     </button>`;
+
+  // Update Template button (only if pending changes exist)
+  const pendingTC = state.templateChanges.filter(tc => tc.status === 'pending').length;
+  if (pendingTC > 0) {
+    nav.innerHTML += `
+      <div class="nav-rawdata-separator"></div>
+      <button class="nav-rawdata-btn" onclick="openTemplateChangesModal()">
+        <span class="nav-rawdata-icon">&#128295;</span>
+        Update Template <span class="nav-rawdata-badge">${pendingTC}</span>
+      </button>`;
+  }
 
   // Raw Data button below phases
   const unprocessedCount = state.transcripts.filter(t => !t.processed || t.processed === 'FALSE' || t.processed === false).length;
@@ -1752,8 +1790,12 @@ function attachExpandedEvents() {
       const value = el.value;
       const act = getActivity(actId);
       if (act) {
+        const oldValue = act[field];
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
+        if (TEMPLATE_FIELDS_ACTIVITY.includes(field)) {
+          trackTemplateChange('edit', 'Activities', actId, field, oldValue, value, 'Activity ' + field + ' changed');
+        }
         if (field === 'status') {
           checkPhaseAdvance();
           renderAll();
@@ -1792,8 +1834,12 @@ function attachExpandedEvents() {
       const value = el.textContent.trim();
       const act = getActivity(actId);
       if (act && act[field] !== value) {
+        const oldValue = act[field];
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
+        if (TEMPLATE_FIELDS_ACTIVITY.includes(field)) {
+          trackTemplateChange('edit', 'Activities', actId, field, oldValue, value, 'Activity ' + field + ' edited');
+        }
       }
     });
   });
@@ -1825,8 +1871,10 @@ function attachExpandedEvents() {
         const newValue = textarea.value.trim();
         const act = getActivity(actId);
         if (act) {
+          const oldValue = act.particularisation_guidance;
           act.particularisation_guidance = newValue;
           queueWrite('updateActivity', { id: actId, particularisation_guidance: newValue });
+          trackTemplateChange('edit', 'Activities', actId, 'particularisation_guidance', oldValue, newValue, 'Particularisation guidance edited');
           rendered.innerHTML = renderMarkdownGuidance(newValue);
         }
         textarea.style.display = 'none';
@@ -1897,8 +1945,10 @@ function attachExpandedEvents() {
       const text = el.textContent.trim();
       const todo = getTodo(todoId);
       if (todo && todo.text !== text) {
+        const oldText = todo.text;
         todo.text = text;
         queueWrite('updateTodo', { id: todoId, text: text });
+        trackTemplateChange('edit', 'Todos', todoId, 'text', oldText, text, 'Todo text edited');
       }
     });
   });
@@ -1910,6 +1960,7 @@ function attachExpandedEvents() {
       const todoId = btn.dataset.todoId;
       const todo = getTodo(todoId);
       if (todo) {
+        trackTemplateChange('delete', 'Todos', todoId, '', todo.text, '', 'Todo deleted: ' + truncate(todo.text, 60));
         todo.active = false;
         queueWrite('updateTodo', { id: todoId, active: false });
         renderPhases();
@@ -1970,6 +2021,7 @@ function attachExpandedEvents() {
       };
       state.todos.push(todo);
       queueWrite('addTodo', todo);
+      trackTemplateChange('add', 'Todos', todo.id, '', '', JSON.stringify(todo), 'Todo added: ' + truncate(text, 60));
       input.value = '';
       renderPhases();
       attachExpandedEvents();
@@ -2018,8 +2070,10 @@ function attachExpandedEvents() {
       const text = el.textContent.trim();
       const q = getQuestion(qId);
       if (q && q.question_text !== text) {
+        const oldText = q.question_text;
         q.question_text = text;
         queueWrite('updateQuestion', { id: qId, question_text: text });
+        trackTemplateChange('edit', 'Questions', qId, 'question_text', oldText, text, 'Question text edited');
       }
     });
   });
@@ -2032,8 +2086,10 @@ function attachExpandedEvents() {
       if (text.startsWith('Ask: ')) text = text.substring(5);
       const q = getQuestion(qId);
       if (q && q.ask_whom !== text) {
+        const oldAskWhom = q.ask_whom;
         q.ask_whom = text;
         queueWrite('updateQuestion', { id: qId, ask_whom: text });
+        trackTemplateChange('edit', 'Questions', qId, 'ask_whom', oldAskWhom, text, 'Question ask_whom edited');
       }
     });
   });
@@ -2046,6 +2102,7 @@ function attachExpandedEvents() {
       const qId = btn.dataset.questionId;
       const question = getQuestion(qId);
       if (question) {
+        trackTemplateChange('delete', 'Questions', qId, '', question.question_text, '', 'Question deleted: ' + truncate(question.question_text, 60));
         question.active = false;
         queueWrite('updateQuestion', { id: qId, active: false });
         renderPhases();
@@ -2090,6 +2147,7 @@ function attachExpandedEvents() {
       };
       state.questions.push(q);
       queueWrite('addQuestion', q);
+      trackTemplateChange('add', 'Questions', q.id, '', '', JSON.stringify(q), 'Question added: ' + truncate(text, 60));
       input.value = '';
       renderPhases();
       attachExpandedEvents();
@@ -2210,11 +2268,14 @@ function moveCard(actId, direction) {
   // Swap sequences
   const mySeq = act.sequence;
   const otherAct = phaseActs[swapIdx];
-  act.sequence = otherAct.sequence;
+  const otherSeq = otherAct.sequence;
+  act.sequence = otherSeq;
   otherAct.sequence = mySeq;
 
   queueWrite('updateActivity', { id: act.id, sequence: act.sequence });
   queueWrite('updateActivity', { id: otherAct.id, sequence: otherAct.sequence });
+  trackTemplateChange('edit', 'Activities', act.id, 'sequence', mySeq, otherSeq, 'Activity reordered');
+  trackTemplateChange('edit', 'Activities', otherAct.id, 'sequence', otherSeq, mySeq, 'Activity reordered');
   renderPhases();
   attachExpandedEvents();
 }
@@ -2231,11 +2292,14 @@ function setActivityStatus(actId, newStatus) {
 }
 
 function deleteActivity(actId) {
+  const act = getActivity(actId);
+  const actTitle = act ? act.title : actId;
   state.activities = state.activities.filter(a => a.id !== actId);
   state.todos = state.todos.filter(t => t.activity_id !== actId);
   state.questions = state.questions.filter(q => q.activity_id !== actId);
   state.notes = state.notes.filter(n => n.activity_id !== actId);
   queueWrite('deleteActivity', { id: actId });
+  trackTemplateChange('delete', 'Activities', actId, '', actTitle, '', 'Activity deleted: ' + truncate(actTitle, 60));
   state.expandedActivityId = null;
   renderAll();
   attachExpandedEvents();
@@ -2264,6 +2328,7 @@ function addNewActivity(phase) {
 
   state.activities.push(act);
   queueWrite('addActivity', act);
+  trackTemplateChange('add', 'Activities', act.id, '', '', JSON.stringify(act), 'Activity added: ' + truncate(title, 60));
   renderPhases();
   renderNav();
   renderStatusBar();
@@ -2276,6 +2341,7 @@ function renamePhase(oldName, newName) {
     if (a.pdca_phase === oldName) {
       a.pdca_phase = newName;
       queueWrite('updateActivity', { id: a.id, pdca_phase: newName });
+      trackTemplateChange('edit', 'Activities', a.id, 'pdca_phase', oldName, newName, 'Phase renamed');
     }
   });
   // Update CONFIG.PHASES
@@ -2681,15 +2747,19 @@ function attachAgreementEvents() {
         if (ag) {
           // Set attribution on first answer input
           if (!ag.added_by && agreement.trim()) {
+            const oldAgreement = ag.agreement;
             ag.added_by = 'human';
             ag.added_on = formatDateLong(new Date());
             ag.agreement = agreement;
             queueWrite('updateAgreement', { id: agId, agreement, added_by: ag.added_by, added_on: ag.added_on });
+            trackTemplateChange('edit', 'Agreements', agId, 'agreement', oldAgreement, agreement, 'Agreement answer added');
             renderAgreements();
             return;
           }
+          const oldAgreement = ag.agreement;
           ag.agreement = agreement;
           queueWrite('updateAgreement', { id: agId, agreement });
+          trackTemplateChange('edit', 'Agreements', agId, 'agreement', oldAgreement, agreement, 'Agreement answer edited');
         }
       }, CONFIG.DEBOUNCE_MS);
     });
@@ -2703,8 +2773,10 @@ function attachAgreementEvents() {
       const text = el.textContent.trim();
       const ag = getAgreement(agId);
       if (ag && ag.question_agreed !== text) {
+        const oldText = ag.question_agreed;
         ag.question_agreed = text;
         queueWrite('updateAgreement', { id: agId, question_agreed: text });
+        trackTemplateChange('edit', 'Agreements', agId, 'question_agreed', oldText, text, 'Agreement question edited');
       }
     });
   });
@@ -2716,6 +2788,7 @@ function attachAgreementEvents() {
       const agId = btn.dataset.agreementId;
       const ag = getAgreement(agId);
       if (ag) {
+        trackTemplateChange('delete', 'Agreements', agId, '', ag.question_agreed || ag.agreement, '', 'Agreement deleted: ' + truncate(ag.question_agreed || ag.agreement, 60));
         ag.active = false;
         queueWrite('updateAgreement', { id: agId, active: false });
         renderAgreements();
@@ -2738,6 +2811,7 @@ function attachAgreementEvents() {
       };
       state.agreements.push(newAg);
       queueWrite('addAgreement', newAg);
+      trackTemplateChange('add', 'Agreements', newAg.id, '', '', JSON.stringify(newAg), 'Agreement added');
       renderAgreements();
       // Focus the new question field
       const newField = container.querySelector(`[data-agreement-id="${newAg.id}"] .agreement-question`);
@@ -3071,6 +3145,185 @@ function cancelReview() {
   closeModal('reviewModal');
 }
 
+// ---- Template Changes Modal ----
+
+function openTemplateChangesModal() {
+  const pending = state.templateChanges.filter(tc => tc.status === 'pending');
+  const body = document.getElementById('templateChangesModalBody');
+  const actions = document.getElementById('templateChangesModalActions');
+
+  if (pending.length === 0) {
+    body.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:2rem 0;">No pending template changes.</p>';
+    actions.innerHTML = '<button class="btn-small" onclick="closeModal(\'templateChangesModal\')">Close</button>';
+    document.getElementById('templateChangesModal').style.display = 'flex';
+    return;
+  }
+
+  // Group by item_type
+  const groups = {};
+  pending.forEach(tc => {
+    if (!groups[tc.item_type]) groups[tc.item_type] = [];
+    groups[tc.item_type].push(tc);
+  });
+
+  let html = `<label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;font-weight:600;">
+    <input type="checkbox" id="tcSelectAll" checked onchange="toggleAllTemplateChanges(this.checked)"> Select all (${pending.length})
+  </label>`;
+
+  for (const [type, changes] of Object.entries(groups)) {
+    html += `<h3 style="margin:1rem 0 0.5rem;font-size:0.9rem;color:var(--text-light);">${escapeHtml(type)}</h3>`;
+    changes.forEach(tc => {
+      const badgeClass = tc.change_type === 'add' ? 'tc-add' : tc.change_type === 'delete' ? 'tc-delete' : 'tc-edit';
+      html += `<label class="review-item" style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid var(--border);">
+        <input type="checkbox" class="tc-checkbox" data-tc-id="${tc.id}" checked>
+        <div style="flex:1;min-width:0;">
+          <span class="tc-type-badge ${badgeClass}">${escapeHtml(tc.change_type)}</span>
+          <span style="font-size:0.85rem;">${escapeHtml(tc.description || tc.field || tc.item_id)}</span>`;
+      if (tc.change_type === 'edit' && tc.field) {
+        html += `<div style="font-size:0.75rem;color:var(--text-light);margin-top:2px;">
+          <strong>${escapeHtml(tc.field)}</strong>: ${escapeHtml(truncate(tc.old_value, 50))} &rarr; ${escapeHtml(truncate(tc.new_value, 50))}
+        </div>`;
+      }
+      html += `</div></label>`;
+    });
+  }
+
+  body.innerHTML = html;
+  actions.innerHTML = `
+    <button class="btn-small" onclick="dismissSelectedTemplateChanges()">Dismiss Selected</button>
+    <button class="btn-primary" onclick="applySelectedTemplateChanges()">Apply to Template</button>`;
+
+  document.getElementById('templateChangesModal').style.display = 'flex';
+}
+
+function toggleAllTemplateChanges(checked) {
+  document.querySelectorAll('.tc-checkbox').forEach(cb => { cb.checked = checked; });
+}
+
+function getSelectedTemplateChangeIds() {
+  return Array.from(document.querySelectorAll('.tc-checkbox:checked')).map(cb => cb.dataset.tcId);
+}
+
+function dismissSelectedTemplateChanges() {
+  const ids = getSelectedTemplateChangeIds();
+  if (ids.length === 0) { alert('No changes selected.'); return; }
+  if (!confirm('Dismiss ' + ids.length + ' selected change(s)? They will no longer appear in this list.')) return;
+
+  ids.forEach(id => {
+    const tc = state.templateChanges.find(t => t.id === id);
+    if (tc) {
+      tc.status = 'dismissed';
+      queueWrite('updateTemplateChange', { id: tc.id, status: 'dismissed' });
+    }
+  });
+
+  renderNav();
+  // Re-render or close modal
+  const remaining = state.templateChanges.filter(tc => tc.status === 'pending');
+  if (remaining.length === 0) {
+    closeModal('templateChangesModal');
+  } else {
+    openTemplateChangesModal();
+  }
+}
+
+async function applySelectedTemplateChanges() {
+  const ids = getSelectedTemplateChangeIds();
+  if (ids.length === 0) { alert('No changes selected.'); return; }
+
+  const templateId = state.config.template_sheet_id;
+  if (!templateId) {
+    alert('Template Sheet ID not configured. Set it in Project Settings.');
+    return;
+  }
+
+  if (!confirm('Apply ' + ids.length + ' selected change(s) to the template sheet?')) return;
+
+  // Flush any pending writes first
+  await flushWrites();
+
+  const selectedChanges = state.templateChanges.filter(tc => ids.includes(tc.id));
+
+  showSync('saving');
+  try {
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'applyTemplateChanges', data: { changes: selectedChanges } })
+    });
+    const result = await resp.json();
+    if (result.error) {
+      alert('Error: ' + result.error);
+      showSync('error');
+      return;
+    }
+
+    // Mark applied in local state
+    ids.forEach(id => {
+      const tc = state.templateChanges.find(t => t.id === id);
+      if (tc) tc.status = 'applied';
+    });
+
+    renderNav();
+    const successCount = (result.results || []).filter(r => r.success).length;
+    const errorCount = (result.results || []).filter(r => r.error).length;
+    let msg = successCount + ' change(s) applied to template.';
+    if (errorCount > 0) msg += ' ' + errorCount + ' error(s) — check template sheet.';
+    alert(msg);
+    showSync('success');
+
+    const remaining = state.templateChanges.filter(tc => tc.status === 'pending');
+    if (remaining.length === 0) {
+      closeModal('templateChangesModal');
+    } else {
+      openTemplateChangesModal();
+    }
+  } catch (e) {
+    alert('Network error: ' + e.message);
+    showSync('error');
+  }
+}
+
+// ---- Reseed Template ----
+
+async function reseedTemplate() {
+  var templateId = state.config.template_sheet_id;
+  if (!templateId) { alert('Template Sheet ID not configured. Set it in Project Settings.'); return; }
+  if (!confirm('This will overwrite ALL data in the seed template with the default data. You will lose all customisations. Are you sure?')) return;
+
+  var seedData = window.SEED_DATA || await fetch('seed-data.json').then(r => r.json());
+  var payload = {
+    activities: seedData.activities,
+    todos: seedData.todos,
+    questions: seedData.questions,
+    agreements: seedData.agreements
+  };
+
+  showSync('saving');
+  try {
+    var resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'reseedTemplate', data: payload })
+    });
+    var result = await resp.json();
+    if (result.error) { alert('Error: ' + result.error); showSync('error'); return; }
+
+    // Dismiss all pending template changes since the template was reset
+    state.templateChanges.filter(tc => tc.status === 'pending').forEach(tc => {
+      tc.status = 'dismissed';
+      queueWrite('updateTemplateChange', { id: tc.id, status: 'dismissed' });
+    });
+    renderNav();
+
+    alert('Seed template has been reset to defaults.');
+    showSync('success');
+  } catch (e) {
+    alert('Network error: ' + e.message);
+    showSync('error');
+  }
+}
+
 // ---- Settings ----
 
 function openSettings() {
@@ -3085,6 +3338,7 @@ function openSettings() {
   document.getElementById('cfgDurationUnit').addEventListener('change', updateDurationHint);
   document.getElementById('cfgApiUrl').value = CONFIG.API_URL || '';
   document.getElementById('cfgMasterSheetId').value = state.config.master_sheet_id || '';
+  document.getElementById('cfgTemplateSheetId').value = state.config.template_sheet_id || '';
   document.getElementById('settingsModal').style.display = 'flex';
 }
 
@@ -3102,7 +3356,8 @@ async function saveSettings() {
     end_date: document.getElementById('cfgEndDate').value,
     total_duration_value: document.getElementById('cfgDurationValue').value.trim(),
     duration_unit: document.getElementById('cfgDurationUnit').value,
-    master_sheet_id: document.getElementById('cfgMasterSheetId').value.trim()
+    master_sheet_id: document.getElementById('cfgMasterSheetId').value.trim(),
+    template_sheet_id: document.getElementById('cfgTemplateSheetId').value.trim()
   };
 
   Object.assign(state.config, newConfig);

@@ -3,17 +3,19 @@ window.SEED_DATA = {
     {
       "id": "A00",
       "title": "Project Administration",
-      "intro_text": "Set up the administrative backbone of the change project \u2014 governance rhythm, document repository, stakeholder access, and reporting cadence.",
-      "full_description": "Before diagnostic work begins, establish the working infrastructure that will carry the project through all phases. This includes setting up a shared document repository with appropriate access permissions, agreeing on a governance rhythm with the project sponsor (frequency and format of status updates, steering committee cadence, escalation paths), defining how change management deliverables will be version-controlled and reviewed, and creating the initial project tracker. This card is also the ongoing home for administrative tasks that arise throughout the project \u2014 updating the RAID log, scheduling recurring meetings, maintaining distribution lists, and managing consultant access to client systems. While not intellectually demanding, neglecting project administration creates friction that slows every other activity.",
+      "intro_text": "Set up the administrative backbone of the change project — governance rhythm, document repository, stakeholder access, and reporting cadence.",
+      "full_description": "Before diagnostic work begins, establish the working infrastructure that will carry the project through all phases. This includes setting up a shared document repository with appropriate access permissions, agreeing on a governance rhythm with the project sponsor (frequency and format of status updates, steering committee cadence, escalation paths), defining how change management deliverables will be version-controlled and reviewed, and creating the initial project tracker. This card is also the ongoing home for administrative tasks that arise throughout the project — updating the RAID log, scheduling recurring meetings, maintaining distribution lists, and managing consultant access to client systems. While not intellectually demanding, neglecting project administration creates friction that slows every other activity.",
       "pdca_phase": "Plan I: Diagnosis",
       "sequence": 0,
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "activity_type": "meta",
       "particularisation_guidance": "",
       "created_at": "",
-      "updated_at": ""
+      "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
+      "activity_type": "meta"
     },
     {
       "id": "A33",
@@ -25,25 +27,12 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "activity_type": "meta",
       "particularisation_guidance": "",
       "created_at": "",
-      "updated_at": ""
-    },
-    {
-      "id": "A35",
-      "title": "Internal Alignment",
-      "intro_text": "Surface internal knowledge about the client.",
-      "full_description": "Identify internally which person or people know the client best and have worked with them before. Go with them through this change management dashboard and try to answer as many questions as possible before you talk to the client.",
-      "pdca_phase": "Plan I: Diagnosis",
-      "sequence": 2,
-      "status": "not_started",
-      "due_date": "",
-      "depends_on": "",
-      "activity_type": "meta",
-      "particularisation_guidance": "",
-      "created_at": "",
-      "updated_at": ""
+      "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
+      "activity_type": "meta"
     },
     {
       "id": "A01",
@@ -58,6 +47,8 @@ window.SEED_DATA = {
       "particularisation_guidance": "For **technology rollouts** (e.g., M365 Copilot), probe specifically whether the sponsor has personal experience with the technology and whether they will use it visibly. For **process changes**, focus on whether the sponsor understands operational impact at the frontline level. For **restructuring or mergers**, assess the sponsor's willingness to have difficult conversations about role changes, and whether they have the authority to make decisions about affected populations. Add questions about budget authority if the initiative requires significant investment.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -70,24 +61,28 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, ensure you identify the IT stakeholders who control deployment, licensing, and security configuration \u2014 they can block adoption regardless of business support. For **process changes**, map the entire value chain to identify upstream and downstream stakeholders who may not be obvious. For **mergers and restructuring**, include stakeholders from both merging entities, and pay special attention to people who may lose power or status. Add questions about political dynamics and territory if the change crosses organisational boundaries.",
+      "particularisation_guidance": "For **technology rollouts**, ensure you identify the IT stakeholders who control deployment, licensing, and security configuration — they can block adoption regardless of business support. For **process changes**, map the entire value chain to identify upstream and downstream stakeholders who may not be obvious. For **mergers and restructuring**, include stakeholders from both merging entities, and pay special attention to people who may lose power or status. Add questions about political dynamics and territory if the change crosses organisational boundaries.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
       "id": "A03",
       "title": "Impact Analysis at the Role Level",
-      "intro_text": "Identify all distinct roles affected by the change (not just job titles \u2014 functional roles)",
+      "intro_text": "Identify all distinct roles affected by the change (not just job titles — functional roles)",
       "full_description": "This is where we need to understand how specific roles will change. Workflows will disappear, which gain new steps which require fundamentally different skills. The tool here is a structured impact analysis, typically a matrix. Mapping the gap between the current workflow and the future state workflow per role is the raw material for everything that's designed later.",
       "pdca_phase": "Plan I: Diagnosis",
       "sequence": 5,
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts** (e.g., M365 Copilot), map impact per application per role \u2014 e.g., Finance uses Excel heavily, Communications uses Word and Outlook. For **process changes**, walk the end-to-end process with process owners and identify every handoff point that changes. For **restructuring**, the impact analysis must include emotional and identity impacts (loss of team, loss of role, change of manager), not just workflow changes. Add questions about seasonal business cycles if the change has timing implications.",
+      "particularisation_guidance": "For **technology rollouts** (e.g., M365 Copilot), map impact per application per role — e.g., Finance uses Excel heavily, Communications uses Word and Outlook. For **process changes**, walk the end-to-end process with process owners and identify every handoff point that changes. For **restructuring**, the impact analysis must include emotional and identity impacts (loss of team, loss of role, change of manager), not just workflow changes. Add questions about seasonal business cycles if the change has timing implications.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -100,24 +95,28 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, assess current digital literacy levels \u2014 not just familiarity with the specific tool, but general comfort with technology. Include questions about the current tool equivalent (e.g., \"How do you currently use Excel?\" before introducing Copilot in Excel). For **process changes**, assess current process compliance \u2014 if people aren't following the current process, introducing a new one has different implications. For **restructuring**, assess leadership and change management capabilities of managers who will need to lead their teams through the transition.",
+      "particularisation_guidance": "For **technology rollouts**, assess current digital literacy levels — not just familiarity with the specific tool, but general comfort with technology. Include questions about the current tool equivalent (e.g., \"How do you currently use Excel?\" before introducing Copilot in Excel). For **process changes**, assess current process compliance — if people aren't following the current process, introducing a new one has different implications. For **restructuring**, assess leadership and change management capabilities of managers who will need to lead their teams through the transition.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
       "id": "A05",
       "title": "Organisational Change History and Scar Tissue Assessment",
-      "intro_text": "Identify the major changes the organisation has undergone in the last 2\u20133 years",
+      "intro_text": "Identify the major changes the organisation has undergone in the last 2–3 years",
       "full_description": "Understand the narrative of previous changes, especially the ones that went badly. Interview long-tenured staff and middle managers, asking specifically what changed in the last two to three years, what went well, and what was painful. What was promised and what was not delivered.",
       "pdca_phase": "Plan I: Diagnosis",
       "sequence": 7,
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, specifically ask about previous technology implementations \u2014 did the last system go-live go smoothly? Was training adequate? Were workarounds needed? For **process changes**, ask about previous process improvement initiatives (e.g., Lean, Six Sigma) \u2014 were they sustained or did old habits return? For **mergers and restructuring**, this assessment is critical: ask about previous rounds of redundancies, restructuring, or leadership changes and the emotional residue they left. The scar tissue from these events can dominate the response to the current change.",
+      "particularisation_guidance": "For **technology rollouts**, specifically ask about previous technology implementations — did the last system go-live go smoothly? Was training adequate? Were workarounds needed? For **process changes**, ask about previous process improvement initiatives (e.g., Lean, Six Sigma) — were they sustained or did old habits return? For **mergers and restructuring**, this assessment is critical: ask about previous rounds of redundancies, restructuring, or leadership changes and the emotional residue they left. The scar tissue from these events can dominate the response to the current change.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -130,24 +129,28 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, assess managers' own digital competence \u2014 a manager who doesn't use the tool cannot credibly coach their team. Add questions like \"Will you use this tool yourself?\" and \"How comfortable are you with technology?\" For **process changes**, probe whether the manager was involved in designing the new process \u2014 involvement increases ownership. For **restructuring**, this conversation is extremely sensitive: managers may themselves be affected. Assess whether they know their own future before asking them to support their team's transition. Adjust the tone and framing accordingly.",
+      "particularisation_guidance": "For **technology rollouts**, assess managers' own digital competence — a manager who doesn't use the tool cannot credibly coach their team. Add questions like \"Will you use this tool yourself?\" and \"How comfortable are you with technology?\" For **process changes**, probe whether the manager was involved in designing the new process — involvement increases ownership. For **restructuring**, this conversation is extremely sensitive: managers may themselves be affected. Assess whether they know their own future before asking them to support their team's transition. Adjust the tone and framing accordingly.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
       "id": "A07",
       "title": "Create Resistance Risk Profile",
-      "intro_text": "Compile findings from Activities 1\u20136 into a single working document",
+      "intro_text": "Compile findings from Activities 1–6 into a single working document",
       "full_description": "For each affected population you should be able to articulate what they stand to lose in terms of:\n- status\n- competence\n- autonomy\n- workload\n- predictability\nand what they might gain.What does their prior change experience predispose them toward? Which structural factors, like manager support, sponsor visibility, communication trust, either amplify or dampen their resistance? This profile should drive the intervention design.",
       "pdca_phase": "Plan I: Diagnosis",
       "sequence": 9,
       "status": "not_started",
       "due_date": "",
       "depends_on": "A01,A02,A03,A05,A06",
-      "particularisation_guidance": "For **technology rollouts** (especially AI/automation), explicitly assess fear of job displacement \u2014 this is often the dominant resistance factor even if unstated. Add questions about whether roles will be eliminated. For **process changes**, the primary resistance factor is often workload \u2014 new processes almost always require more effort initially. For **restructuring**, loss of status and autonomy dominate. Tailor the loss analysis dimensions to match the type of change.",
+      "particularisation_guidance": "For **technology rollouts** (especially AI/automation), explicitly assess fear of job displacement — this is often the dominant resistance factor even if unstated. Add questions about whether roles will be eliminated. For **process changes**, the primary resistance factor is often workload — new processes almost always require more effort initially. For **restructuring**, loss of status and autonomy dominate. Tailor the loss analysis dimensions to match the type of change.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -160,9 +163,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A01,A02,A03,A04,A05,A06,A07",
-      "particularisation_guidance": "For **technology rollouts**, the strategy should address the deployment sequence (who gets it first) and its change management implications. For **process changes**, focus on embedding the change into standard operating procedures so it's structurally reinforced. For **mergers**, the strategy must address cultural integration \u2014 not just process alignment. The strategy document format stays the same, but the weight given to each section shifts with the change type.",
+      "particularisation_guidance": "For **technology rollouts**, the strategy should address the deployment sequence (who gets it first) and its change management implications. For **process changes**, focus on embedding the change into standard operating procedures so it's structurally reinforced. For **mergers**, the strategy must address cultural integration — not just process alignment. The strategy document format stays the same, but the weight given to each section shifts with the change type.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -175,9 +180,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A02,A07",
-      "particularisation_guidance": "For **technology rollouts**, include IT leadership and security/compliance stakeholders in the engagement plan \u2014 they often control access and configuration. For **process changes**, engage process owners and quality teams who will need to update documentation. For **mergers**, the engagement plan must address stakeholders from both entities and be sensitive to power dynamics. Add engagement with works councils or unions if applicable to the jurisdiction.",
+      "particularisation_guidance": "For **technology rollouts**, include IT leadership and security/compliance stakeholders in the engagement plan — they often control access and configuration. For **process changes**, engage process owners and quality teams who will need to update documentation. For **mergers**, the engagement plan must address stakeholders from both entities and be sensitive to power dynamics. Add engagement with works councils or unions if applicable to the jurisdiction.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -190,24 +197,28 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A03,A04",
-      "particularisation_guidance": "For **technology rollouts**, design role-specific training paths (e.g., Finance team on Copilot in Excel, Communications on Word and Outlook). Include a safe practice environment so people can experiment without fear of breaking things. For **process changes**, training often needs to include \"unlearning\" \u2014 explicitly addressing why the old way is changing and what to stop doing. For **restructuring**, training may include leadership and change management skills for managers, not just operational skills.",
+      "particularisation_guidance": "For **technology rollouts**, design role-specific training paths (e.g., Finance team on Copilot in Excel, Communications on Word and Outlook). Include a safe practice environment so people can experiment without fear of breaking things. For **process changes**, training often needs to include \"unlearning\" — explicitly addressing why the old way is changing and what to stop doing. For **restructuring**, training may include leadership and change management skills for managers, not just operational skills.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
       "id": "A11",
       "title": "Design Communication with Message Architecture",
-      "intro_text": "Define the communication audiences (may differ from stakeholder groups \u2014 broader reach)",
+      "intro_text": "Define the communication audiences (may differ from stakeholder groups — broader reach)",
       "full_description": "Messages need to be sequenced in a way that matches the audience's psychological journey not the project's technical milestones. \nFirst communication: answer why? Why this change? Why now? Why us? \nSecond communication: What will change specifically for me? \nThird communication: We address the how to use the new thing. \nManagers should hear about things before the teams do.",
       "pdca_phase": "Plan I: Diagnosis",
       "sequence": 13,
       "status": "not_started",
       "due_date": "",
       "depends_on": "A08,A09",
-      "particularisation_guidance": "For **technology rollouts**, the \"What changes for me?\" message must be very specific and practical \u2014 avoid generic \"this exciting new tool\" language. Show before/after examples of actual workflows. For **process changes**, emphasise the rationale for the change and acknowledge what was good about the old way. For **mergers and restructuring**, communication is the most critical intervention \u2014 address job security concerns head-on and early, and avoid corporate euphemisms.",
+      "particularisation_guidance": "For **technology rollouts**, the \"What changes for me?\" message must be very specific and practical — avoid generic \"this exciting new tool\" language. Show before/after examples of actual workflows. For **process changes**, emphasise the rationale for the change and acknowledge what was good about the old way. For **mergers and restructuring**, communication is the most critical intervention — address job security concerns head-on and early, and avoid corporate euphemisms.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -220,9 +231,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, this activity is central \u2014 the entire ACM plan is built around the technical deployment sequence. Get into the detail: licence provisioning, conditional access policies, security configurations, integration testing. For **process changes**, the \"deployment\" is the process switchover \u2014 understand what triggers the transition from old to new process and whether there's a parallel running period. For **restructuring**, the timeline centres on organisational announcements, contractual changes, and regulatory consultation periods.",
+      "particularisation_guidance": "For **technology rollouts**, this activity is central — the entire ACM plan is built around the technical deployment sequence. Get into the detail: licence provisioning, conditional access policies, security configurations, integration testing. For **process changes**, the \"deployment\" is the process switchover — understand what triggers the transition from old to new process and whether there's a parallel running period. For **restructuring**, the timeline centres on organisational announcements, contractual changes, and regulatory consultation periods.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -235,9 +248,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A04,A08",
-      "particularisation_guidance": "For **technology rollouts** (especially M365), rich telemetry is often available through admin centres and adoption dashboards \u2014 leverage these rather than building custom solutions. For **process changes**, metrics may need to be manually collected (e.g., audit of process compliance). For **restructuring**, measurement often focuses on employee engagement surveys, retention rates, and productivity indicators rather than system telemetry.",
+      "particularisation_guidance": "For **technology rollouts** (especially M365), rich telemetry is often available through admin centres and adoption dashboards — leverage these rather than building custom solutions. For **process changes**, metrics may need to be manually collected (e.g., audit of process compliance). For **restructuring**, measurement often focuses on employee engagement surveys, retention rates, and productivity indicators rather than system telemetry.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -250,9 +265,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A07",
-      "particularisation_guidance": "For **technology rollouts** (especially AI), competence anxiety and job displacement fear are the dominant patterns \u2014 design interventions around psychological safety, safe practice spaces, and honest conversations about how roles will evolve (not just \"your job is safe\"). For **process changes**, resistance often manifests as reverting to old processes \u2014 the intervention must address both motivation and structural reinforcement. For **restructuring**, resistance may be entirely legitimate grief \u2014 interventions should acknowledge this rather than trying to overcome it.",
+      "particularisation_guidance": "For **technology rollouts** (especially AI), competence anxiety and job displacement fear are the dominant patterns — design interventions around psychological safety, safe practice spaces, and honest conversations about how roles will evolve (not just \"your job is safe\"). For **process changes**, resistance often manifests as reverting to old processes — the intervention must address both motivation and structural reinforcement. For **restructuring**, resistance may be entirely legitimate grief — interventions should acknowledge this rather than trying to overcome it.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -265,9 +282,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, champions should be people who will use the tool daily and can demonstrate practical use cases to peers \u2014 not just tech-savvy people, but people who understand the work. For **process changes**, champions should ideally be people who were involved in designing the new process. For **restructuring**, the champion concept may need to be reframed as \"change agents\" or \"transition guides\" given the sensitivity of the change.",
+      "particularisation_guidance": "For **technology rollouts**, champions should be people who will use the tool daily and can demonstrate practical use cases to peers — not just tech-savvy people, but people who understand the work. For **process changes**, champions should ideally be people who were involved in designing the new process. For **restructuring**, the champion concept may need to be reframed as \"change agents\" or \"transition guides\" given the sensitivity of the change.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -280,9 +299,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **large technology rollouts**, governance integration is critical because technical decisions (e.g., feature suppression, security restrictions) directly affect adoption \u2014 the ACM lead must be able to influence these decisions. For **process changes**, governance may sit with operational leadership rather than IT. For **restructuring**, governance is typically very senior and politically charged \u2014 the ACM lead may need to report through a more senior intermediary rather than attending directly.",
+      "particularisation_guidance": "For **large technology rollouts**, governance integration is critical because technical decisions (e.g., feature suppression, security restrictions) directly affect adoption — the ACM lead must be able to influence these decisions. For **process changes**, governance may sit with operational leadership rather than IT. For **restructuring**, governance is typically very senior and politically charged — the ACM lead may need to report through a more senior intermediary rather than attending directly.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -295,9 +316,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, the pilot participant channel is especially important \u2014 it becomes the primary feedback loop during pilot. For **process changes**, consider a \"Process Q&A\" channel where people can ask how to handle edge cases. For **restructuring**, channels must be very carefully managed \u2014 consider whether open channels are appropriate given the sensitivity, and whether private conversations would be more appropriate for some groups.",
+      "particularisation_guidance": "For **technology rollouts**, the pilot participant channel is especially important — it becomes the primary feedback loop during pilot. For **process changes**, consider a \"Process Q&A\" channel where people can ask how to handle edge cases. For **restructuring**, channels must be very carefully managed — consider whether open channels are appropriate given the sensitivity, and whether private conversations would be more appropriate for some groups.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -310,9 +333,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A11,A12",
-      "particularisation_guidance": "For **technology rollouts**, the day-one communication must be highly practical: \"Open this app. Click here. Try this.\" Avoid generic enthusiasm. For **process changes**, communicate both what to start doing and what to stop doing. For **restructuring**, day-one communication is typically handled by senior leadership directly \u2014 the ACM consultant's role is to prepare and coach the leaders, not to send the communication.",
+      "particularisation_guidance": "For **technology rollouts**, the day-one communication must be highly practical: \"Open this app. Click here. Try this.\" Avoid generic enthusiasm. For **process changes**, communicate both what to start doing and what to stop doing. For **restructuring**, day-one communication is typically handled by senior leadership directly — the ACM consultant's role is to prepare and coach the leaders, not to send the communication.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -328,6 +353,8 @@ window.SEED_DATA = {
       "particularisation_guidance": "For **technology rollouts**, training must include hands-on practice in a safe environment, not just demonstrations. Consider recording sessions for on-demand replay. For **process changes**, training should include \"day in the life\" scenarios showing the new process end-to-end. For **restructuring**, training may focus on leadership skills, resilience, or new role orientation rather than tool/process skills.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -340,9 +367,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A15",
-      "particularisation_guidance": "For **technology rollouts**, champions should sit with their teams and demonstrate real use cases in real work \u2014 not contrived examples. For **process changes**, champions should be the go-to people for \"how do I handle this edge case?\" questions. For **restructuring**, field support is more about emotional support and answering \"what happens to me?\" questions \u2014 champions need coaching on how to handle these conversations.",
+      "particularisation_guidance": "For **technology rollouts**, champions should sit with their teams and demonstrate real use cases in real work — not contrived examples. For **process changes**, champions should be the go-to people for \"how do I handle this edge case?\" questions. For **restructuring**, field support is more about emotional support and answering \"what happens to me?\" questions — champions need coaching on how to handle these conversations.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -355,9 +384,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, ensure support staff have access to the same version and configuration that users have \u2014 nothing undermines credibility faster than support not being able to reproduce the user's experience. For **process changes**, support may need to come from process SMEs, not IT. For **restructuring**, \"support\" may be HR drop-in sessions or manager Q&A forums rather than a technical help desk.",
+      "particularisation_guidance": "For **technology rollouts**, ensure support staff have access to the same version and configuration that users have — nothing undermines credibility faster than support not being able to reproduce the user's experience. For **process changes**, support may need to come from process SMEs, not IT. For **restructuring**, \"support\" may be HR drop-in sessions or manager Q&A forums rather than a technical help desk.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -370,9 +401,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A04,A13",
-      "particularisation_guidance": "For **technology rollouts** (especially M365), leverage built-in adoption dashboards (e.g., Microsoft Adoption Score, Copilot Dashboard). For **process changes**, telemetry may not exist \u2014 use audit data, observation, or spot checks. For **restructuring**, monitor engagement survey data, attrition rates, and absenteeism as proxies for adoption health.",
+      "particularisation_guidance": "For **technology rollouts** (especially M365), leverage built-in adoption dashboards (e.g., Microsoft Adoption Score, Copilot Dashboard). For **process changes**, telemetry may not exist — use audit data, observation, or spot checks. For **restructuring**, monitor engagement survey data, attrition rates, and absenteeism as proxies for adoption health.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -385,9 +418,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A14",
-      "particularisation_guidance": "For **technology rollouts**, watch for \"shadow IT\" \u2014 people finding workarounds to avoid the new tool. This is a strong signal of either poor usability or inadequate training. For **process changes**, resistance often looks like non-compliance \u2014 people simply continuing to do things the old way. For **restructuring**, resistance may manifest as disengagement, increased sick leave, or talented people leaving \u2014 these are lagging indicators and by the time you see them, the damage is done. Focus on leading indicators like manager reports and champion intelligence.",
+      "particularisation_guidance": "For **technology rollouts**, watch for \"shadow IT\" — people finding workarounds to avoid the new tool. This is a strong signal of either poor usability or inadequate training. For **process changes**, resistance often looks like non-compliance — people simply continuing to do things the old way. For **restructuring**, resistance may manifest as disengagement, increased sick leave, or talented people leaving — these are lagging indicators and by the time you see them, the damage is done. Focus on leading indicators like manager reports and champion intelligence.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -403,6 +438,8 @@ window.SEED_DATA = {
       "particularisation_guidance": "For **technology rollouts**, the check-act loop should include a direct line to the technical team for configuration or feature issues that emerge during deployment. For **process changes**, loop in process owners who can authorise process adjustments. For **restructuring**, the check-act loop must include HR for people-related issues and legal if contractual or regulatory implications arise.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -418,6 +455,8 @@ window.SEED_DATA = {
       "particularisation_guidance": "For **technology rollouts**, champion networks often need to persist beyond initial deployment as new features are released. For **process changes**, champions may transition into process owners or SMEs. For **restructuring**, the \"champion\" role may evolve into a peer support or wellbeing ambassador role during the transition period.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -433,6 +472,8 @@ window.SEED_DATA = {
       "particularisation_guidance": "For **technology rollouts**, the strategic review should include a comparison of adoption patterns against industry benchmarks if available. For **process changes**, include a process compliance audit. For **restructuring**, the strategic review must address cultural integration progress, not just operational metrics.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -445,15 +486,17 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, reinforcement often includes showcasing real examples of how colleagues are using the tool productively \u2014 social proof is powerful. For **process changes**, reinforcement may mean embedding the process into standard checklists or quality reviews. For **restructuring**, reinforcement is about embedding new team norms and working relationships \u2014 less about skills and more about culture.",
+      "particularisation_guidance": "For **technology rollouts**, reinforcement often includes showcasing real examples of how colleagues are using the tool productively — social proof is powerful. For **process changes**, reinforcement may mean embedding the process into standard checklists or quality reviews. For **restructuring**, reinforcement is about embedding new team norms and working relationships — less about skills and more about culture.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
       "id": "A28",
       "title": "Identify and Escalate Systemic Barriers",
-      "intro_text": "Review all accumulated data for issues that are design, policy, or infrastructure problems \u2014 not adoption problems",
+      "intro_text": "Review all accumulated data for issues that are design, policy, or infrastructure problems — not adoption problems",
       "full_description": "",
       "pdca_phase": "Check: Analysis",
       "sequence": 28,
@@ -463,6 +506,8 @@ window.SEED_DATA = {
       "particularisation_guidance": "For **technology rollouts** (especially M365 Copilot), common barriers include overly restrictive security policies, data access limitations, licensing issues, and missing integrations. For **process changes**, barriers include legacy systems that don't support the new process, or conflicting KPIs that incentivise old behaviours. For **restructuring**, barriers include unresolved reporting line ambiguities, duplicate roles, or contractual constraints.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -478,6 +523,8 @@ window.SEED_DATA = {
       "particularisation_guidance": "For **technology rollouts**, ensure IT has the skills and tools to continue monitoring adoption telemetry. Ensure L&D has ownership of training materials and a plan for updating them as the technology evolves. For **process changes**, the process owner should take ownership of compliance monitoring and continuous improvement. For **restructuring**, knowledge transfer should include handover of any outstanding people issues to HR.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -490,9 +537,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "A07,A23",
-      "particularisation_guidance": "For **technology rollouts**, watch for resistance that transformed from \"I can't use it\" (competence) to \"I don't want to use it\" (motivation) \u2014 this often signals poor user experience or lack of perceived value. For **process changes**, persistent non-compliance may indicate the new process is genuinely inferior in some situations. For **restructuring**, lingering resistance may indicate unresolved grief or real issues with the new structure that need addressing.",
+      "particularisation_guidance": "For **technology rollouts**, watch for resistance that transformed from \"I can't use it\" (competence) to \"I don't want to use it\" (motivation) — this often signals poor user experience or lack of perceived value. For **process changes**, persistent non-compliance may indicate the new process is genuinely inferior in some situations. For **restructuring**, lingering resistance may indicate unresolved grief or real issues with the new structure that need addressing.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -508,6 +557,8 @@ window.SEED_DATA = {
       "particularisation_guidance": "For **technology rollouts**, codification includes ensuring the tool is part of standard operating procedures, included in onboarding, and that usage expectations are clear. For **process changes**, update process documentation, quality checklists, and audit procedures. For **restructuring**, codification means formalising new reporting lines, governance structures, and decision-making authorities in organisational documentation.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     },
     {
@@ -520,9 +571,11 @@ window.SEED_DATA = {
       "status": "not_started",
       "due_date": "",
       "depends_on": "",
-      "particularisation_guidance": "For **technology rollouts**, the retrospective should include a technology-specific section: was the product mature enough? Were technical prerequisites met on time? Did vendor support meet expectations? For **process changes**, assess whether the process itself was well-designed or whether adoption difficulties were actually design problems. For **restructuring**, the retrospective should address the human cost and whether it was managed with sufficient care and dignity \u2014 this shapes the organisation's future change culture.",
+      "particularisation_guidance": "For **technology rollouts**, the retrospective should include a technology-specific section: was the product mature enough? Were technical prerequisites met on time? Did vendor support meet expectations? For **process changes**, assess whether the process itself was well-designed or whether adoption difficulties were actually design problems. For **restructuring**, the retrospective should address the human cost and whether it was managed with sufficient care and dignity — this shapes the organisation's future change culture.",
       "created_at": "",
       "updated_at": "",
+      "allocated_pct": "",
+      "actual_minutes": "",
       "activity_type": ""
     }
   ],
@@ -535,17 +588,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T002",
       "activity_id": "A01",
-      "text": "Schedule a 60\u201390 minute structured interview with each sponsor",
+      "text": "Schedule a 60–90 minute structured interview with each sponsor",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T003",
@@ -555,7 +612,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T004",
@@ -565,7 +624,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T005",
@@ -575,7 +636,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T006",
@@ -585,7 +648,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T007",
@@ -595,7 +660,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T008",
@@ -605,7 +672,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T009",
@@ -615,7 +684,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T010",
@@ -625,7 +696,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T011",
@@ -635,17 +708,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T012",
       "activity_id": "A02",
-      "text": "Schedule structured interviews with senior leaders and their direct reports (30\u201345 minutes each)",
+      "text": "Schedule structured interviews with senior leaders and their direct reports (30–45 minutes each)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T013",
@@ -655,7 +732,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T014",
@@ -665,7 +744,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T015",
@@ -675,7 +756,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T016",
@@ -685,7 +768,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T017",
@@ -695,17 +780,21 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T018",
       "activity_id": "A03",
-      "text": "Identify all distinct roles affected by the change (not just job titles \u2014 functional roles)",
+      "text": "Identify all distinct roles affected by the change (not just job titles — functional roles)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T019",
@@ -715,7 +804,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T020",
@@ -725,7 +816,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T021",
@@ -735,17 +828,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T022",
       "activity_id": "A03",
-      "text": "Create a structured impact analysis matrix: Role \u00d7 Impact dimension (tools, processes, skills, reporting lines, performance metrics, workload)",
+      "text": "Create a structured impact analysis matrix: Role × Impact dimension (tools, processes, skills, reporting lines, performance metrics, workload)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T023",
@@ -755,7 +852,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T024",
@@ -765,7 +864,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T025",
@@ -775,7 +876,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T026",
@@ -785,7 +888,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T027",
@@ -795,7 +900,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T028",
@@ -805,7 +912,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T029",
@@ -815,7 +924,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T030",
@@ -825,7 +936,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T031",
@@ -835,7 +948,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T032",
@@ -845,17 +960,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T033",
       "activity_id": "A04",
-      "text": "Share findings with the training architecture design (\u2192 feeds into Activity 10)",
+      "text": "Share findings with the training architecture design (→ feeds into Activity 10)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T034",
@@ -865,17 +984,21 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T035",
       "activity_id": "A05",
-      "text": "Identify the major changes the organisation has undergone in the last 2\u20133 years",
+      "text": "Identify the major changes the organisation has undergone in the last 2–3 years",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T036",
@@ -885,17 +1008,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T037",
       "activity_id": "A05",
-      "text": "Schedule 30\u201345 minute interviews (individual or small group)",
+      "text": "Schedule 30–45 minute interviews (individual or small group)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T038",
@@ -905,7 +1032,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T039",
@@ -915,7 +1044,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T040",
@@ -925,17 +1056,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T041",
       "activity_id": "A05",
-      "text": "Identify \"scar tissue\" \u2014 areas where previous failed or painful changes have created cynicism, distrust, or resistance patterns",
+      "text": "Identify \"scar tissue\" — areas where previous failed or painful changes have created cynicism, distrust, or resistance patterns",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T042",
@@ -945,7 +1080,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T043",
@@ -955,7 +1092,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T044",
@@ -965,17 +1104,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T045",
       "activity_id": "A06",
-      "text": "Schedule small group conversations (3\u20135 managers per group, 60 minutes) or individual interviews for sensitive contexts",
+      "text": "Schedule small group conversations (3–5 managers per group, 60 minutes) or individual interviews for sensitive contexts",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T046",
@@ -985,7 +1128,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T047",
@@ -995,17 +1140,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T048",
       "activity_id": "A06",
-      "text": "Plot managers on a readiness \u00d7 willingness matrix",
+      "text": "Plot managers on a readiness × willingness matrix",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T049",
@@ -1015,7 +1164,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T050",
@@ -1025,7 +1176,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T051",
@@ -1035,7 +1188,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T052",
@@ -1045,7 +1200,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T053",
@@ -1055,17 +1212,21 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 9
+      "sequence": 9,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T054",
       "activity_id": "A07",
-      "text": "Compile findings from Activities 1\u20136 into a single working document",
+      "text": "Compile findings from Activities 1–6 into a single working document",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T055",
@@ -1075,7 +1236,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T056",
@@ -1085,7 +1248,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T057",
@@ -1095,7 +1260,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T058",
@@ -1105,7 +1272,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T059",
@@ -1115,7 +1284,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T060",
@@ -1125,7 +1296,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T061",
@@ -1135,17 +1308,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T062",
       "activity_id": "A07",
-      "text": "[Project-specific: Identify population-specific resistance factors unique to this change, e.g., for AI tools \u2014 fear of job replacement]",
+      "text": "[Project-specific: Identify population-specific resistance factors unique to this change, e.g., for AI tools — fear of job replacement]",
       "is_done": false,
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T063",
@@ -1155,7 +1332,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T064",
@@ -1165,7 +1344,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T065",
@@ -1175,7 +1356,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T066",
@@ -1185,7 +1368,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T067",
@@ -1195,17 +1380,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T068",
       "activity_id": "A08",
-      "text": "Define the measurement approach (high level \u2014 detailed measurement in Activity 13)",
+      "text": "Define the measurement approach (high level — detailed measurement in Activity 13)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T069",
@@ -1215,7 +1404,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T070",
@@ -1225,7 +1416,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T071",
@@ -1235,7 +1428,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T072",
@@ -1245,7 +1440,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T073",
@@ -1255,7 +1452,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T074",
@@ -1265,7 +1464,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T075",
@@ -1275,17 +1476,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T076",
       "activity_id": "A09",
-      "text": "Plan early engagement with high-influence resistors \u2014 engage before the change becomes visible",
+      "text": "Plan early engagement with high-influence resistors — engage before the change becomes visible",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T077",
@@ -1295,7 +1500,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T078",
@@ -1305,7 +1512,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T079",
@@ -1315,7 +1524,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T080",
@@ -1325,7 +1536,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T081",
@@ -1335,7 +1548,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T082",
@@ -1345,7 +1560,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T083",
@@ -1355,7 +1572,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T084",
@@ -1365,7 +1584,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T085",
@@ -1375,7 +1596,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T086",
@@ -1385,7 +1608,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T087",
@@ -1395,7 +1620,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T088",
@@ -1405,17 +1632,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T089",
       "activity_id": "A10",
-      "text": "Document the training architecture (structure and approach \u2014 not content yet)",
+      "text": "Document the training architecture (structure and approach — not content yet)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T090",
@@ -1425,17 +1656,21 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 9
+      "sequence": 9,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T091",
       "activity_id": "A11",
-      "text": "Define the communication audiences (may differ from stakeholder groups \u2014 broader reach)",
+      "text": "Define the communication audiences (may differ from stakeholder groups — broader reach)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T092",
@@ -1445,7 +1680,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T093",
@@ -1455,17 +1692,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T094",
       "activity_id": "A11",
-      "text": "Ensure managers hear before their teams \u2014 build in a management pre-brief at each stage",
+      "text": "Ensure managers hear before their teams — build in a management pre-brief at each stage",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T095",
@@ -1475,7 +1716,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T096",
@@ -1485,7 +1728,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T097",
@@ -1495,7 +1740,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T098",
@@ -1505,7 +1752,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T099",
@@ -1515,17 +1764,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T100",
       "activity_id": "A12",
-      "text": "Map every technical milestone and identify its downstream ACM implications (e.g., \"tenant configured\" \u2192 \"training environments available\")",
+      "text": "Map every technical milestone and identify its downstream ACM implications (e.g., \"tenant configured\" → \"training environments available\")",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T101",
@@ -1535,7 +1788,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T102",
@@ -1545,7 +1800,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T103",
@@ -1555,17 +1812,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T104",
       "activity_id": "A12",
-      "text": "Build the ACM plan against the technical timeline \u2014 align all communication, training, and support activities to technical milestones",
+      "text": "Build the ACM plan against the technical timeline — align all communication, training, and support activities to technical milestones",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T105",
@@ -1575,7 +1836,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T106",
@@ -1585,7 +1848,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T107",
@@ -1595,7 +1860,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T108",
@@ -1605,7 +1872,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T109",
@@ -1615,7 +1884,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T110",
@@ -1625,7 +1896,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T111",
@@ -1635,7 +1908,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T112",
@@ -1645,7 +1920,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T113",
@@ -1655,7 +1932,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T114",
@@ -1665,7 +1944,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T115",
@@ -1675,7 +1956,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T116",
@@ -1685,7 +1968,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T117",
@@ -1695,7 +1980,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T118",
@@ -1705,7 +1992,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T119",
@@ -1715,7 +2004,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T120",
@@ -1725,7 +2016,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T121",
@@ -1735,7 +2028,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T122",
@@ -1745,7 +2040,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T123",
@@ -1755,7 +2052,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T124",
@@ -1765,17 +2064,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T125",
       "activity_id": "A15",
-      "text": "Identify potential champions \u2014 solicit nominations from middle managers and the sponsor",
+      "text": "Identify potential champions — solicit nominations from middle managers and the sponsor",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T126",
@@ -1785,7 +2088,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T127",
@@ -1795,7 +2100,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T128",
@@ -1805,7 +2112,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T129",
@@ -1815,7 +2124,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T130",
@@ -1825,7 +2136,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T131",
@@ -1835,7 +2148,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T132",
@@ -1845,7 +2160,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 9
+      "sequence": 9,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T133",
@@ -1855,7 +2172,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 10
+      "sequence": 10,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T134",
@@ -1865,7 +2184,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T135",
@@ -1875,7 +2196,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T136",
@@ -1885,7 +2208,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T137",
@@ -1895,7 +2220,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T138",
@@ -1905,7 +2232,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T139",
@@ -1915,7 +2244,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T140",
@@ -1925,7 +2256,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T141",
@@ -1935,7 +2268,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T142",
@@ -1945,7 +2280,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T143",
@@ -1955,7 +2292,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T144",
@@ -1965,7 +2304,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T145",
@@ -1975,7 +2316,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T146",
@@ -1985,7 +2328,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T147",
@@ -1995,7 +2340,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T148",
@@ -2005,7 +2352,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T149",
@@ -2015,17 +2364,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T150",
       "activity_id": "A18",
-      "text": "Send pre-deployment communication 48\u201372 hours before go-live",
+      "text": "Send pre-deployment communication 48–72 hours before go-live",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T151",
@@ -2035,7 +2388,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T152",
@@ -2045,7 +2400,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T153",
@@ -2055,7 +2412,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T154",
@@ -2065,7 +2424,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T155",
@@ -2075,7 +2436,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T156",
@@ -2085,7 +2448,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T157",
@@ -2095,7 +2460,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T158",
@@ -2105,17 +2472,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T159",
       "activity_id": "A19",
-      "text": "Deliver training in the designed sequence: awareness \u2192 skill building \u2192 applied practice",
+      "text": "Deliver training in the designed sequence: awareness → skill building → applied practice",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T160",
@@ -2125,7 +2496,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T161",
@@ -2135,7 +2508,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T162",
@@ -2145,7 +2520,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T163",
@@ -2155,7 +2532,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T164",
@@ -2165,7 +2544,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T165",
@@ -2175,7 +2556,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T166",
@@ -2185,7 +2568,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T167",
@@ -2195,7 +2580,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T168",
@@ -2205,7 +2592,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T169",
@@ -2215,7 +2604,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T170",
@@ -2225,7 +2616,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T171",
@@ -2235,7 +2628,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T172",
@@ -2245,17 +2640,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T173",
       "activity_id": "A20",
-      "text": "Act on champion intelligence \u2014 adjust support, communication, or training as needed",
+      "text": "Act on champion intelligence — adjust support, communication, or training as needed",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T174",
@@ -2265,7 +2664,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T175",
@@ -2275,17 +2676,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T176",
       "activity_id": "A21",
-      "text": "Set up drop-in clinic schedule (physical or virtual) \u2014 floor-walking support if applicable",
+      "text": "Set up drop-in clinic schedule (physical or virtual) — floor-walking support if applicable",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T177",
@@ -2295,7 +2700,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T178",
@@ -2305,7 +2712,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T179",
@@ -2315,7 +2724,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T180",
@@ -2325,7 +2736,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T181",
@@ -2335,7 +2748,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T182",
@@ -2345,7 +2760,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T183",
@@ -2355,7 +2772,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T184",
@@ -2365,7 +2784,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T185",
@@ -2375,7 +2796,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T186",
@@ -2385,7 +2808,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T187",
@@ -2395,7 +2820,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T188",
@@ -2405,7 +2832,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T189",
@@ -2415,7 +2844,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T190",
@@ -2425,7 +2856,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T191",
@@ -2435,7 +2868,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T192",
@@ -2445,7 +2880,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T193",
@@ -2455,7 +2892,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T194",
@@ -2465,17 +2904,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T195",
       "activity_id": "A23",
-      "text": "Distinguish between productive resistance (identifying genuine problems \u2192 escalate to technical team) and defensive resistance (protecting established habits or status \u2192 manage through ACM)",
+      "text": "Distinguish between productive resistance (identifying genuine problems → escalate to technical team) and defensive resistance (protecting established habits or status → manage through ACM)",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T196",
@@ -2485,17 +2928,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T197",
       "activity_id": "A23",
-      "text": "Ensure the sponsor is actively visible during the first two weeks \u2014 attending floor walks, sending messages, checking in with teams",
+      "text": "Ensure the sponsor is actively visible during the first two weeks — attending floor walks, sending messages, checking in with teams",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T198",
@@ -2505,7 +2952,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T199",
@@ -2515,7 +2964,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T200",
@@ -2525,7 +2976,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T201",
@@ -2535,7 +2988,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T202",
@@ -2545,7 +3000,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T203",
@@ -2555,7 +3012,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T204",
@@ -2565,7 +3024,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T205",
@@ -2575,7 +3036,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T206",
@@ -2585,7 +3048,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T207",
@@ -2595,7 +3060,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T208",
@@ -2605,17 +3072,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T209",
       "activity_id": "A24",
-      "text": "Repeat the cycle: synthesise \u2192 diagnose \u2192 design \u2192 implement \u2192 document",
+      "text": "Repeat the cycle: synthesise → diagnose → design → implement → document",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T210",
@@ -2625,7 +3096,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T211",
@@ -2635,17 +3108,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T212",
       "activity_id": "A25",
-      "text": "Assess each champion's own adoption level \u2014 are they practising what they preach?",
+      "text": "Assess each champion's own adoption level — are they practising what they preach?",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T213",
@@ -2655,17 +3132,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T214",
       "activity_id": "A25",
-      "text": "Identify burnout risk \u2014 champions often carry extra load during deployment",
+      "text": "Identify burnout risk — champions often carry extra load during deployment",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T215",
@@ -2675,7 +3156,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T216",
@@ -2685,7 +3168,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T217",
@@ -2695,7 +3180,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T218",
@@ -2705,7 +3192,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T219",
@@ -2715,7 +3204,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T220",
@@ -2725,7 +3216,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T221",
@@ -2735,7 +3228,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T222",
@@ -2745,7 +3240,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T223",
@@ -2755,7 +3252,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T224",
@@ -2765,7 +3264,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T225",
@@ -2775,7 +3276,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T226",
@@ -2785,7 +3288,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T227",
@@ -2795,7 +3300,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T228",
@@ -2805,7 +3312,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T229",
@@ -2815,7 +3324,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T230",
@@ -2825,7 +3336,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T231",
@@ -2835,7 +3348,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T232",
@@ -2845,7 +3360,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T233",
@@ -2855,7 +3372,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T234",
@@ -2865,17 +3384,21 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T235",
       "activity_id": "A28",
-      "text": "Review all accumulated data for issues that are design, policy, or infrastructure problems \u2014 not adoption problems",
+      "text": "Review all accumulated data for issues that are design, policy, or infrastructure problems — not adoption problems",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T236",
@@ -2885,7 +3408,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T237",
@@ -2895,7 +3420,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T238",
@@ -2905,17 +3432,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T239",
       "activity_id": "A28",
-      "text": "Track escalated barriers to resolution \u2014 do not let them disappear into a queue",
+      "text": "Track escalated barriers to resolution — do not let them disappear into a queue",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T240",
@@ -2925,7 +3456,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T241",
@@ -2935,7 +3468,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T242",
@@ -2945,7 +3480,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T243",
@@ -2955,7 +3492,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T244",
@@ -2965,7 +3504,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T245",
@@ -2975,7 +3516,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T246",
@@ -2985,7 +3528,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T247",
@@ -2995,17 +3540,21 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T248",
       "activity_id": "A29",
-      "text": "Conduct structured handover sessions \u2014 not just document drops",
+      "text": "Conduct structured handover sessions — not just document drops",
       "is_done": false,
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T249",
@@ -3015,7 +3564,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T250",
@@ -3025,7 +3576,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T251",
@@ -3035,7 +3588,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T252",
@@ -3045,7 +3600,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T253",
@@ -3055,7 +3612,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T254",
@@ -3065,7 +3624,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T255",
@@ -3075,7 +3636,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T256",
@@ -3085,7 +3648,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T257",
@@ -3095,7 +3660,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T258",
@@ -3105,7 +3672,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T259",
@@ -3115,7 +3684,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T260",
@@ -3125,7 +3696,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T261",
@@ -3135,7 +3708,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T262",
@@ -3145,7 +3720,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T263",
@@ -3155,7 +3732,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T264",
@@ -3165,7 +3744,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T265",
@@ -3175,7 +3756,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T266",
@@ -3185,7 +3768,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T267",
@@ -3195,7 +3780,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 8
+      "sequence": 8,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T268",
@@ -3205,7 +3792,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T269",
@@ -3215,7 +3804,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T270",
@@ -3225,7 +3816,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T271",
@@ -3235,7 +3828,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T272",
@@ -3245,7 +3840,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T273",
@@ -3255,7 +3852,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T274",
@@ -3265,7 +3864,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T275",
@@ -3275,7 +3876,9 @@ window.SEED_DATA = {
       "is_project_specific": true,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 7
+      "sequence": 7,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T276",
@@ -3285,7 +3888,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T277",
@@ -3295,7 +3900,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T278",
@@ -3305,7 +3912,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T279",
@@ -3315,7 +3924,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T280",
@@ -3325,7 +3936,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T281",
@@ -3335,7 +3948,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T282",
@@ -3345,7 +3960,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T283",
@@ -3355,7 +3972,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 0
+      "sequence": 0,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T284",
@@ -3365,7 +3984,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 1
+      "sequence": 1,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T285",
@@ -3375,7 +3996,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 2
+      "sequence": 2,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T286",
@@ -3385,7 +4008,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 3
+      "sequence": 3,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T287",
@@ -3395,7 +4020,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 4
+      "sequence": 4,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T288",
@@ -3405,7 +4032,9 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 5
+      "sequence": 5,
+      "active": "",
+      "notes": ""
     },
     {
       "id": "T289",
@@ -3415,20 +4044,12 @@ window.SEED_DATA = {
       "is_project_specific": false,
       "assigned_to": "",
       "due_date": "",
-      "sequence": 6
+      "sequence": 6,
+      "active": "",
+      "notes": ""
     }
   ],
   "questions": [
-    {
-      "id": "Q-A35-1",
-      "activity_id": "A35",
-      "sub_topic": "Internal Knowledge",
-      "question_text": "Who internally has the most hands-on experience with this client, and what do they know about the client's appetite for change?",
-      "ask_whom": "",
-      "answer": "",
-      "is_answered": false,
-      "sequence": 0
-    },
     {
       "id": "Q001",
       "activity_id": "A01",
@@ -3437,7 +4058,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q002",
@@ -3447,7 +4069,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q003",
@@ -3457,7 +4080,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q004",
@@ -3467,7 +4091,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q005",
@@ -3477,7 +4102,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q006",
@@ -3487,7 +4113,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q007",
@@ -3497,7 +4124,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q008",
@@ -3507,7 +4135,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q009",
@@ -3517,7 +4146,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q010",
@@ -3527,7 +4157,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q011",
@@ -3537,7 +4168,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 11
+      "sequence": 11,
+      "active": ""
     },
     {
       "id": "Q012",
@@ -3547,7 +4179,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 12
+      "sequence": 12,
+      "active": ""
     },
     {
       "id": "Q013",
@@ -3557,7 +4190,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 13
+      "sequence": 13,
+      "active": ""
     },
     {
       "id": "Q014",
@@ -3567,7 +4201,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 14
+      "sequence": 14,
+      "active": ""
     },
     {
       "id": "Q015",
@@ -3577,7 +4212,8 @@ window.SEED_DATA = {
       "ask_whom": "Executive Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 15
+      "sequence": 15,
+      "active": ""
     },
     {
       "id": "Q016",
@@ -3587,7 +4223,8 @@ window.SEED_DATA = {
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q017",
@@ -3597,7 +4234,8 @@ window.SEED_DATA = {
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q018",
@@ -3607,7 +4245,8 @@ window.SEED_DATA = {
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q019",
@@ -3617,27 +4256,30 @@ window.SEED_DATA = {
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q020",
       "activity_id": "A02",
       "sub_topic": "Disposition",
-      "question_text": "What is your initial reaction \u2014 what excites you and what concerns you?",
+      "question_text": "What is your initial reaction — what excites you and what concerns you?",
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q021",
       "activity_id": "A02",
       "sub_topic": "Disposition",
-      "question_text": "On a scale of 1\u201310, how supportive are you of this change? What would move you higher?",
+      "question_text": "On a scale of 1–10, how supportive are you of this change? What would move you higher?",
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q022",
@@ -3647,7 +4289,8 @@ window.SEED_DATA = {
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q023",
@@ -3657,7 +4300,8 @@ window.SEED_DATA = {
       "ask_whom": "Each identified stakeholder / Ask: Their direct reports",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q024",
@@ -3667,7 +4311,8 @@ window.SEED_DATA = {
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q025",
@@ -3677,27 +4322,30 @@ window.SEED_DATA = {
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q026",
       "activity_id": "A02",
       "sub_topic": "Needs",
-      "question_text": "How do you prefer to be kept informed \u2014 and how often?",
+      "question_text": "How do you prefer to be kept informed — and how often?",
       "ask_whom": "Each identified stakeholder",
       "answer": "",
       "is_answered": false,
-      "sequence": 11
+      "sequence": 11,
+      "active": ""
     },
     {
       "id": "Q027",
       "activity_id": "A03",
       "sub_topic": "Current State",
-      "question_text": "Walk me through a typical day/week in your role \u2014 what tools do you use and what tasks do you perform?",
+      "question_text": "Walk me through a typical day/week in your role — what tools do you use and what tasks do you perform?",
       "ask_whom": "End Users / Frontline Staff (sample per role)",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q028",
@@ -3707,7 +4355,8 @@ window.SEED_DATA = {
       "ask_whom": "End Users / Frontline Staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q029",
@@ -3717,7 +4366,8 @@ window.SEED_DATA = {
       "ask_whom": "End Users / Frontline Staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q030",
@@ -3727,7 +4377,8 @@ window.SEED_DATA = {
       "ask_whom": "End Users / Frontline Staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q031",
@@ -3737,7 +4388,8 @@ window.SEED_DATA = {
       "ask_whom": "End Users / Frontline Staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q032",
@@ -3747,7 +4399,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q033",
@@ -3757,7 +4410,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q034",
@@ -3767,7 +4421,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q035",
@@ -3777,7 +4432,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q036",
@@ -3787,7 +4443,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Senior Leadership",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q037",
@@ -3797,7 +4454,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 11
+      "sequence": 11,
+      "active": ""
     },
     {
       "id": "Q038",
@@ -3807,7 +4465,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 12
+      "sequence": 12,
+      "active": ""
     },
     {
       "id": "Q039",
@@ -3817,7 +4476,8 @@ window.SEED_DATA = {
       "ask_whom": "End Users (via survey)",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q040",
@@ -3827,7 +4487,8 @@ window.SEED_DATA = {
       "ask_whom": "End Users (via survey) / HR / L&D",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q041",
@@ -3837,17 +4498,19 @@ window.SEED_DATA = {
       "ask_whom": "End Users (via survey or focus group)",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q042",
       "activity_id": "A04",
       "sub_topic": "Learning Readiness",
-      "question_text": "How do you prefer to learn new skills \u2014 classroom, online, peer coaching, self-directed?",
+      "question_text": "How do you prefer to learn new skills — classroom, online, peer coaching, self-directed?",
       "ask_whom": "End Users (via survey)",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q043",
@@ -3857,17 +4520,19 @@ window.SEED_DATA = {
       "ask_whom": "End Users (via survey)",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q044",
       "activity_id": "A04",
       "sub_topic": "Learning Readiness",
-      "question_text": "What has your experience been with previous training programmes \u2014 were they helpful?",
+      "question_text": "What has your experience been with previous training programmes — were they helpful?",
       "ask_whom": "End Users (via focus group)",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q045",
@@ -3877,7 +4542,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / L&D",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q046",
@@ -3887,7 +4553,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / L&D",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q047",
@@ -3897,17 +4564,19 @@ window.SEED_DATA = {
       "ask_whom": "HR / L&D / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q048",
       "activity_id": "A05",
       "sub_topic": "Change History",
-      "question_text": "What significant changes has this organisation gone through in the last 2\u20133 years?",
+      "question_text": "What significant changes has this organisation gone through in the last 2–3 years?",
       "ask_whom": "Middle Managers / Long-tenured staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q049",
@@ -3917,7 +4586,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Long-tenured staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q050",
@@ -3927,7 +4597,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Long-tenured staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q051",
@@ -3937,7 +4608,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Long-tenured staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q052",
@@ -3947,7 +4619,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Long-tenured staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q053",
@@ -3957,27 +4630,30 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Long-tenured staff / HR",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q054",
       "activity_id": "A05",
       "sub_topic": "Patterns",
-      "question_text": "How are changes typically communicated here \u2014 and is it effective?",
+      "question_text": "How are changes typically communicated here — and is it effective?",
       "ask_whom": "Middle Managers / Long-tenured staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q055",
       "activity_id": "A05",
       "sub_topic": "Patterns",
-      "question_text": "Is there a pattern of \"change fatigue\" \u2014 too many changes at once?",
+      "question_text": "Is there a pattern of \"change fatigue\" — too many changes at once?",
       "ask_whom": "Middle Managers / HR",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q056",
@@ -3987,7 +4663,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Long-tenured staff",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q057",
@@ -3997,7 +4674,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q058",
@@ -4007,7 +4685,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / Senior Leadership",
       "answer": "",
       "is_answered": false,
-      "sequence": 11
+      "sequence": 11,
+      "active": ""
     },
     {
       "id": "Q059",
@@ -4017,7 +4696,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q060",
@@ -4027,7 +4707,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q061",
@@ -4037,17 +4718,19 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q062",
       "activity_id": "A06",
       "sub_topic": "Willingness",
-      "question_text": "How do you feel about this change personally \u2014 is it something you believe in?",
+      "question_text": "How do you feel about this change personally — is it something you believe in?",
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q063",
@@ -4057,7 +4740,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q064",
@@ -4067,7 +4751,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q065",
@@ -4077,7 +4762,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q066",
@@ -4087,17 +4773,19 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q067",
       "activity_id": "A06",
       "sub_topic": "Readiness",
-      "question_text": "Do you feel equipped to support your team through this transition \u2014 training, coaching, handling resistance?",
+      "question_text": "Do you feel equipped to support your team through this transition — training, coaching, handling resistance?",
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q068",
@@ -4107,7 +4795,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q069",
@@ -4117,7 +4806,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 11
+      "sequence": 11,
+      "active": ""
     },
     {
       "id": "Q070",
@@ -4127,7 +4817,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 12
+      "sequence": 12,
+      "active": ""
     },
     {
       "id": "Q071",
@@ -4137,7 +4828,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 13
+      "sequence": 13,
+      "active": ""
     },
     {
       "id": "Q072",
@@ -4147,17 +4839,19 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / synthesise from Activity 3",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q073",
       "activity_id": "A07",
       "sub_topic": "Loss Analysis",
-      "question_text": "What competence will they lose \u2014 will they go from expert to novice?",
+      "question_text": "What competence will they lose — will they go from expert to novice?",
       "ask_whom": "Middle Managers / synthesise from Activity 4",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q074",
@@ -4167,7 +4861,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / synthesise from Activity 3",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q075",
@@ -4177,7 +4872,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q076",
@@ -4187,7 +4883,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / synthesise from Activity 3",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q077",
@@ -4197,7 +4894,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q078",
@@ -4207,17 +4905,19 @@ window.SEED_DATA = {
       "ask_whom": "End Users (via focus group)",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q079",
       "activity_id": "A07",
       "sub_topic": "Gain Analysis",
-      "question_text": "When will they start experiencing the benefits \u2014 immediately or after a difficult transition period?",
+      "question_text": "When will they start experiencing the benefits — immediately or after a difficult transition period?",
       "ask_whom": "Programme Manager / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q080",
@@ -4227,7 +4927,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 6",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q081",
@@ -4237,7 +4938,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 5",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q082",
@@ -4247,7 +4949,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 5",
       "answer": "",
       "is_answered": false,
-      "sequence": 11
+      "sequence": 11,
+      "active": ""
     },
     {
       "id": "Q083",
@@ -4257,7 +4960,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 1",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q084",
@@ -4267,7 +4971,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activities 5, 6, 7",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q085",
@@ -4277,7 +4982,8 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q086",
@@ -4287,17 +4993,19 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Senior Leadership",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q087",
       "activity_id": "A08",
       "sub_topic": "Success Criteria",
-      "question_text": "What adoption metrics matter most \u2014 utilisation, proficiency, or business impact?",
+      "question_text": "What adoption metrics matter most — utilisation, proficiency, or business impact?",
       "ask_whom": "Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q088",
@@ -4307,7 +5015,8 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q089",
@@ -4317,17 +5026,19 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q090",
       "activity_id": "A08",
       "sub_topic": "Interventions",
       "question_text": "For each population at high resistance risk: what specific intervention will address their concerns?",
-      "ask_whom": "Consultant synthesis from Activities 1\u20137",
+      "ask_whom": "Consultant synthesis from Activities 1–7",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q091",
@@ -4337,7 +5048,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q092",
@@ -4347,7 +5059,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q093",
@@ -4357,7 +5070,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant synthesis from Activities 1, 2, 7",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q094",
@@ -4367,7 +5081,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Consultant judgement",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q095",
@@ -4377,7 +5092,8 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q096",
@@ -4387,7 +5103,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 2",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q097",
@@ -4397,7 +5114,8 @@ window.SEED_DATA = {
       "ask_whom": "Supportive Stakeholders",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q098",
@@ -4407,7 +5125,8 @@ window.SEED_DATA = {
       "ask_whom": "Supportive Stakeholders",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q099",
@@ -4417,7 +5136,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 7",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q100",
@@ -4427,17 +5147,19 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q101",
       "activity_id": "A09",
       "sub_topic": "Resistance Engagement",
-      "question_text": "Who is the best person to engage each resistor \u2014 the sponsor, a peer, or the ACM consultant?",
+      "question_text": "Who is the best person to engage each resistor — the sponsor, a peer, or the ACM consultant?",
       "ask_whom": "Discuss with: Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q102",
@@ -4447,17 +5169,19 @@ window.SEED_DATA = {
       "ask_whom": "HR / L&D",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q103",
       "activity_id": "A10",
       "sub_topic": "Design Decisions",
-      "question_text": "Are there scheduling constraints \u2014 can people be taken off their work for training? For how long?",
+      "question_text": "Are there scheduling constraints — can people be taken off their work for training? For how long?",
       "ask_whom": "Middle Managers / HR",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q104",
@@ -4467,7 +5191,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q105",
@@ -4477,7 +5202,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / L&D / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q106",
@@ -4487,7 +5213,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q107",
@@ -4497,7 +5224,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q108",
@@ -4507,7 +5235,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 4",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q109",
@@ -4517,7 +5246,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q110",
@@ -4527,7 +5257,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / L&D / Facilities",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q111",
@@ -4537,7 +5268,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q112",
@@ -4547,7 +5279,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / Internal Communications / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q113",
@@ -4557,7 +5290,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / HR",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q114",
@@ -4567,7 +5301,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / HR",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q115",
@@ -4577,17 +5312,19 @@ window.SEED_DATA = {
       "ask_whom": "Internal Communications",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q116",
       "activity_id": "A11",
       "sub_topic": "Message Design",
-      "question_text": "What is the core \"Why?\" \u2014 the compelling reason for this change that will resonate with staff?",
+      "question_text": "What is the core \"Why?\" — the compelling reason for this change that will resonate with staff?",
       "ask_whom": "Synthesise from Activity 1 / Ask: Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q117",
@@ -4597,7 +5334,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activities 5, 6, 7",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q118",
@@ -4607,7 +5345,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 3 / Ask: Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q119",
@@ -4617,7 +5356,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 5",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q120",
@@ -4627,17 +5367,19 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Consultant judgement",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q121",
       "activity_id": "A11",
       "sub_topic": "Timing and Cascade",
-      "question_text": "Is there a management cascade process we can use \u2014 or do we need to create one?",
+      "question_text": "Is there a management cascade process we can use — or do we need to create one?",
       "ask_whom": "HR / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q122",
@@ -4647,7 +5389,8 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 11
+      "sequence": 11,
+      "active": ""
     },
     {
       "id": "Q123",
@@ -4657,7 +5400,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q124",
@@ -4667,7 +5411,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q125",
@@ -4677,7 +5422,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q126",
@@ -4687,7 +5433,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q127",
@@ -4697,7 +5444,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q128",
@@ -4707,7 +5455,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q129",
@@ -4717,7 +5466,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q130",
@@ -4727,7 +5477,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q131",
@@ -4737,7 +5488,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q132",
@@ -4747,7 +5499,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q133",
@@ -4757,7 +5510,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 11
+      "sequence": 11,
+      "active": ""
     },
     {
       "id": "Q134",
@@ -4767,7 +5521,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q135",
@@ -4777,7 +5532,8 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Senior Leadership",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q136",
@@ -4787,7 +5543,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Consultant design",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q137",
@@ -4797,7 +5554,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Business Intelligence",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q138",
@@ -4807,7 +5565,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q139",
@@ -4817,7 +5576,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Legal / HR",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q140",
@@ -4827,7 +5587,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Governance",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q141",
@@ -4837,7 +5598,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 4 / Ask: IT Lead / Business Intelligence",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q142",
@@ -4847,7 +5609,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Business Intelligence",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q143",
@@ -4857,7 +5620,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant synthesis from Activity 7",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q144",
@@ -4867,17 +5631,19 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / L&D",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q145",
       "activity_id": "A14",
       "sub_topic": "Intervention Design",
-      "question_text": "Who are the best people to have one-on-one conversations with resistors \u2014 managers, sponsors, peers, or the consultant?",
+      "question_text": "Who are the best people to have one-on-one conversations with resistors — managers, sponsors, peers, or the consultant?",
       "ask_whom": "Discuss with: Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q146",
@@ -4887,7 +5653,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment / Ask: Middle Managers / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q147",
@@ -4897,7 +5664,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant design / Review with: HR / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q148",
@@ -4907,7 +5675,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q149",
@@ -4917,7 +5686,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant design",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q150",
@@ -4927,7 +5697,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q151",
@@ -4937,7 +5708,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q152",
@@ -4947,7 +5719,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q153",
@@ -4957,7 +5730,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant judgement based on population size",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q154",
@@ -4967,7 +5741,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers (for approval)",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q155",
@@ -4977,7 +5752,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q156",
@@ -4987,7 +5763,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q157",
@@ -4997,7 +5774,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant design",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q158",
@@ -5007,7 +5785,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant design",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q159",
@@ -5017,7 +5796,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant contingency plan",
       "answer": "",
       "is_answered": false,
-      "sequence": 10
+      "sequence": 10,
+      "active": ""
     },
     {
       "id": "Q160",
@@ -5027,7 +5807,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q161",
@@ -5037,7 +5818,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q162",
@@ -5047,7 +5829,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q163",
@@ -5057,7 +5840,8 @@ window.SEED_DATA = {
       "ask_whom": "Negotiate with: Programme Manager / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q164",
@@ -5067,7 +5851,8 @@ window.SEED_DATA = {
       "ask_whom": "Negotiate with: Programme Manager / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q165",
@@ -5077,7 +5862,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q166",
@@ -5087,17 +5873,19 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q167",
       "activity_id": "A16",
       "sub_topic": "Reporting",
-      "question_text": "How frequently should ACM report \u2014 same cadence as technical, or different?",
+      "question_text": "How frequently should ACM report — same cadence as technical, or different?",
       "ask_whom": "Negotiate with: Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q168",
@@ -5107,7 +5895,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     },
     {
       "id": "Q169",
@@ -5117,7 +5906,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q170",
@@ -5127,7 +5917,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q171",
@@ -5137,7 +5928,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager / Internal Communications",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q172",
@@ -5147,7 +5939,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant design / Confirm with: Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q173",
@@ -5157,7 +5950,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant design / Negotiate with: Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q174",
@@ -5167,7 +5961,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant judgement / Ask: Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q175",
@@ -5177,7 +5972,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q176",
@@ -5187,7 +5983,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q177",
@@ -5197,7 +5994,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q178",
@@ -5207,7 +6005,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: Help Desk / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q179",
@@ -5217,7 +6016,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q180",
@@ -5227,7 +6027,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant synthesis",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q181",
@@ -5237,7 +6038,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Champions / Help Desk",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q182",
@@ -5247,7 +6049,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: L&D / Programme Manager / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q183",
@@ -5257,7 +6060,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: L&D / External trainers",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q184",
@@ -5267,7 +6071,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q185",
@@ -5277,7 +6082,8 @@ window.SEED_DATA = {
       "ask_whom": "Training participants",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q186",
@@ -5287,7 +6093,8 @@ window.SEED_DATA = {
       "ask_whom": "Training participants",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q187",
@@ -5297,7 +6104,8 @@ window.SEED_DATA = {
       "ask_whom": "Trainers / Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q188",
@@ -5307,7 +6115,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q189",
@@ -5317,7 +6126,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q190",
@@ -5327,7 +6137,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: Champions / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q191",
@@ -5337,7 +6148,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions (daily check-in)",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q192",
@@ -5347,7 +6159,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions (daily check-in)",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q193",
@@ -5357,7 +6170,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions (daily check-in)",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q194",
@@ -5367,7 +6181,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions (daily check-in)",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q195",
@@ -5377,7 +6192,8 @@ window.SEED_DATA = {
       "ask_whom": "Help Desk / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q196",
@@ -5387,7 +6203,8 @@ window.SEED_DATA = {
       "ask_whom": "Help Desk / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q197",
@@ -5397,7 +6214,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: Programme Manager / L&D",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q198",
@@ -5407,7 +6225,8 @@ window.SEED_DATA = {
       "ask_whom": "Estimate: Consultant / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q199",
@@ -5417,7 +6236,8 @@ window.SEED_DATA = {
       "ask_whom": "Help Desk / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q200",
@@ -5427,7 +6247,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q201",
@@ -5437,7 +6258,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Business Intelligence",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q202",
@@ -5447,7 +6269,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q203",
@@ -5457,17 +6280,19 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / Business Intelligence",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q204",
       "activity_id": "A22",
       "sub_topic": "Interpretation",
-      "question_text": "What does the adoption data tell us \u2014 who is adopting and who isn't?",
+      "question_text": "What does the adoption data tell us — who is adopting and who isn't?",
       "ask_whom": "Consultant analysis",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q205",
@@ -5477,17 +6302,19 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q206",
       "activity_id": "A22",
       "sub_topic": "Interpretation",
-      "question_text": "Are there surprises \u2014 populations doing better or worse than expected?",
+      "question_text": "Are there surprises — populations doing better or worse than expected?",
       "ask_whom": "Consultant analysis",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q207",
@@ -5497,7 +6324,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions / Middle Managers (daily/weekly)",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q208",
@@ -5507,7 +6335,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q209",
@@ -5517,7 +6346,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q210",
@@ -5527,7 +6357,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q211",
@@ -5537,7 +6368,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment / Discuss with: Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q212",
@@ -5547,17 +6379,19 @@ window.SEED_DATA = {
       "ask_whom": "Champions / IT Lead / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q213",
       "activity_id": "A24",
       "sub_topic": "Synthesis",
       "question_text": "What are the top three issues emerging across all sensing channels?",
-      "ask_whom": "Consultant synthesis from Activities 20\u201323",
+      "ask_whom": "Consultant synthesis from Activities 20–23",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q214",
@@ -5567,7 +6401,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q215",
@@ -5577,7 +6412,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q216",
@@ -5587,7 +6423,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant design",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q217",
@@ -5597,17 +6434,19 @@ window.SEED_DATA = {
       "ask_whom": "Depends on issue: Programme Manager / IT Lead / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q218",
       "activity_id": "A24",
       "sub_topic": "Response",
       "question_text": "How will we know if the adjustment worked?",
-      "ask_whom": "Consultant design \u2014 define success indicator",
+      "ask_whom": "Consultant design — define success indicator",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q219",
@@ -5617,17 +6456,19 @@ window.SEED_DATA = {
       "ask_whom": "Consultant tracking data",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q220",
       "activity_id": "A25",
       "sub_topic": "Health Check",
-      "question_text": "How are champions feeling \u2014 energised, neutral, or burnt out?",
+      "question_text": "How are champions feeling — energised, neutral, or burnt out?",
       "ask_whom": "Champions (survey or one-on-one)",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q221",
@@ -5637,7 +6478,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q222",
@@ -5647,7 +6489,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / End Users",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q223",
@@ -5657,7 +6500,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis of adoption data by team",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q224",
@@ -5667,7 +6511,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant review of change log",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q225",
@@ -5677,7 +6522,8 @@ window.SEED_DATA = {
       "ask_whom": "Discuss with: Programme Manager / Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q226",
@@ -5687,7 +6533,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q227",
@@ -5697,7 +6544,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q228",
@@ -5707,7 +6555,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q229",
@@ -5717,7 +6566,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis / Discuss with: Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q230",
@@ -5727,7 +6577,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant recommendation / Discuss with: Sponsor",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q231",
@@ -5737,7 +6588,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant recommendation / Ask: Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q232",
@@ -5747,7 +6599,8 @@ window.SEED_DATA = {
       "ask_whom": "Discuss with: Programme Manager / IT Lead",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q233",
@@ -5757,17 +6610,19 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis of telemetry",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q234",
       "activity_id": "A27",
       "sub_topic": "Segmentation",
-      "question_text": "Are there patterns in who is struggling \u2014 role, location, manager, tenure?",
+      "question_text": "Are there patterns in who is struggling — role, location, manager, tenure?",
       "ask_whom": "Consultant analysis",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q235",
@@ -5777,7 +6632,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q236",
@@ -5787,7 +6643,8 @@ window.SEED_DATA = {
       "ask_whom": "Synthesise from Activity 19 feedback",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q237",
@@ -5797,7 +6654,8 @@ window.SEED_DATA = {
       "ask_whom": "Advanced users / Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q238",
@@ -5807,7 +6665,8 @@ window.SEED_DATA = {
       "ask_whom": "Struggling users / Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q239",
@@ -5817,7 +6676,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions / Middle Managers / Help Desk",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q240",
@@ -5827,7 +6687,8 @@ window.SEED_DATA = {
       "ask_whom": "IT Lead / End Users",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q241",
@@ -5837,7 +6698,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / Process owners",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q242",
@@ -5847,7 +6709,8 @@ window.SEED_DATA = {
       "ask_whom": "Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q243",
@@ -5857,7 +6720,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q244",
@@ -5867,7 +6731,8 @@ window.SEED_DATA = {
       "ask_whom": "Barrier owner",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q245",
@@ -5877,7 +6742,8 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q246",
@@ -5887,7 +6753,8 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q247",
@@ -5897,7 +6764,8 @@ window.SEED_DATA = {
       "ask_whom": "Sponsor / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q248",
@@ -5907,7 +6775,8 @@ window.SEED_DATA = {
       "ask_whom": "Check with: Internal owner",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q249",
@@ -5917,7 +6786,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q250",
@@ -5927,7 +6797,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q251",
@@ -5937,7 +6808,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis / Ask: Champions / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q252",
@@ -5947,17 +6819,19 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis / Ask: Champions / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q253",
       "activity_id": "A30",
       "sub_topic": "Assessment",
-      "question_text": "Has any resistance transformed \u2014 e.g., moved from active resistance to passive non-adoption?",
+      "question_text": "Has any resistance transformed — e.g., moved from active resistance to passive non-adoption?",
       "ask_whom": "Consultant analysis",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q254",
@@ -5967,7 +6841,8 @@ window.SEED_DATA = {
       "ask_whom": "Champions / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q255",
@@ -5977,7 +6852,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant reflection",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q256",
@@ -5987,7 +6863,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant analysis",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q257",
@@ -5997,7 +6874,8 @@ window.SEED_DATA = {
       "ask_whom": "Process owners / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q258",
@@ -6007,7 +6885,8 @@ window.SEED_DATA = {
       "ask_whom": "HR",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q259",
@@ -6017,7 +6896,8 @@ window.SEED_DATA = {
       "ask_whom": "HR / L&D",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q260",
@@ -6027,7 +6907,8 @@ window.SEED_DATA = {
       "ask_whom": "L&D",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q261",
@@ -6037,17 +6918,19 @@ window.SEED_DATA = {
       "ask_whom": "Consultant assessment",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q262",
       "activity_id": "A31",
       "sub_topic": "Sustainability Test",
-      "question_text": "What would revert first \u2014 and how do we prevent that?",
+      "question_text": "What would revert first — and how do we prevent that?",
       "ask_whom": "Consultant assessment / Ask: Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q263",
@@ -6057,7 +6940,8 @@ window.SEED_DATA = {
       "ask_whom": "Middle Managers / HR",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q264",
@@ -6067,7 +6951,8 @@ window.SEED_DATA = {
       "ask_whom": "Core ACM team / Programme Manager / Champions",
       "answer": "",
       "is_answered": false,
-      "sequence": 1
+      "sequence": 1,
+      "active": ""
     },
     {
       "id": "Q265",
@@ -6077,7 +6962,8 @@ window.SEED_DATA = {
       "ask_whom": "Core ACM team / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 2
+      "sequence": 2,
+      "active": ""
     },
     {
       "id": "Q266",
@@ -6087,7 +6973,8 @@ window.SEED_DATA = {
       "ask_whom": "Core ACM team / Middle Managers",
       "answer": "",
       "is_answered": false,
-      "sequence": 3
+      "sequence": 3,
+      "active": ""
     },
     {
       "id": "Q267",
@@ -6097,7 +6984,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant review of project data",
       "answer": "",
       "is_answered": false,
-      "sequence": 4
+      "sequence": 4,
+      "active": ""
     },
     {
       "id": "Q268",
@@ -6107,7 +6995,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant review",
       "answer": "",
       "is_answered": false,
-      "sequence": 5
+      "sequence": 5,
+      "active": ""
     },
     {
       "id": "Q269",
@@ -6117,7 +7006,8 @@ window.SEED_DATA = {
       "ask_whom": "Core ACM team / Programme Manager",
       "answer": "",
       "is_answered": false,
-      "sequence": 6
+      "sequence": 6,
+      "active": ""
     },
     {
       "id": "Q270",
@@ -6127,7 +7017,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant synthesis",
       "answer": "",
       "is_answered": false,
-      "sequence": 7
+      "sequence": 7,
+      "active": ""
     },
     {
       "id": "Q271",
@@ -6137,7 +7028,8 @@ window.SEED_DATA = {
       "ask_whom": "Consultant recommendation",
       "answer": "",
       "is_answered": false,
-      "sequence": 8
+      "sequence": 8,
+      "active": ""
     },
     {
       "id": "Q272",
@@ -6147,23 +7039,64 @@ window.SEED_DATA = {
       "ask_whom": "Consultant recommendation",
       "answer": "",
       "is_answered": false,
-      "sequence": 9
+      "sequence": 9,
+      "active": ""
     }
   ],
   "agreements": [
-    { "id": "AG_default_i1", "question_agreed": "", "agreement": "", "internal": true, "active": true, "added_by": "", "added_on": "" },
-    { "id": "AG_default_i2", "question_agreed": "", "agreement": "", "internal": true, "active": true, "added_by": "", "added_on": "" },
-    { "id": "AG_default_i3", "question_agreed": "", "agreement": "", "internal": true, "active": true, "added_by": "", "added_on": "" },
-    { "id": "AG_default_e1", "question_agreed": "", "agreement": "", "internal": false, "active": true, "added_by": "", "added_on": "" },
-    { "id": "AG_default_e2", "question_agreed": "", "agreement": "", "internal": false, "active": true, "added_by": "", "added_on": "" },
-    { "id": "AG_default_e3", "question_agreed": "", "agreement": "", "internal": false, "active": true, "added_by": "", "added_on": "" }
-  ],
-  "config": {
-    "project_name": "",
-    "client_name": "",
-    "start_date": "",
-    "end_date": "",
-    "current_phase": "Plan I: Diagnosis",
-    "consultant_name": ""
-  }
+    {
+      "id": "AG_default_i1",
+      "question_agreed": "",
+      "agreement": "",
+      "internal": true,
+      "added_by": "",
+      "active": true,
+      "added_on": ""
+    },
+    {
+      "id": "AG_default_i2",
+      "question_agreed": "",
+      "agreement": "",
+      "internal": true,
+      "added_by": "",
+      "active": true,
+      "added_on": ""
+    },
+    {
+      "id": "AG_default_i3",
+      "question_agreed": "",
+      "agreement": "",
+      "internal": true,
+      "added_by": "",
+      "active": true,
+      "added_on": ""
+    },
+    {
+      "id": "AG_default_e1",
+      "question_agreed": "",
+      "agreement": "",
+      "internal": false,
+      "added_by": "",
+      "active": true,
+      "added_on": ""
+    },
+    {
+      "id": "AG_default_e2",
+      "question_agreed": "",
+      "agreement": "",
+      "internal": false,
+      "added_by": "",
+      "active": true,
+      "added_on": ""
+    },
+    {
+      "id": "AG_default_e3",
+      "question_agreed": "",
+      "agreement": "",
+      "internal": false,
+      "added_by": "",
+      "active": true,
+      "added_on": ""
+    }
+  ]
 };

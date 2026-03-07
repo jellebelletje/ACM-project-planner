@@ -19,7 +19,8 @@ const SHEET_NAMES = {
   CONFIG: 'Project_Config',
   TRANSCRIPTS: 'Transcripts',
   PROMPTS: 'Prompts',
-  AGREEMENTS: 'Agreements'
+  AGREEMENTS: 'Agreements',
+  TEMPLATE_CHANGES: 'Template_Changes'
 };
 
 // ---- Router ----
@@ -165,6 +166,21 @@ function doPost(e) {
       case 'deleteActivity':
         result = deleteActivity(body.data.id);
         break;
+      case 'addTemplateChange':
+        result = addTemplateChange(body.data);
+        break;
+      case 'updateTemplateChange':
+        result = updateTemplateChange(body.data);
+        break;
+      case 'deleteTemplateChange':
+        result = deleteTemplateChange(body.data.id);
+        break;
+      case 'applyTemplateChanges':
+        result = applyTemplateChanges(body.data);
+        break;
+      case 'reseedTemplate':
+        result = reseedTemplate(body.data);
+        break;
       case 'seedAll':
         result = seedAll(body.data);
         break;
@@ -200,6 +216,7 @@ function getAll() {
     sow: getSowAll(),
     transcripts: getTranscriptsAll(),
     agreements: getAgreementsAll(),
+    template_changes: getTemplateChangesAll(),
     config: config
   };
 }
@@ -328,6 +345,148 @@ function getAgreementsAll() {
     return rows;
   }
   catch (e) { return []; }
+}
+
+// ---- Template Changes ----
+
+function getTemplateChangesAll() {
+  try { return getSheetData(SHEET_NAMES.TEMPLATE_CHANGES); }
+  catch (e) { return []; }
+}
+
+function addTemplateChange(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TEMPLATE_CHANGES);
+  if (!sheet) return { error: 'Template_Changes sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: data.id };
+}
+
+function updateTemplateChange(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.TEMPLATE_CHANGES);
+  if (!sheet) return { error: 'Template_Changes sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, data.id);
+  if (rowIdx === -1) return { error: 'Template change not found: ' + data.id };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = sheet.getRange(rowIdx, 1, 1, headers.length).getValues()[0];
+  for (const key in data) {
+    if (key === 'id') continue;
+    const colIdx = headers.indexOf(key);
+    if (colIdx !== -1) row[colIdx] = data[key];
+  }
+  sheet.getRange(rowIdx, 1, 1, headers.length).setValues([row]);
+  return { success: true, id: data.id };
+}
+
+function deleteTemplateChange(id) {
+  return deleteRowById(SHEET_NAMES.TEMPLATE_CHANGES, id);
+}
+
+function applyTemplateChanges(data) {
+  var config = getConfig();
+  var templateSheetId = config.template_sheet_id;
+  if (!templateSheetId) return { error: 'Template sheet ID not configured.' };
+
+  var templateSS;
+  try {
+    templateSS = SpreadsheetApp.openById(templateSheetId);
+  } catch (e) {
+    return { error: 'Cannot open template sheet: ' + e.message };
+  }
+
+  var results = [];
+  var changes = data.changes || [];
+
+  for (var i = 0; i < changes.length; i++) {
+    var change = changes[i];
+    try {
+      var sheetName = change.item_type;
+      var sheet = templateSS.getSheetByName(sheetName);
+      if (!sheet) {
+        results.push({ id: change.id, error: 'Sheet not found: ' + sheetName });
+        continue;
+      }
+      var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+      if (change.change_type === 'edit') {
+        var rowIdx = findRowIndex(sheet, 1, change.item_id);
+        if (rowIdx === -1) {
+          results.push({ id: change.id, error: 'Item not found in template: ' + change.item_id });
+          continue;
+        }
+        var colIdx = headers.indexOf(change.field);
+        if (colIdx === -1) {
+          results.push({ id: change.id, error: 'Field not found in template: ' + change.field });
+          continue;
+        }
+        sheet.getRange(rowIdx, colIdx + 1).setValue(change.new_value);
+        results.push({ id: change.id, success: true });
+
+      } else if (change.change_type === 'add') {
+        var rowData;
+        try { rowData = JSON.parse(change.new_value); } catch (e) { rowData = {}; }
+        var newRow = headers.map(function(h) { return rowData[h] !== undefined ? rowData[h] : ''; });
+        sheet.appendRow(newRow);
+        results.push({ id: change.id, success: true });
+
+      } else if (change.change_type === 'delete') {
+        var delIdx = findRowIndex(sheet, 1, change.item_id);
+        if (delIdx === -1) {
+          results.push({ id: change.id, error: 'Item not found for deletion: ' + change.item_id });
+          continue;
+        }
+        sheet.deleteRow(delIdx);
+        results.push({ id: change.id, success: true });
+
+      } else {
+        results.push({ id: change.id, error: 'Unknown change_type: ' + change.change_type });
+      }
+    } catch (e) {
+      results.push({ id: change.id, error: e.message });
+    }
+  }
+
+  // Mark applied changes in the project's Template_Changes sheet
+  changes.forEach(function(c) {
+    try { updateTemplateChange({ id: c.id, status: 'applied' }); } catch (e) { /* best-effort */ }
+  });
+
+  return { success: true, results: results };
+}
+
+function reseedTemplate(data) {
+  var config = getConfig();
+  var templateSheetId = config.template_sheet_id;
+  if (!templateSheetId) return { error: 'Template sheet ID not configured.' };
+
+  var templateSS;
+  try {
+    templateSS = SpreadsheetApp.openById(templateSheetId);
+  } catch (e) {
+    return { error: 'Cannot open template sheet: ' + e.message };
+  }
+
+  var tabs = ['Activities', 'Todos', 'Questions', 'Agreements'];
+  var dataKeys = { 'Activities': 'activities', 'Todos': 'todos', 'Questions': 'questions', 'Agreements': 'agreements' };
+
+  for (var t = 0; t < tabs.length; t++) {
+    var tabName = tabs[t];
+    var items = data[dataKeys[tabName]];
+    var sheet = templateSS.getSheetByName(tabName);
+    if (!sheet || !items || items.length === 0) continue;
+
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    clearDataRows(sheet);
+    var rows = items.map(function(item) {
+      return headers.map(function(h) { return item[h] !== undefined ? item[h] : ''; });
+    });
+    if (rows.length > 0) {
+      sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+    }
+  }
+
+  return { success: true };
 }
 
 // Legacy timesheet functions (kept for backwards compat)
@@ -856,6 +1015,8 @@ function batchUpdate(operations) {
         case 'addAgreement': r = addAgreement(op.data); break;
         case 'updateAgreement': r = updateAgreement(op.data); break;
         case 'deleteAgreement': r = deleteAgreement(op.data.id); break;
+        case 'addTemplateChange': r = addTemplateChange(op.data); break;
+        case 'updateTemplateChange': r = updateTemplateChange(op.data); break;
         default: r = { error: 'Unknown batch action: ' + op.action };
       }
       results.push(r);
@@ -941,10 +1102,12 @@ function seedAll(data) {
     clearDataRows(tbSheet);
   }
 
-  // Clear SOW (total project duration)
-  var sowSheet = ss.getSheetByName(SHEET_NAMES.SOW);
-  if (sowSheet) {
-    clearDataRows(sowSheet);
+  // NOTE: SOW is NOT cleared — it holds project settings (total duration) configured under the gear icon
+
+  // Clear Template_Changes
+  var tcSheet = ss.getSheetByName(SHEET_NAMES.TEMPLATE_CHANGES);
+  if (tcSheet) {
+    clearDataRows(tcSheet);
   }
 
   // Set config
