@@ -3188,6 +3188,11 @@ function applySelectedProposals() {
             }
             ag.agreement = fullAgreement;
             const updateData = { id: aa.id, agreement: fullAgreement };
+            // Fill in the question if the card has none and the AI provided one
+            if (!ag.question_agreed && aa.question_agreed) {
+              ag.question_agreed = aa.question_agreed;
+              updateData.question_agreed = aa.question_agreed;
+            }
             if (!ag.added_by) {
               ag.added_by = 'AI';
               ag.added_on = todayStr;

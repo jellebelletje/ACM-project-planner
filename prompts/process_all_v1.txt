@@ -31,7 +31,7 @@ Return a JSON object with:
 4. "summary": a paragraph shortly listing the items that are to be added to the sheet
 5. "entry_summaries": array of { "id": entry_id, "summary": short summary of that entry's key points, "activity_id": comma-separated matched activity IDs } for each processed entry
 6. "answered_agreements": array of objects for BOTH updating existing agreements AND proposing new ones discovered in the content. Two types:
-   - Update existing agreement: { "id": agreement_id, "answer": the agreement text, "is_update": boolean, "source_entry_id": entry ID, "source_document": source name }
+   - Update existing agreement: { "id": agreement_id, "question_agreed": the agreement reformulated as a question (REQUIRED if the existing agreement has no question yet), "answer": the agreement text, "is_update": boolean, "source_entry_id": entry ID, "source_document": source name }
    - Propose new agreement: { "id": "NEW", "question_agreed": the agreement reformulated as a question (e.g. "Who owns the communication in the pilot phase?"), "answer": the answer to that question based on what was agreed (e.g. "The ACM consultant in coordination with the internal project lead"), "internal": boolean, "source_entry_id": entry ID, "source_document": source name }
 
 Important rules:

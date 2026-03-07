@@ -872,7 +872,7 @@ function processTranscripts(data) {
       '4. "summary": a paragraph shortly listing the items that are to be added to the sheet\n' +
       '5. "entry_summaries": array of { "id": entry_id, "summary": short summary, "activity_id": comma-separated matched activity IDs } for each processed entry\n' +
       '6. "answered_agreements": array for BOTH updating existing agreements AND proposing new ones. Two types:\n' +
-      '   - Update existing: { "id": agreement_id, "answer": text, "is_update": boolean, "source_entry_id": entry ID, "source_document": source name }\n' +
+      '   - Update existing: { "id": agreement_id, "question_agreed": the agreement reformulated as a question (REQUIRED if existing agreement has no question yet), "answer": text, "is_update": boolean, "source_entry_id": entry ID, "source_document": source name }\n' +
       '   - Propose new: { "id": "NEW", "question_agreed": the agreement reformulated as a question (e.g. "Who owns the communication in the pilot phase?"), "answer": the answer to that question (e.g. "The ACM consultant in coordination with the internal project lead"), "internal": boolean, "source_entry_id": entry ID, "source_document": source name }\n\n' +
       'Only include questions/todos/agreements where the content clearly provides the answer or completion. Be conservative — do not guess.\n' +
       'For previously answered questions, only include them if the transcript adds genuinely NEW information not already in the existing answer.\n' +
