@@ -22,7 +22,8 @@ const SHEET_NAMES = {
   AGREEMENTS: 'Agreements',
   TEMPLATE_CHANGES: 'Template_Changes',
   INSIGHTS: 'Insights',
-  PROJECT_NOTES: 'Project_Notes'
+  PROJECT_NOTES: 'Project_Notes',
+  CHAT_LOG: 'Chat_Log'
 };
 
 // ---- Router ----
@@ -207,6 +208,12 @@ function doPost(e) {
       case 'deleteProjectNote':
         result = deleteProjectNote(body.data.id);
         break;
+      case 'handleChatQuestion':
+        result = handleChatQuestion(body.data);
+        break;
+      case 'addChatEntry':
+        result = addChatEntry(body.data);
+        break;
       case 'seedAll':
         result = seedAll(body.data);
         break;
@@ -246,6 +253,7 @@ function getAll() {
     prompts: getPromptsAll(),
     insights: getInsightsAll(),
     project_notes: getProjectNotesAll(),
+    chat_log: getChatLogAll(),
     config: config
   };
 }
@@ -383,6 +391,11 @@ function getInsightsAll() {
 
 function getProjectNotesAll() {
   try { return getSheetData(SHEET_NAMES.PROJECT_NOTES); }
+  catch (e) { return []; }
+}
+
+function getChatLogAll() {
+  try { return getSheetData(SHEET_NAMES.CHAT_LOG); }
   catch (e) { return []; }
 }
 
@@ -711,6 +724,17 @@ function deleteAgreement(id) {
 function addInsight(data) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.INSIGHTS);
   if (!sheet) return { error: 'Insights sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: data.id };
+}
+
+// ---- Chat Log Operations ----
+
+function addChatEntry(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.CHAT_LOG);
+  if (!sheet) return { error: 'Chat_Log sheet not found' };
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const row = headers.map(h => data[h] !== undefined ? data[h] : '');
   sheet.appendRow(row);
@@ -1082,6 +1106,200 @@ function generateInsights(data) {
   }
 }
 
+// ---- Chat: AI Question Answering ----
+
+function handleChatQuestion(data) {
+  var userQuestion = data.question || '';
+  if (!userQuestion.trim()) return { error: 'No question provided.' };
+
+  // 1. Gather all project data (same as generateInsights + transcripts)
+  var activities = getActivities();
+  var allTodos = getSheetData(SHEET_NAMES.TODOS);
+  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
+  var milestones = getMilestones();
+  var agreements = getAgreementsAll();
+  var sow = getSowAll();
+  var config = getConfig();
+  var projectNotes = getProjectNotesAll();
+  var transcripts = getTranscriptsAll();
+
+  // 2. Compute summary statistics
+  var doneTodos = allTodos.filter(function(t) {
+    return t.is_done === true || t.is_done === 'TRUE' || t.is_done === 'true';
+  });
+  var openTodos = allTodos.filter(function(t) {
+    return !t.is_done || t.is_done === 'FALSE' || t.is_done === 'false';
+  });
+  var answeredQuestions = allQuestions.filter(function(q) {
+    return q.is_answered === true || q.is_answered === 'TRUE' || q.is_answered === 'true' || (q.answer && String(q.answer).trim());
+  });
+  var openQuestions = allQuestions.filter(function(q) {
+    return !q.is_answered || q.is_answered === 'FALSE' || q.is_answered === 'false';
+  });
+  var activeAgreements = agreements.filter(function(a) {
+    return a.active !== false && a.active !== 'FALSE';
+  });
+  var filledAgreements = activeAgreements.filter(function(a) {
+    return a.agreement && String(a.agreement).trim();
+  });
+
+  var statusCounts = { not_started: 0, in_progress: 0, completed: 0, blocked: 0, inactive: 0 };
+  activities.forEach(function(a) {
+    var s = a.status || 'not_started';
+    if (statusCounts[s] !== undefined) statusCounts[s]++;
+  });
+
+  var phaseCount = {};
+  activities.forEach(function(a) {
+    var phase = a.pdca_phase || 'Unknown';
+    if (!phaseCount[phase]) phaseCount[phase] = { total: 0, completed: 0, in_progress: 0, not_started: 0, blocked: 0 };
+    phaseCount[phase].total++;
+    var s = a.status || 'not_started';
+    if (phaseCount[phase][s] !== undefined) phaseCount[phase][s]++;
+  });
+
+  var stats = {
+    total_activities: activities.length,
+    activity_statuses: statusCounts,
+    total_todos: allTodos.length,
+    done_todos: doneTodos.length,
+    open_todos: openTodos.length,
+    total_questions: allQuestions.length,
+    answered_questions: answeredQuestions.length,
+    open_questions: openQuestions.length,
+    total_agreements: activeAgreements.length,
+    filled_agreements: filledAgreements.length,
+    empty_agreements: activeAgreements.length - filledAgreements.length,
+    total_milestones: milestones.length,
+    completed_milestones: milestones.filter(function(m) { return m.status === 'completed'; }).length,
+    delayed_milestones: milestones.filter(function(m) { return m.status === 'delayed'; }).length,
+    phase_distribution: phaseCount
+  };
+
+  // 3. Build context strings
+  var activitiesContext = activities.map(function(a) {
+    return a.id + ': ' + a.title + ' [' + (a.status || 'not_started') + '] Phase: ' + (a.pdca_phase || 'unknown') + ' — ' + (a.intro_text || '');
+  }).join('\n');
+
+  var openTodosContext = openTodos.slice(0, 30).map(function(t) {
+    return t.id + ' (Activity ' + t.activity_id + '): ' + t.text;
+  }).join('\n');
+
+  var openQuestionsContext = openQuestions.map(function(q) {
+    return q.id + ' (Activity ' + q.activity_id + '): ' + q.question_text;
+  }).join('\n');
+
+  var agreementsContext = activeAgreements.map(function(ag) {
+    var type = (ag.internal === true || ag.internal === 'TRUE' || ag.internal === 'true') ? 'Internal' : 'External';
+    var answer = (ag.agreement || '').replace(/\n\n\[answered by AI on [^\]]+\]/g, '').replace(/\n\n\[updated by AI on [^\]]+\]/g, '').trim();
+    return ag.id + ' (' + type + '): ' + (ag.question_agreed || '(no question)') + (answer ? '\nAgreement: ' + answer : '\n(Empty — no agreement recorded)');
+  }).join('\n\n');
+
+  var milestonesContext = milestones.map(function(m) {
+    return m.name + ' [' + (m.status || 'planned') + '] ' + (m.timeline_type || '') + ' — ' + (m.date || 'no date');
+  }).join('\n');
+
+  var sowContext = sow.length > 0 ? sow[0].content || '(no SOW content)' : '(no SOW defined)';
+  var technicalSummaryContext = sow.length > 0 && sow[0].technical_summary ? sow[0].technical_summary : '(no technical summary provided)';
+
+  var projectContext = 'Project: ' + (config.project_name || 'Unknown') +
+    '\nClient: ' + (config.client_name || 'Unknown') +
+    '\nConsultant: ' + (config.consultant_name || 'Unknown') +
+    '\nStart: ' + (config.start_date || 'Unknown') +
+    '\nEnd: ' + (config.end_date || 'Unknown') +
+    '\nDuration: ' + (config.total_duration || 'Unknown');
+
+  var userNotesContext = projectNotes.length > 0
+    ? projectNotes.map(function(n) {
+        return '[' + (n.created_at || 'no date') + '] ' + (n.content || '');
+      }).join('\n')
+    : '(no project notes)';
+
+  // Transcripts context (processed ones, limited to 20 most recent, excerpt only)
+  var transcriptsContext = '(no transcripts)';
+  if (transcripts.length > 0) {
+    var recentTranscripts = transcripts.slice(-20);
+    transcriptsContext = recentTranscripts.map(function(t) {
+      return '[' + (t.date || 'no date') + '] ' + (t.context || '') +
+        ' (' + (t.participants || '') + ', ' + (t.meeting_type || 'external') + ')' +
+        (t.transcript_note ? '\nExcerpt: ' + String(t.transcript_note).substring(0, 300) : '');
+    }).join('\n\n');
+  }
+
+  // 4. Get API key
+  var apiKey = getClaudeApiKey();
+  if (!apiKey) return { error: 'Claude API key not configured. Add it to the master sheet Config tab.' };
+
+  // 5. Build prompt
+  var promptTemplate = getLatestPrompt('chat');
+  var promptSource = promptTemplate ? 'sheet' : 'fallback';
+
+  var prompt;
+  if (promptTemplate) {
+    prompt = promptTemplate
+      .replace(/\{\{PROJECT_CONTEXT\}\}/g, projectContext)
+      .replace(/\{\{STATS\}\}/g, JSON.stringify(stats, null, 2))
+      .replace(/\{\{ACTIVITIES\}\}/g, activitiesContext)
+      .replace(/\{\{OPEN_TODOS\}\}/g, openTodosContext || '(none)')
+      .replace(/\{\{OPEN_QUESTIONS\}\}/g, openQuestionsContext || '(none)')
+      .replace(/\{\{AGREEMENTS\}\}/g, agreementsContext || '(none)')
+      .replace(/\{\{MILESTONES\}\}/g, milestonesContext || '(none)')
+      .replace(/\{\{TECHNICAL_SUMMARY\}\}/g, technicalSummaryContext)
+      .replace(/\{\{SOW\}\}/g, sowContext)
+      .replace(/\{\{USER_NOTES\}\}/g, userNotesContext)
+      .replace(/\{\{TRANSCRIPTS\}\}/g, transcriptsContext)
+      .replace(/\{\{USER_QUESTION\}\}/g, userQuestion);
+  } else {
+    prompt = 'You are an expert Adoption & Change Management (ACM) consultant assistant. ' +
+      'You have access to the full project data and should give practical, actionable answers.\n\n' +
+      'PROJECT OVERVIEW:\n' + projectContext + '\n\n' +
+      'STATISTICS:\n' + JSON.stringify(stats, null, 2) + '\n\n' +
+      'ACTIVITIES:\n' + activitiesContext + '\n\n' +
+      'OPEN TODOS:\n' + (openTodosContext || '(none)') + '\n\n' +
+      'OPEN QUESTIONS:\n' + (openQuestionsContext || '(none)') + '\n\n' +
+      'AGREEMENTS:\n' + (agreementsContext || '(none)') + '\n\n' +
+      'MILESTONES:\n' + (milestonesContext || '(none)') + '\n\n' +
+      'TECHNICAL SUMMARY:\n' + technicalSummaryContext + '\n\n' +
+      'SOW:\n' + sowContext + '\n\n' +
+      'CONSULTANT NOTES:\n' + userNotesContext + '\n\n' +
+      'TRANSCRIPTS (recent):\n' + transcriptsContext + '\n\n' +
+      'CONSULTANT QUESTION:\n' + userQuestion + '\n\n' +
+      'Answer the question directly. Be specific and reference actual project data (activity IDs, question IDs, agreement IDs) where relevant. ' +
+      'Structure your answer clearly with paragraphs and bullet points as appropriate. Return plain text, not JSON.';
+  }
+
+  // 6. Call Claude API
+  try {
+    var response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      payload: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }]
+      }),
+      muteHttpExceptions: true
+    });
+
+    var result = JSON.parse(response.getContentText());
+    if (result.error) return { error: 'Claude API error: ' + result.error.message };
+
+    var responseText = result.content[0].text.trim();
+
+    return {
+      success: true,
+      answer: responseText,
+      prompt_source: promptSource
+    };
+  } catch (err) {
+    return { error: 'Chat failed: ' + err.message };
+  }
+}
+
 function getConfig() {
   const rows = getSheetData(SHEET_NAMES.CONFIG);
   const config = {};
@@ -1327,6 +1545,7 @@ function batchUpdate(operations) {
         case 'addProjectNote': r = addProjectNote(op.data); break;
         case 'updateProjectNote': r = updateProjectNote(op.data); break;
         case 'deleteProjectNote': r = deleteProjectNote(op.data.id); break;
+        case 'addChatEntry': r = addChatEntry(op.data); break;
         default: r = { error: 'Unknown batch action: ' + op.action };
       }
       results.push(r);

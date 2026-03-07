@@ -71,7 +71,8 @@ const state = {
   templateChanges: [],
   prompts: [],
   insights: [],
-  projectNotes: []
+  projectNotes: [],
+  chatLog: []
 };
 
 // ---- Debounce & Sync ----
@@ -139,6 +140,7 @@ function saveToLocalCache() {
     prompts: state.prompts,
     insights: state.insights,
     projectNotes: state.projectNotes,
+    chatLog: state.chatLog,
     config: state.config,
     timestamp: Date.now()
   };
@@ -167,6 +169,7 @@ function loadFromLocalCache() {
         prompts: data.prompts || [],
         insights: data.insights || [],
         projectNotes: data.projectNotes || [],
+        chatLog: data.chatLog || [],
         config: data.config || {}
       });
       normalizePhaseNames();
@@ -199,6 +202,7 @@ async function fetchAll() {
         state.prompts = data.prompts || [];
         state.insights = data.insights || [];
         state.projectNotes = data.project_notes || [];
+        state.chatLog = data.chat_log || [];
         state.config = data.config || {};
         normalizePhaseNames();
         normalizeAgreements();
@@ -224,6 +228,7 @@ async function fetchAll() {
       state.prompts = data.prompts || [];
       state.insights = data.insights || [];
       state.projectNotes = data.project_notes || [];
+      state.chatLog = data.chat_log || [];
       state.config = data.config || {};
       normalizePhaseNames();
       normalizeAgreements();
@@ -257,6 +262,7 @@ async function fetchAll() {
     state.prompts = data.prompts || [];
     state.insights = data.insights || [];
     state.projectNotes = data.project_notes || [];
+    state.chatLog = data.chat_log || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
     if (localConfig) {
       Object.assign(state.config, localConfig);
@@ -2567,7 +2573,7 @@ function renderTranscripts() {
     return `<div class="transcript-entry${isExpanded ? ' expanded' : ''}" data-transcript-id="${escapeHtml(t.id)}">
       <div class="transcript-entry-row">
         <span class="transcript-date">${formatDate(t.date || t.created_at)}</span>
-        <span class="transcript-type-badge ${convType}">${convType === 'internal' ? 'Internal' : 'External'}</span>
+        <span class="transcript-type-badge ${convType}" onclick="event.stopPropagation();toggleTranscriptType('${escapeHtml(t.id)}')" title="Click to toggle">${convType === 'internal' ? 'Internal' : 'External'}</span>
         <span class="transcript-participants">${escapeHtml(t.participants || '')}</span>
         <span class="transcript-preview">${escapeHtml(preview)}</span>
         <span class="transcript-status-badge ${isProcessed ? 'processed' : 'pending'}">${isProcessed ? 'Processed' : 'Pending'}</span>
@@ -2604,8 +2610,17 @@ function openTranscriptUploadModal() {
   document.getElementById('trUploadContent').value = '';
   document.getElementById('trUploadFile').value = '';
   document.getElementById('trCharCount').textContent = '';
-  setTranscriptType('external'); // default to external
+  clearTranscriptType(); // no default — user must choose
   document.getElementById('transcriptUploadModal').style.display = 'flex';
+}
+
+function toggleTranscriptType(id) {
+  const t = state.transcripts.find(t => t.id === id);
+  if (!t) return;
+  t.meeting_type = t.meeting_type === 'internal' ? 'external' : 'internal';
+  queueWrite('updateTranscript', { id: id, meeting_type: t.meeting_type });
+  saveToLocalCache();
+  renderTranscripts();
 }
 
 function setTranscriptType(type) {
@@ -2613,6 +2628,35 @@ function setTranscriptType(type) {
   document.getElementById('trTypeInternal').classList.toggle('active', type === 'internal');
   // Store on the modal so saveTranscriptEntry() can read it
   document.getElementById('transcriptUploadModal').dataset.meetingType = type;
+}
+
+function clearTranscriptType() {
+  document.getElementById('trTypeExternal').classList.remove('active');
+  document.getElementById('trTypeInternal').classList.remove('active');
+  document.getElementById('transcriptUploadModal').dataset.meetingType = '';
+}
+
+function promptTranscriptType() {
+  // Show inline prompt below the type toggle
+  let prompt = document.getElementById('trTypePrompt');
+  if (!prompt) {
+    prompt = document.createElement('div');
+    prompt.id = 'trTypePrompt';
+    prompt.className = 'tr-type-prompt';
+    prompt.innerHTML = '<span>Is this meeting or note internal or external?</span>' +
+      '<button type="button" class="tr-type-btn" onclick="setTranscriptType(\'internal\');dismissTranscriptTypePrompt();saveTranscriptEntry()">Internal</button>' +
+      '<button type="button" class="tr-type-btn" onclick="setTranscriptType(\'external\');dismissTranscriptTypePrompt();saveTranscriptEntry()">External</button>';
+    const toggle = document.querySelector('.tr-type-toggle');
+    toggle.parentNode.insertBefore(prompt, toggle.nextSibling);
+  }
+  // Highlight the toggle area
+  document.querySelector('.tr-type-toggle').classList.add('tr-type-highlight');
+}
+
+function dismissTranscriptTypePrompt() {
+  const prompt = document.getElementById('trTypePrompt');
+  if (prompt) prompt.remove();
+  document.querySelector('.tr-type-toggle').classList.remove('tr-type-highlight');
 }
 
 function handleTranscriptFile() {
@@ -2654,12 +2698,18 @@ function saveTranscriptEntry() {
   if (!content) { alert('Please enter or upload transcript content.'); return; }
   if (content.length > TRANSCRIPT_MAX_CHARS) { alert('Content exceeds the 50,000 character limit. Please shorten it.'); return; }
 
+  const meetingType = document.getElementById('transcriptUploadModal').dataset.meetingType;
+  if (!meetingType) {
+    promptTranscriptType();
+    return;
+  }
+
   const entry = {
     id: generateId('TR'),
     date: document.getElementById('trUploadDate').value,
     participants: document.getElementById('trUploadParticipants').value.trim(),
     context: document.getElementById('trUploadContext').value.trim(),
-    meeting_type: document.getElementById('transcriptUploadModal').dataset.meetingType || 'external',
+    meeting_type: meetingType,
     transcript_note: content,
     summary: '',
     processed: false,
@@ -2822,14 +2872,12 @@ function attachAgreementEvents() {
             ag.added_on = formatDateLong(new Date());
             ag.agreement = agreement;
             queueWrite('updateAgreement', { id: agId, agreement, added_by: ag.added_by, added_on: ag.added_on });
-            trackTemplateChange('edit', 'Agreements', agId, 'agreement', oldAgreement, agreement, 'Agreement answer added');
             renderAgreements();
             return;
           }
           const oldAgreement = ag.agreement;
           ag.agreement = agreement;
           queueWrite('updateAgreement', { id: agId, agreement });
-          trackTemplateChange('edit', 'Agreements', agId, 'agreement', oldAgreement, agreement, 'Agreement answer edited');
         }
       }, CONFIG.DEBOUNCE_MS);
     });
@@ -2846,7 +2894,6 @@ function attachAgreementEvents() {
         const oldText = ag.question_agreed;
         ag.question_agreed = text;
         queueWrite('updateAgreement', { id: agId, question_agreed: text });
-        trackTemplateChange('edit', 'Agreements', agId, 'question_agreed', oldText, text, 'Agreement question edited');
       }
     });
   });
@@ -3622,6 +3669,251 @@ function saveProjectNote(id, textarea) {
   note.updated_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
   queueWrite('updateProjectNote', { id: id, content: content, updated_at: note.updated_at });
   saveToLocalCache();
+}
+
+// ---- Chat ----
+
+const CHAT_EXAMPLE_QUESTIONS = [
+  { phase: 'Plan I: Diagnosis', text: 'Based on the sponsorship assessment and stakeholder map so far, which stakeholder groups have the highest impact but the weakest engagement, and what should I prioritise before moving into strategy design?' },
+  { phase: 'Plan I: Diagnosis', text: 'Looking at the resistance risk profile and change history data collected, what patterns suggest the biggest adoption risks for this project, and are there any gaps in my diagnosis I should address before designing interventions?' },
+  { phase: 'Plan II: Design + Activate Champions', text: 'Given the measurement framework and resistance management approach I\'ve designed, are there any misalignments between my planned interventions and what the SOW commits to delivering?' },
+  { phase: 'Plan II: Design + Activate Champions', text: 'Based on the champions network setup and governance integration progress, what dependencies or blockers should I resolve before we move into live deployment?' },
+  { phase: 'Do: Deployment', text: 'Based on the early adoption telemetry and support ticket data, which user segments are falling behind on adoption and what targeted interventions should I prioritise this week?' },
+  { phase: 'Do: Deployment', text: 'Looking at the communication sequence execution and training completion so far, are there any gaps between what we planned and what we\'ve actually delivered that could undermine adoption?' },
+  { phase: 'Check: Analysis', text: 'Based on the adoption trajectory data and champion network health assessment, which areas of the programme are on track for sustainment and which need reinforcement before handover?' },
+  { phase: 'Check: Analysis', text: 'Looking across all agreements, open questions, and milestone status, what are the top systemic barriers that need to be escalated to the steering committee?' },
+  { phase: 'Act: Handover, Anchor & Learn', text: 'Comparing the initial resistance profile against current adoption data, what resistance areas were successfully mitigated and which persist, and what does this mean for the knowledge transfer plan?' },
+  { phase: 'Act: Handover, Anchor & Learn', text: 'Based on all project data and the SOW commitments, what are the key lessons learned and recommendations I should include in the ACM retrospective document?' }
+];
+
+let _pendingChatAnswer = null;
+
+function openChatModal() {
+  _pendingChatAnswer = null;
+  const body = document.getElementById('chatModalBody');
+  const footer = document.getElementById('chatModalFooter');
+
+  let html = '<div class="chat-tabs">' +
+    '<button class="chat-tab active" data-tab="ask" onclick="switchChatTab(\'ask\')">Ask a Question</button>' +
+    '<button class="chat-tab" data-tab="history" onclick="switchChatTab(\'history\')">History (' + state.chatLog.length + ')</button>' +
+    '</div>';
+
+  // Ask tab
+  html += '<div class="chat-tab-content" id="chatTabAsk">';
+  html += '<div class="chat-input-section">' +
+    '<textarea id="chatQuestionInput" class="chat-textarea" rows="3" placeholder="Ask anything about your project..."></textarea>' +
+    '<div class="chat-input-actions">' +
+    '<span id="chatStatus" style="font-size:0.8rem;color:var(--text-light);"></span>' +
+    '<div style="display:flex;gap:0.5rem;">' +
+    '<button class="btn-primary btn-chat-send" id="sendChatBtn" onclick="sendChatQuestion()">Send</button>' +
+    '<button class="btn-primary btn-success" id="logChatBtn" onclick="logChatEntry()" style="display:none;">Log to History</button>' +
+    '</div></div></div>';
+
+  // Example question chips grouped by phase with subheadings
+  html += '<div class="chat-examples">';
+  html += '<p class="chat-examples-label">Example questions:</p>';
+  var currentPhase = '';
+  CHAT_EXAMPLE_QUESTIONS.forEach(function(eq, i) {
+    if (eq.phase !== currentPhase) {
+      if (currentPhase) html += '</div></div>'; // close previous chips-container + group
+      currentPhase = eq.phase;
+      html += '<div class="chat-phase-group">';
+      html += '<p class="chat-phase-heading">' + escapeHtml(eq.phase) + '</p>';
+      html += '<div class="chat-chips-container">';
+    }
+    html += '<button class="chat-chip" onclick="selectChatExample(' + i + ')">' +
+      escapeHtml(eq.text) +
+      '</button>';
+  });
+  if (currentPhase) html += '</div></div>'; // close last chips-container + group
+  html += '</div>';
+
+  html += '<div id="chatResult"></div>';
+  html += '</div>';
+
+  // History tab
+  html += '<div class="chat-tab-content" id="chatTabHistory" style="display:none;">' +
+    renderChatHistory() +
+    '</div>';
+
+  body.innerHTML = html;
+
+  footer.style.display = 'none';
+
+  document.getElementById('chatModal').style.display = 'flex';
+
+  setTimeout(function() {
+    var ta = document.getElementById('chatQuestionInput');
+    if (ta) ta.focus();
+  }, 100);
+}
+
+function switchChatTab(tab) {
+  document.querySelectorAll('.chat-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('chatTabAsk').style.display = tab === 'ask' ? '' : 'none';
+  document.getElementById('chatTabHistory').style.display = tab === 'history' ? '' : 'none';
+}
+
+function selectChatExample(index) {
+  var textarea = document.getElementById('chatQuestionInput');
+  if (textarea) {
+    textarea.value = CHAT_EXAMPLE_QUESTIONS[index].text;
+    textarea.focus();
+  }
+}
+
+async function sendChatQuestion() {
+  if (!CONFIG.API_URL) { alert('No API URL configured.'); return; }
+
+  var textarea = document.getElementById('chatQuestionInput');
+  var question = textarea ? textarea.value.trim() : '';
+  if (!question) { alert('Please enter a question.'); return; }
+
+  const btn = document.getElementById('sendChatBtn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Thinking...';
+  btn.disabled = true;
+
+  const resultDiv = document.getElementById('chatResult');
+  resultDiv.innerHTML = '<div class="chat-loading"><div class="loading-spinner"></div>' +
+    '<p>Analyzing project data and thinking...</p>' +
+    '<p style="font-size:0.8rem;color:var(--text-light);">This may take 30\u201360 seconds.</p></div>';
+
+  try {
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'handleChatQuestion', data: { question: question } }),
+      redirect: 'follow'
+    });
+    const result = await resp.json();
+
+    if (result.error) {
+      resultDiv.innerHTML = '<p style="color:var(--danger);padding:1rem;">' + escapeHtml(result.error) + '</p>';
+      btn.textContent = originalText;
+      btn.disabled = false;
+      return;
+    }
+
+    _pendingChatAnswer = {
+      question: question,
+      answer: result.answer,
+      prompt_source: result.prompt_source
+    };
+
+    resultDiv.innerHTML = renderChatAnswer(result.answer);
+    document.getElementById('logChatBtn').style.display = '';
+  } catch (e) {
+    resultDiv.innerHTML = '<p style="color:var(--danger);padding:1rem;">Chat failed: ' + escapeHtml(e.message) + '</p>';
+  }
+
+  btn.textContent = originalText;
+  btn.disabled = false;
+}
+
+function renderChatAnswer(text) {
+  var html = '<div class="chat-answer">';
+  var paragraphs = text.split('\n\n');
+  paragraphs.forEach(function(para) {
+    para = para.trim();
+    if (!para) return;
+    var lines = para.split('\n');
+    var isBulletList = lines.every(function(l) { return /^[\-\*\u2022]\s/.test(l.trim()) || !l.trim(); });
+    if (isBulletList && lines.length > 1) {
+      html += '<ul>';
+      lines.forEach(function(l) {
+        l = l.trim().replace(/^[\-\*\u2022]\s*/, '');
+        if (l) html += '<li>' + escapeHtml(l) + '</li>';
+      });
+      html += '</ul>';
+    } else {
+      var isNumbered = lines.every(function(l) { return /^\d+[\.\)]\s/.test(l.trim()) || !l.trim(); });
+      if (isNumbered && lines.length > 1) {
+        html += '<ol>';
+        lines.forEach(function(l) {
+          l = l.trim().replace(/^\d+[\.\)]\s*/, '');
+          if (l) html += '<li>' + escapeHtml(l) + '</li>';
+        });
+        html += '</ol>';
+      } else {
+        html += '<p>' + escapeHtml(para).replace(/\n/g, '<br>') + '</p>';
+      }
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+function logChatEntry() {
+  if (!_pendingChatAnswer) return;
+  const now = new Date();
+  const createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
+
+  var phaseContext = '';
+  var phases = getPhases();
+  if (phases.length > 0) phaseContext = phases[0];
+
+  const entry = {
+    id: generateId('CL'),
+    question: _pendingChatAnswer.question,
+    answer: _pendingChatAnswer.answer,
+    phase_context: phaseContext,
+    created_at: createdAt
+  };
+
+  state.chatLog.unshift(entry);
+  queueWrite('addChatEntry', entry);
+  saveToLocalCache();
+
+  document.getElementById('logChatBtn').style.display = 'none';
+  document.getElementById('chatStatus').textContent = 'Logged to history!';
+  const historyTab = document.querySelector('.chat-tab[data-tab="history"]');
+  if (historyTab) historyTab.textContent = 'History (' + state.chatLog.length + ')';
+  const historyContent = document.getElementById('chatTabHistory');
+  if (historyContent) historyContent.innerHTML = renderChatHistory();
+  _pendingChatAnswer = null;
+}
+
+function renderChatHistory() {
+  if (state.chatLog.length === 0) {
+    return '<p class="chat-empty">No chat history yet. Ask your first question!</p>';
+  }
+
+  const sorted = [...state.chatLog].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  let html = '<div class="chat-history-list">';
+
+  sorted.forEach(function(entry) {
+    const dateStr = entry.created_at ? formatDate(entry.created_at.split(' ')[0]) : 'Unknown date';
+    const phaseLabel = entry.phase_context ? ' \u2014 ' + escapeHtml(entry.phase_context) : '';
+
+    html += '<div class="chat-history-card" onclick="toggleChatHistory(\'' + entry.id + '\')">' +
+      '<div class="chat-history-header">' +
+      '<div class="chat-history-meta">' +
+      '<span class="chat-history-date">' + dateStr + phaseLabel + '</span>' +
+      '<span class="chat-history-question">' + escapeHtml(truncate(entry.question, 120)) + '</span>' +
+      '</div>' +
+      '<span class="chat-history-chevron" id="chatChevron_' + entry.id + '">&#9654;</span>' +
+      '</div>' +
+      '<div class="chat-history-detail" id="chatDetail_' + entry.id + '" style="display:none;">' +
+      '<div class="chat-history-q"><strong>Q:</strong> ' + escapeHtml(entry.question) + '</div>' +
+      renderChatAnswer(entry.answer || '') +
+      '</div></div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function toggleChatHistory(id) {
+  const detail = document.getElementById('chatDetail_' + id);
+  const chevron = document.getElementById('chatChevron_' + id);
+  if (detail.style.display === 'none') {
+    detail.style.display = '';
+    chevron.innerHTML = '&#9660;';
+  } else {
+    detail.style.display = 'none';
+    chevron.innerHTML = '&#9654;';
+  }
 }
 
 // ---- Template Changes Modal ----

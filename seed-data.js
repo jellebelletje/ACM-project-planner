@@ -7101,5 +7101,6 @@ window.SEED_DATA = {
   ],
   "sow": [],
   "insights": [],
-  "project_notes": []
+  "project_notes": [],
+  "chat_log": []
 };
