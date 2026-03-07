@@ -196,6 +196,9 @@ function doPost(e) {
       case 'generateInsights':
         result = generateInsights(body.data);
         break;
+      case 'aiConfigure':
+        result = aiConfigure(body.data);
+        break;
       case 'addInsight':
         result = addInsight(body.data);
         break;
@@ -1114,6 +1117,190 @@ function generateInsights(data) {
     };
   } catch (err) {
     return { error: 'Insight generation failed: ' + err.message };
+  }
+}
+
+// ---- AI Configuration ----
+
+function aiConfigure(data) {
+  var acmTouchLevel = data.acm_touch_level || 'full';
+
+  // 1. Get API key
+  var apiKey = getClaudeApiKey();
+  if (!apiKey) return { error: 'Claude API key not configured. Add it to the master sheet Config tab.' };
+
+  // 2. Gather all project context
+  var activities = getActivities();
+  var allTodos = getSheetData(SHEET_NAMES.TODOS);
+  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
+  var milestones = getMilestones();
+  var agreements = getAgreementsAll();
+  var sow = getSowAll();
+  var config = getConfig();
+
+  // 3. Validate SOW exists
+  var sowContent = sow.length > 0 ? sow[0].content || '' : '';
+  var technicalSummary = sow.length > 0 && sow[0].technical_summary ? sow[0].technical_summary : '';
+  if (!sowContent) return { error: 'No Statement of Work found. Please fill in the SOW first.' };
+
+  // 4. Build activities context with their todos and questions
+  var activitiesWithDetails = activities.map(function(a) {
+    var actTodos = allTodos.filter(function(t) { return t.activity_id === a.id; });
+    var actQuestions = allQuestions.filter(function(q) { return q.activity_id === a.id; });
+
+    var todoList = actTodos.map(function(t) {
+      var status = (t.is_done === true || t.is_done === 'TRUE' || t.is_done === 'true') ? 'DONE' : 'OPEN';
+      return '    - [' + status + '] ' + t.id + ': ' + t.text;
+    }).join('\n');
+
+    var questionList = actQuestions.map(function(q) {
+      var status = (q.is_answered === true || q.is_answered === 'TRUE' || q.is_answered === 'true') ? 'ANSWERED' : 'OPEN';
+      var answerSnippet = q.answer ? ' (Answer: ' + String(q.answer).substring(0, 100) + '...)' : '';
+      return '    - [' + status + '] ' + q.id + ': ' + q.question_text + answerSnippet;
+    }).join('\n');
+
+    return a.id + ': ' + a.title +
+      '\n  Phase: ' + (a.pdca_phase || 'unknown') +
+      '\n  Status: ' + (a.status || 'not_started') +
+      '\n  Intro: ' + (a.intro_text || '') +
+      '\n  Type: ' + (a.activity_type || 'standard') +
+      (todoList ? '\n  Todos:\n' + todoList : '\n  Todos: (none)') +
+      (questionList ? '\n  Questions:\n' + questionList : '\n  Questions: (none)');
+  }).join('\n\n');
+
+  // 5. Build agreements context
+  var activeAgreements = agreements.filter(function(ag) {
+    return ag.active !== false && ag.active !== 'FALSE';
+  });
+  var agreementsContext = activeAgreements.map(function(ag) {
+    var type = (ag.internal === true || ag.internal === 'TRUE' || ag.internal === 'true') ? 'Internal' : 'External';
+    var cleanAgreement = (ag.agreement || '').replace(/\n\n\[answered by AI on [^\]]+\]/g, '').replace(/\n\n\[updated by AI on [^\]]+\]/g, '').trim();
+    return ag.id + ' (' + type + '): ' + (ag.question_agreed || '(no question)') +
+      (cleanAgreement ? '\n  Agreement: ' + cleanAgreement : '');
+  }).join('\n\n');
+
+  // 6. Build milestones context
+  var milestonesContext = milestones.map(function(m) {
+    return m.name + ' [' + (m.status || 'planned') + '] ' + (m.date || 'no date') + ' (' + (m.timeline_type || 'technical') + ')';
+  }).join('\n');
+
+  // 7. Build prompt
+  var promptTemplate = getLatestPrompt('ai_configure');
+  var promptSource = promptTemplate ? 'sheet' : 'fallback';
+
+  var prompt;
+  if (promptTemplate) {
+    prompt = promptTemplate
+      .replace(/\{\{ACTIVITIES_WITH_DETAILS\}\}/g, activitiesWithDetails)
+      .replace(/\{\{SOW_CONTENT\}\}/g, sowContent)
+      .replace(/\{\{TECHNICAL_SUMMARY\}\}/g, technicalSummary || '(no technical summary provided)')
+      .replace(/\{\{ACM_TOUCH_LEVEL\}\}/g, acmTouchLevel)
+      .replace(/\{\{AGREEMENTS\}\}/g, agreementsContext || '(none)')
+      .replace(/\{\{MILESTONES\}\}/g, milestonesContext || '(none)');
+  } else {
+    // Hardcoded fallback prompt
+    prompt = 'You are an expert Adoption & Change Management (ACM) consultant helping to configure a project plan.\n\n' +
+      'TASK: Analyse the Statement of Work (SOW) and project context below, then recommend which activities to prioritise, deprioritise, add, or rename.\n\n' +
+      'ACM ENGAGEMENT LEVEL: ' + acmTouchLevel + '\n' +
+      '- "full": Keep most/all activities. Comprehensive ACM engagement.\n' +
+      '- "medium": Keep core diagnosis, design, deployment, and measurement. Deprioritise advanced/specialist activities.\n' +
+      '- "light": Minimal ACM. Typically only a plan and/or training delivery. Be aggressive about deprioritising.\n\n' +
+      'STATEMENT OF WORK:\n' + sowContent + '\n\n' +
+      'TECHNICAL SUMMARY:\n' + (technicalSummary || '(none)') + '\n\n' +
+      'CURRENT ACTIVITIES WITH TODOS AND QUESTIONS:\n' + activitiesWithDetails + '\n\n' +
+      'AGREEMENTS:\n' + (agreementsContext || '(none)') + '\n\n' +
+      'MILESTONES:\n' + (milestonesContext || '(none)') + '\n\n' +
+      'INSTRUCTIONS:\n' +
+      '1. Evaluate each activity\'s relevance given the SOW scope, project size, and ACM engagement level.\n' +
+      '2. Return a prioritised list per phase, ordered by importance for this specific SOW.\n' +
+      '3. Suggest new activities if the SOW describes work not covered by existing cards.\n' +
+      '4. Suggest renames where generic template wording could be more specific to this SOW context.\n' +
+      '5. Provide brief rationale for each decision.\n\n' +
+      'Return ONLY valid JSON in this exact structure (no markdown fencing):\n' +
+      '{\n' +
+      '  "summary": "Overall rationale for the recommended configuration...",\n' +
+      '  "phases": [\n' +
+      '    {\n' +
+      '      "phase": "Plan I: Diagnosis",\n' +
+      '      "prioritised": [\n' +
+      '        {\n' +
+      '          "id": "A01",\n' +
+      '          "title": "Current or renamed title",\n' +
+      '          "rationale": "Why this is important for this SOW",\n' +
+      '          "renamed": false,\n' +
+      '          "original_title": null,\n' +
+      '          "todo_renames": [],\n' +
+      '          "question_renames": []\n' +
+      '        }\n' +
+      '      ],\n' +
+      '      "deprioritised": [\n' +
+      '        {\n' +
+      '          "id": "A05",\n' +
+      '          "title": "Activity title",\n' +
+      '          "rationale": "Why this can be skipped for this SOW"\n' +
+      '        }\n' +
+      '      ],\n' +
+      '      "new_activities": [\n' +
+      '        {\n' +
+      '          "title": "Suggested new activity",\n' +
+      '          "intro_text": "Brief description",\n' +
+      '          "rationale": "Why this is needed based on the SOW",\n' +
+      '          "todos": ["Suggested todo 1", "Suggested todo 2"],\n' +
+      '          "questions": [\n' +
+      '            { "question_text": "...", "sub_topic": "...", "ask_whom": "..." }\n' +
+      '          ]\n' +
+      '        }\n' +
+      '      ]\n' +
+      '    }\n' +
+      '  ]\n' +
+      '}\n\n' +
+      'IMPORTANT:\n' +
+      '- Include ALL existing activities in either prioritised or deprioritised.\n' +
+      '- For renamed items, set "renamed": true and "original_title" to the original name.\n' +
+      '- todo_renames format: [{ "id": "T001", "new_text": "..." }]\n' +
+      '- question_renames format: [{ "id": "Q001", "new_text": "..." }]\n' +
+      '- The phases are: "Plan I: Diagnosis", "Plan II: Design + Activate Champions", "Do: Deployment", "Check: Analysis", "Act: Handover, Anchor & Learn"\n' +
+      '- Return ONLY the JSON object, no other text.';
+  }
+
+  // 8. Call Claude API
+  try {
+    var response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      payload: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 16384,
+        messages: [{ role: 'user', content: prompt }]
+      }),
+      muteHttpExceptions: true
+    });
+
+    var result = JSON.parse(response.getContentText());
+    if (result.error) return { error: 'Claude API error: ' + result.error.message };
+
+    var stopReason = result.stop_reason;
+    if (stopReason === 'max_tokens') {
+      return { error: 'Claude response was truncated (too long). Try reducing the number of activities or SOW length.' };
+    }
+
+    var responseText = result.content[0].text.trim();
+    if (responseText.startsWith('```')) {
+      responseText = responseText.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+    }
+    var configuration = JSON.parse(responseText);
+
+    return {
+      success: true,
+      configuration: configuration,
+      prompt_source: promptSource
+    };
+  } catch (err) {
+    return { error: 'AI Configuration failed: ' + err.message };
   }
 }
 

@@ -1,0 +1,102 @@
+You are an expert Adoption & Change Management (ACM) consultant helping to configure a project plan based on a Statement of Work (SOW).
+
+TASK: Analyse the SOW and full project context below, then recommend which activities to prioritise, deprioritise, add, or rename — tailored to the project scope and ACM engagement level.
+
+ACM ENGAGEMENT LEVEL: {{ACM_TOUCH_LEVEL}}
+- "full": Comprehensive ACM engagement. Keep most or all activities. Only deprioritise truly irrelevant ones.
+- "medium": Focus on core diagnosis, design, deployment, and measurement activities. Deprioritise advanced or specialist activities that aren't directly relevant to the SOW scope.
+- "light": Minimal ACM involvement. Be aggressive about deprioritising. Typically only keep activities related to creating a change plan, delivering training, and basic stakeholder communication.
+
+STATEMENT OF WORK:
+{{SOW_CONTENT}}
+
+TECHNICAL SUMMARY:
+{{TECHNICAL_SUMMARY}}
+
+CURRENT ACTIVITIES WITH THEIR TODOS AND QUESTIONS:
+{{ACTIVITIES_WITH_DETAILS}}
+
+AGREEMENTS:
+{{AGREEMENTS}}
+
+MILESTONES:
+{{MILESTONES}}
+
+---
+
+INSTRUCTIONS:
+
+1. EVALUATE each activity's relevance given the SOW scope, project size, and ACM engagement level.
+
+2. PRIORITISE activities per phase, ordered by importance for this specific SOW. Consider:
+   - Does the SOW explicitly or implicitly require this work?
+   - Is this activity a prerequisite for other critical activities?
+   - Does the project size/complexity warrant this activity?
+   - For the given ACM engagement level, is this activity appropriate?
+
+3. DEPRIORITISE activities that are not relevant to this specific SOW context. Provide a brief rationale for each.
+
+4. SUGGEST NEW ACTIVITIES if the SOW describes work not covered by existing cards. Include:
+   - A descriptive title
+   - Brief intro text
+   - Why it's needed based on the SOW
+   - 2-4 starter todos
+   - 1-3 relevant questions
+
+5. SUGGEST RENAMES where generic template wording could be more specific to this SOW context. For example:
+   - "Conduct Training Needs Analysis" → "Conduct SAP S/4HANA Training Needs Analysis"
+   - "Design Communication Plan" → "Design ERP Migration Communication Plan"
+   Only suggest renames where it genuinely adds clarity for this specific project.
+
+6. For todo_renames and question_renames, only rename items where making them SOW-specific adds real value.
+
+IMPORTANT RULES:
+- Every existing activity MUST appear in either "prioritised" or "deprioritised" — do not omit any.
+- Maintain the phase assignment from the original data. Do not move activities between phases.
+- The phases are: "Plan I: Diagnosis", "Plan II: Design + Activate Champions", "Do: Deployment", "Check: Analysis", "Act: Handover, Anchor & Learn"
+- Project Administration (A00) activities should generally be kept as prioritised.
+- For "light" touch: be very aggressive — typically only 8-12 activities total across all phases.
+- For "medium" touch: keep 15-25 core activities.
+- For "full" touch: keep most activities, only deprioritise clearly irrelevant ones.
+
+Return ONLY valid JSON in this exact structure (no markdown fencing, no explanatory text outside the JSON):
+
+{
+  "summary": "Overall rationale for the recommended configuration — explain the key factors from the SOW that drove your recommendations...",
+  "phases": [
+    {
+      "phase": "Plan I: Diagnosis",
+      "prioritised": [
+        {
+          "id": "A01",
+          "title": "Current or renamed title",
+          "rationale": "Why this is important for this SOW",
+          "renamed": false,
+          "original_title": null,
+          "todo_renames": [],
+          "question_renames": []
+        }
+      ],
+      "deprioritised": [
+        {
+          "id": "A05",
+          "title": "Activity title",
+          "rationale": "Why this can be skipped for this SOW"
+        }
+      ],
+      "new_activities": [
+        {
+          "title": "Suggested new activity",
+          "intro_text": "Brief description of what this activity covers",
+          "rationale": "Why this is needed based on the SOW",
+          "todos": ["Suggested todo 1", "Suggested todo 2"],
+          "questions": [
+            { "question_text": "Question text here", "sub_topic": "Relevant sub-topic", "ask_whom": "Who to ask" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+IMPORTANT: Return ONLY the JSON object. No markdown code fences. No text before or after the JSON.

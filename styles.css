@@ -3606,3 +3606,185 @@ mark {
   padding-bottom: 0.5rem;
   border-bottom: 1px dashed var(--border);
 }
+
+/* ---- AI Configuration Modal ---- */
+.settings-ai-config-box {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: var(--radius-sm);
+}
+.settings-info {
+  font-size: 0.78rem;
+  color: #9a3412;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+.ai-config-phase {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+.ai-config-phase:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+.ai-config-phase-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: #f8fafc;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid #ea580c;
+}
+.ai-config-group {
+  margin-bottom: 0.75rem;
+  margin-left: 0.5rem;
+}
+.ai-config-group-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.ai-config-list {
+  min-height: 20px;
+}
+.ai-config-item {
+  padding: 0.5rem 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.ai-config-item:last-child { border-bottom: none; }
+.ai-config-item:hover { background: #f8fafc; }
+.ai-config-item[draggable="true"] { cursor: grab; }
+.ai-config-item[draggable="true"]:active { cursor: grabbing; }
+.ai-config-dragging {
+  opacity: 0.4;
+  background: #eff6ff;
+}
+.ai-config-drag-over {
+  border-top: 2px solid #ea580c;
+}
+.ai-config-drag-handle {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-right: 0.35rem;
+  cursor: grab;
+}
+.ai-config-item-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  display: inline;
+}
+.ai-config-item-rationale {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  line-height: 1.4;
+  margin-top: 0.15rem;
+}
+.ai-config-item-intro {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-style: italic;
+  margin-top: 0.1rem;
+}
+.ai-config-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+.ai-config-badge-new {
+  background: #dcfce7;
+  color: #166534;
+}
+.ai-config-badge-rename {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.ai-config-depri-details {
+  margin-top: 0.25rem;
+}
+.ai-config-depri-summary {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.ai-config-depri-summary::before {
+  content: '\25B6 ';
+  font-size: 0.65rem;
+  margin-right: 0.25rem;
+}
+.ai-config-depri-details[open] > .ai-config-depri-summary::before {
+  content: '\25BC ';
+}
+.ai-config-rename-from {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  text-decoration: line-through;
+}
+.ai-config-rename-arrow {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  margin: 0.1rem 0;
+}
+.ai-config-rename-to {
+  font-size: 0.78rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ---- Deprioritised Section on Main Board ---- */
+.phase-deprioritised-section {
+  margin-top: 0.75rem;
+}
+.phase-depri-details {
+  border-top: 1px solid rgba(255,255,255,0.15);
+  padding-top: 0.5rem;
+}
+.phase-depri-summary {
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.7);
+  font-weight: 600;
+  list-style: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.phase-depri-summary:hover {
+  background: rgba(255,255,255,0.1);
+}
+.phase-depri-summary::before {
+  content: '\25B6 ';
+  font-size: 0.65rem;
+  margin-right: 0.25rem;
+}
+.phase-depri-details[open] > .phase-depri-summary::before {
+  content: '\25BC ';
+}
+.cards-grid-deprioritised {
+  margin-top: 0.5rem;
+}
+.cards-grid-deprioritised .activity-card {
+  opacity: 0.6;
+  border-left: 3px solid var(--text-light);
+}
+.cards-grid-deprioritised .activity-card:hover {
+  opacity: 0.85;
+}

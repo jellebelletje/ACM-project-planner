@@ -1199,7 +1199,8 @@ function renderPhases() {
     const activeActs = acts.filter(a => a.status !== 'inactive');
     const inactiveActs = acts.filter(a => a.status === 'inactive');
     const showInactive = state.showInactive && state.showInactive[phase];
-    const visibleActs = (showInactive ? acts : activeActs).filter(a => activityMatchesSearch(a) && activityMatchesFilter(a));
+    const visibleActiveActs = activeActs.filter(a => activityMatchesSearch(a) && activityMatchesFilter(a));
+    const visibleInactiveActs = inactiveActs.filter(a => activityMatchesSearch(a) && activityMatchesFilter(a));
     const completed = activeActs.filter(a => a.status === 'completed').length;
 
     const phaseLower = phase.toLowerCase();
@@ -1208,16 +1209,28 @@ function renderPhases() {
       : phaseLower.startsWith('check') ? 'check'
       : phaseLower.startsWith('act') ? 'act' : 'default';
 
+    let depriSection = '';
+    if (inactiveActs.length > 0) {
+      depriSection = `<div class="phase-deprioritised-section">
+        <details class="phase-depri-details"${showInactive ? ' open' : ''}>
+          <summary class="phase-depri-summary" data-phase="${escapeHtml(phase)}">Deprioritised (${inactiveActs.length})</summary>
+          <div class="cards-grid cards-grid-deprioritised">
+            ${visibleInactiveActs.map(a => renderCard(a)).join('')}
+          </div>
+        </details>
+      </div>`;
+    }
+
     return `<section class="phase-section phase-${pdcaType}" data-phase-section="${escapeHtml(phase)}" data-phase-idx="${idx}">
       <div class="phase-header">
         <span class="phase-title" contenteditable="true" data-phase="${escapeHtml(phase)}">${escapeHtml(phase)}</span>
         <span class="phase-count">${completed}/${activeActs.length} done</span>
-        ${inactiveActs.length > 0 ? `<button class="btn-small btn-inactive-toggle" data-phase="${escapeHtml(phase)}">${showInactive ? 'Hide' : 'Show'} ${inactiveActs.length} inactive</button>` : ''}
         <button class="btn-small phase-add-btn" data-phase="${escapeHtml(phase)}">+ Activity</button>
       </div>
       <div class="cards-grid">
-        ${visibleActs.map(a => renderCard(a)).join('')}
+        ${visibleActiveActs.map(a => renderCard(a)).join('')}
       </div>
+      ${depriSection}
     </section>`;
   }).join('');
 }
@@ -4262,6 +4275,10 @@ function openSettings() {
   document.getElementById('cfgApiUrl').value = CONFIG.API_URL || '';
   document.getElementById('cfgMasterSheetId').value = state.config.master_sheet_id || '';
   document.getElementById('cfgTemplateSheetId').value = state.config.template_sheet_id || '';
+  const touchSel = document.getElementById('cfgAcmTouchLevel');
+  touchSel.value = state.config.acm_touch_level || 'full';
+  updateTouchLevelHint();
+  touchSel.addEventListener('change', updateTouchLevelHint);
   document.getElementById('settingsModal').style.display = 'flex';
 }
 
@@ -4280,7 +4297,8 @@ async function saveSettings() {
     total_duration_value: document.getElementById('cfgDurationValue').value.trim(),
     duration_unit: document.getElementById('cfgDurationUnit').value,
     master_sheet_id: document.getElementById('cfgMasterSheetId').value.trim(),
-    template_sheet_id: document.getElementById('cfgTemplateSheetId').value.trim()
+    template_sheet_id: document.getElementById('cfgTemplateSheetId').value.trim(),
+    acm_touch_level: document.getElementById('cfgAcmTouchLevel').value
   };
 
   Object.assign(state.config, newConfig);
@@ -4511,15 +4529,17 @@ async function init() {
     const addBtn = target.closest('.phase-add-btn');
     if (addBtn) { e.stopPropagation(); addNewActivity(addBtn.dataset.phase); return; }
 
-    // Inactive toggle
-    const inactiveBtn = target.closest('.btn-inactive-toggle');
-    if (inactiveBtn) {
-      e.stopPropagation();
-      const phase = inactiveBtn.dataset.phase;
+    // Deprioritised toggle (via details/summary)
+    const depriSummary = target.closest('.phase-depri-summary');
+    if (depriSummary) {
+      const phase = depriSummary.dataset.phase;
       if (!state.showInactive) state.showInactive = {};
-      state.showInactive[phase] = !state.showInactive[phase];
-      renderPhases();
-      attachExpandedEvents();
+      // Toggle will be handled by <details> natively, just track state
+      const details = depriSummary.closest('details');
+      if (details) {
+        // details.open reflects state BEFORE the toggle, so invert
+        state.showInactive[phase] = !details.open;
+      }
       return;
     }
 
@@ -4669,6 +4689,449 @@ async function init() {
 
   syncHubConfigToSheet();
   loading.classList.add('hidden');
+  renderAll();
+  attachExpandedEvents();
+}
+
+// ---- ACM Touch Level Hint ----
+function updateTouchLevelHint() {
+  const hint = document.getElementById('touchLevelHint');
+  if (!hint) return;
+  const val = document.getElementById('cfgAcmTouchLevel').value;
+  const hints = {
+    full: 'Full Programme: comprehensive ACM engagement across all activities',
+    medium: 'Medium Touch: core diagnosis, design, and deployment; reduced ancillary work',
+    light: 'Light Touch: minimal ACM — typically a plan and/or training delivery'
+  };
+  hint.textContent = hints[val] || hints.full;
+}
+
+// ---- AI Configuration ----
+
+let pendingAiConfig = null;
+
+async function startAiConfiguration() {
+  // Phase 1: Validate SOW
+  if (!state.sow || state.sow.length === 0 || !state.sow[0].content) {
+    alert('Please fill in the Statement of Work (SOW) first. The AI Configuration needs your SOW to make relevant recommendations.');
+    return;
+  }
+
+  if (!CONFIG.API_URL) {
+    alert('No API URL configured. Please set your API URL in Settings first.');
+    return;
+  }
+
+  // Show loading
+  const loading = document.getElementById('loadingOverlay');
+  loading.innerHTML = '<div class="loading-spinner"></div>' +
+    '<p>Analysing your SOW and project structure...</p>' +
+    '<p style="font-size:0.8rem;color:var(--text-light);">This may take 30\u201360 seconds.</p>';
+  loading.classList.remove('hidden');
+
+  try {
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'aiConfigure',
+        data: { acm_touch_level: state.config.acm_touch_level || 'full' }
+      }),
+      redirect: 'follow'
+    });
+    const result = await resp.json();
+
+    loading.classList.add('hidden');
+
+    if (result.error) {
+      alert('AI Configuration failed: ' + result.error);
+      return;
+    }
+
+    // Phase 2: Show the modal
+    openAiConfigModal(result.configuration, result.prompt_source);
+  } catch (e) {
+    loading.classList.add('hidden');
+    alert('AI Configuration failed: ' + e.message);
+  }
+}
+
+function openAiConfigModal(configuration, promptSource) {
+  pendingAiConfig = configuration;
+  const body = document.getElementById('aiConfigModalBody');
+  let html = '';
+
+  // Fallback prompt warning
+  if (promptSource === 'fallback') {
+    html += `<div class="review-fallback-warning" style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:1rem;font-size:0.78rem;color:#92400e;">
+      Using default prompt. Add an <strong>ai_configure_v1</strong> prompt to the Prompts sheet for better results.
+    </div>`;
+  }
+
+  // Summary
+  if (configuration.summary) {
+    html += `<div class="review-section">
+      <h3 class="review-section-title">Summary</h3>
+      <div class="review-summary">${escapeHtml(configuration.summary)}</div>
+    </div>`;
+  }
+
+  // Per-phase sections
+  if (configuration.phases && configuration.phases.length > 0) {
+    configuration.phases.forEach((phaseData, phaseIdx) => {
+      html += `<div class="ai-config-phase" data-ai-phase-idx="${phaseIdx}">
+        <h3 class="ai-config-phase-title">${escapeHtml(phaseData.phase)}</h3>`;
+
+      // Prioritised activities
+      if (phaseData.prioritised && phaseData.prioritised.length > 0) {
+        html += `<div class="ai-config-group">
+          <h4 class="ai-config-group-title">Prioritised Activities</h4>
+          <div class="ai-config-list ai-config-prioritised" data-ai-phase="${phaseIdx}" data-ai-group="prioritised">`;
+        phaseData.prioritised.forEach((item, idx) => {
+          html += renderAiConfigItem(item, phaseIdx, 'prioritised', idx, true);
+        });
+        html += `</div></div>`;
+      }
+
+      // Deprioritised activities
+      if (phaseData.deprioritised && phaseData.deprioritised.length > 0) {
+        html += `<div class="ai-config-group">
+          <details class="ai-config-depri-details">
+            <summary class="ai-config-group-title ai-config-depri-summary">Deprioritised (${phaseData.deprioritised.length})</summary>
+            <div class="ai-config-list ai-config-deprioritised" data-ai-phase="${phaseIdx}" data-ai-group="deprioritised">`;
+        phaseData.deprioritised.forEach((item, idx) => {
+          html += renderAiConfigItem(item, phaseIdx, 'deprioritised', idx, false);
+        });
+        html += `</div></details></div>`;
+      }
+
+      // New activities
+      if (phaseData.new_activities && phaseData.new_activities.length > 0) {
+        html += `<div class="ai-config-group">
+          <h4 class="ai-config-group-title">New Activities</h4>
+          <div class="ai-config-list">`;
+        phaseData.new_activities.forEach((item, idx) => {
+          html += `<div class="ai-config-item ai-config-new-item">
+            <label class="review-checkbox">
+              <input type="checkbox" checked data-ai-type="new" data-ai-phase="${phaseIdx}" data-ai-idx="${idx}">
+              <div class="review-item-content">
+                <span class="ai-config-badge ai-config-badge-new">NEW</span>
+                <div class="ai-config-item-title">${escapeHtml(item.title)}</div>
+                <div class="ai-config-item-rationale">${escapeHtml(item.rationale || '')}</div>
+                ${item.intro_text ? `<div class="ai-config-item-intro">${escapeHtml(item.intro_text)}</div>` : ''}
+              </div>
+            </label>
+          </div>`;
+        });
+        html += `</div></div>`;
+      }
+
+      html += `</div>`;
+    });
+  }
+
+  // Renamed items section (across all phases)
+  const allRenames = [];
+  if (configuration.phases) {
+    configuration.phases.forEach((phaseData, phaseIdx) => {
+      if (phaseData.prioritised) {
+        phaseData.prioritised.forEach(item => {
+          if (item.renamed) {
+            allRenames.push({ type: 'activity', id: item.id, original: item.original_title, proposed: item.title, phaseIdx });
+          }
+          if (item.todo_renames) {
+            item.todo_renames.forEach(tr => allRenames.push({ type: 'todo', id: tr.id, original: null, proposed: tr.new_text, phaseIdx }));
+          }
+          if (item.question_renames) {
+            item.question_renames.forEach(qr => allRenames.push({ type: 'question', id: qr.id, original: null, proposed: qr.new_text, phaseIdx }));
+          }
+        });
+      }
+    });
+  }
+
+  if (allRenames.length > 0) {
+    html += `<div class="review-section">
+      <h3 class="review-section-title">Suggested Renames (${allRenames.length})</h3>`;
+    allRenames.forEach((r, idx) => {
+      const original = r.original || getOriginalText(r.type, r.id);
+      html += `<div class="review-item">
+        <label class="review-checkbox">
+          <input type="checkbox" checked data-ai-type="rename" data-rename-idx="${idx}">
+          <div class="review-item-content">
+            <span class="ai-config-badge ai-config-badge-rename">${escapeHtml(r.type.toUpperCase())}</span>
+            <div class="review-item-id">${escapeHtml(r.id)}</div>
+            <div class="ai-config-rename-from">${escapeHtml(original || '(unknown)')}</div>
+            <div class="ai-config-rename-arrow">&darr;</div>
+            <div class="ai-config-rename-to">${escapeHtml(r.proposed)}</div>
+          </div>
+        </label>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  body.innerHTML = html;
+
+  // Attach drag-and-drop to prioritised lists
+  body.querySelectorAll('.ai-config-prioritised').forEach(list => {
+    setupAiConfigDragDrop(list);
+  });
+
+  // Store renames for apply
+  pendingAiConfig._allRenames = allRenames;
+
+  document.getElementById('aiConfigModal').style.display = 'flex';
+}
+
+function getOriginalText(type, id) {
+  if (type === 'activity') {
+    const a = state.activities.find(x => x.id === id);
+    return a ? a.title : id;
+  } else if (type === 'todo') {
+    const t = state.todos.find(x => x.id === id);
+    return t ? t.text : id;
+  } else if (type === 'question') {
+    const q = state.questions.find(x => x.id === id);
+    return q ? q.question_text : id;
+  }
+  return id;
+}
+
+function renderAiConfigItem(item, phaseIdx, group, idx, checked) {
+  const isRenamed = item.renamed && item.original_title;
+  return `<div class="ai-config-item" draggable="${group === 'prioritised' ? 'true' : 'false'}" data-ai-item-id="${escapeHtml(item.id)}" data-ai-phase="${phaseIdx}" data-ai-group="${group}" data-ai-idx="${idx}">
+    <label class="review-checkbox">
+      <input type="checkbox" ${checked ? 'checked' : ''} data-ai-type="${group}" data-ai-phase="${phaseIdx}" data-ai-idx="${idx}">
+      <div class="review-item-content">
+        ${group === 'prioritised' ? '<span class="ai-config-drag-handle">&#9776;</span>' : ''}
+        ${isRenamed ? '<span class="ai-config-badge ai-config-badge-rename">RENAMED</span>' : ''}
+        <div class="ai-config-item-title">${escapeHtml(item.title)}</div>
+        <div class="review-item-id">${escapeHtml(item.id)}</div>
+        <div class="ai-config-item-rationale">${escapeHtml(item.rationale || '')}</div>
+      </div>
+    </label>
+  </div>`;
+}
+
+function setupAiConfigDragDrop(list) {
+  let draggedEl = null;
+
+  list.addEventListener('dragstart', (e) => {
+    const item = e.target.closest('.ai-config-item');
+    if (!item) return;
+    draggedEl = item;
+    item.classList.add('ai-config-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', item.dataset.aiItemId);
+  });
+
+  list.addEventListener('dragend', (e) => {
+    const item = e.target.closest('.ai-config-item');
+    if (item) item.classList.remove('ai-config-dragging');
+    draggedEl = null;
+    document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
+  });
+
+  list.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const afterEl = getDragAfterElement(list, e.clientY);
+    if (afterEl) {
+      afterEl.classList.add('ai-config-drag-over');
+    }
+  });
+
+  list.addEventListener('dragleave', (e) => {
+    const item = e.target.closest('.ai-config-item');
+    if (item) item.classList.remove('ai-config-drag-over');
+  });
+
+  list.addEventListener('drop', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.ai-config-drag-over').forEach(el => el.classList.remove('ai-config-drag-over'));
+    if (!draggedEl) return;
+    const afterEl = getDragAfterElement(list, e.clientY);
+    if (afterEl) {
+      list.insertBefore(draggedEl, afterEl);
+    } else {
+      list.appendChild(draggedEl);
+    }
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const items = [...container.querySelectorAll('.ai-config-item:not(.ai-config-dragging)')];
+  let closest = null;
+  let closestOffset = Number.NEGATIVE_INFINITY;
+
+  items.forEach(child => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closestOffset) {
+      closestOffset = offset;
+      closest = child;
+    }
+  });
+
+  return closest;
+}
+
+function applyAiConfiguration() {
+  if (!pendingAiConfig) return;
+
+  const modal = document.getElementById('aiConfigModal');
+
+  // 1. Process prioritised/deprioritised per phase
+  if (pendingAiConfig.phases) {
+    pendingAiConfig.phases.forEach((phaseData, phaseIdx) => {
+      // Get prioritised items from DOM in current order (user may have reordered)
+      const priList = modal.querySelector(`.ai-config-prioritised[data-ai-phase="${phaseIdx}"]`);
+      if (priList) {
+        const priItems = priList.querySelectorAll('.ai-config-item');
+        priItems.forEach((el, seqIdx) => {
+          const cb = el.querySelector('input[type="checkbox"]');
+          const itemId = el.dataset.aiItemId;
+          const act = state.activities.find(a => a.id === itemId);
+          if (!act) return;
+
+          if (cb && cb.checked) {
+            // Prioritised: update sequence, keep active
+            act.sequence = seqIdx;
+            if (act.status === 'inactive') act.status = 'not_started';
+            queueWrite('updateActivity', { id: act.id, sequence: seqIdx, status: act.status });
+          } else {
+            // User unchecked a prioritised item — deprioritise it
+            act.status = 'inactive';
+            queueWrite('updateActivity', { id: act.id, status: 'inactive' });
+          }
+        });
+      }
+
+      // Handle deprioritised items
+      const depriList = modal.querySelector(`.ai-config-deprioritised[data-ai-phase="${phaseIdx}"]`);
+      if (depriList) {
+        depriList.querySelectorAll('.ai-config-item').forEach(el => {
+          const cb = el.querySelector('input[type="checkbox"]');
+          const itemId = el.dataset.aiItemId;
+          const act = state.activities.find(a => a.id === itemId);
+          if (!act) return;
+
+          if (cb && cb.checked) {
+            // User overrode: keep active
+            if (act.status === 'inactive') act.status = 'not_started';
+            queueWrite('updateActivity', { id: act.id, status: act.status });
+          } else {
+            // Deprioritise
+            act.status = 'inactive';
+            queueWrite('updateActivity', { id: act.id, status: 'inactive' });
+          }
+        });
+      }
+
+      // Handle new activities
+      if (phaseData.new_activities) {
+        modal.querySelectorAll(`[data-ai-type="new"][data-ai-phase="${phaseIdx}"]`).forEach(cb => {
+          if (!cb.checked) return;
+          const idx = parseInt(cb.dataset.aiIdx);
+          const newAct = phaseData.new_activities[idx];
+          if (!newAct) return;
+
+          const actId = generateId('A');
+          const activity = {
+            id: actId,
+            title: newAct.title,
+            intro_text: newAct.intro_text || '',
+            full_description: '',
+            pdca_phase: phaseData.phase,
+            sequence: 999 + idx,
+            status: 'not_started',
+            due_date: '',
+            depends_on: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            allocated_pct: '',
+            actual_minutes: '',
+            activity_type: ''
+          };
+          state.activities.push(activity);
+          queueWrite('addActivity', activity);
+
+          // Add suggested todos
+          if (newAct.todos) {
+            newAct.todos.forEach((todoText, tIdx) => {
+              const todo = {
+                id: generateId('T'),
+                activity_id: actId,
+                text: todoText,
+                is_done: false,
+                sequence: tIdx,
+                active: true,
+                notes: '',
+                created_at: new Date().toISOString()
+              };
+              state.todos.push(todo);
+              queueWrite('addTodo', todo);
+            });
+          }
+
+          // Add suggested questions
+          if (newAct.questions) {
+            newAct.questions.forEach((q, qIdx) => {
+              const question = {
+                id: generateId('Q'),
+                activity_id: actId,
+                question_text: q.question_text || q,
+                sub_topic: q.sub_topic || '',
+                ask_whom: q.ask_whom || '',
+                is_answered: false,
+                answer: '',
+                sequence: qIdx,
+                active: true,
+                created_at: new Date().toISOString()
+              };
+              state.questions.push(question);
+              queueWrite('addQuestion', question);
+            });
+          }
+        });
+      }
+    });
+  }
+
+  // 2. Process renames
+  if (pendingAiConfig._allRenames) {
+    modal.querySelectorAll('[data-ai-type="rename"]').forEach(cb => {
+      if (!cb.checked) return;
+      const idx = parseInt(cb.dataset.renameIdx);
+      const rename = pendingAiConfig._allRenames[idx];
+      if (!rename) return;
+
+      if (rename.type === 'activity') {
+        const act = state.activities.find(a => a.id === rename.id);
+        if (act) {
+          act.title = rename.proposed;
+          queueWrite('updateActivity', { id: rename.id, title: rename.proposed });
+        }
+      } else if (rename.type === 'todo') {
+        const todo = state.todos.find(t => t.id === rename.id);
+        if (todo) {
+          todo.text = rename.proposed;
+          queueWrite('updateTodo', { id: rename.id, text: rename.proposed });
+        }
+      } else if (rename.type === 'question') {
+        const q = state.questions.find(x => x.id === rename.id);
+        if (q) {
+          q.question_text = rename.proposed;
+          queueWrite('updateQuestion', { id: rename.id, question_text: rename.proposed });
+        }
+      }
+    });
+  }
+
+  pendingAiConfig = null;
+  closeModal('aiConfigModal');
+  saveToLocalCache();
   renderAll();
   attachExpandedEvents();
 }
