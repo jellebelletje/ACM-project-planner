@@ -3724,6 +3724,25 @@ mark {
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
+.ai-config-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ai-config-touch-select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #fed7aa;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  background: white;
+  color: var(--text);
+  cursor: pointer;
+}
+.ai-config-touch-select:focus {
+  border-color: #ea580c;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(234,88,12,0.15);
+}
 .ai-config-phase {
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
@@ -3834,15 +3853,38 @@ mark {
 .ai-config-depri-details[open] > .ai-config-depri-summary::before {
   content: '\25BC ';
 }
+.ai-config-rename-explainer {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+.ai-config-rename-item {
+  padding: 0.4rem 0.5rem;
+}
+.ai-config-rename-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.2rem;
+}
+.ai-config-rename-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  line-height: 1.4;
+}
 .ai-config-rename-from {
   font-size: 0.78rem;
   color: var(--text-light);
   text-decoration: line-through;
 }
 .ai-config-rename-arrow {
-  font-size: 0.7rem;
-  color: var(--text-light);
-  margin: 0.1rem 0;
+  font-size: 0.78rem;
+  color: #ea580c;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 .ai-config-rename-to {
   font-size: 0.78rem;

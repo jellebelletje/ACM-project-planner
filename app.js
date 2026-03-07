@@ -4748,7 +4748,7 @@ async function startAiConfiguration() {
       '<div class="ai-loading-dot"></div>' +
       '<div class="ai-loading-dot"></div>' +
     '</div>' +
-    '<p style="font-size:0.8rem;color:rgba(241,245,249,0.6);margin-top:0.75rem;">This may take 30\u201360 seconds</p>';
+    '<p style="font-size:0.8rem;color:rgba(241,245,249,0.6);margin-top:0.75rem;">This is a big deal \u2014 it may take a few minutes</p>';
   loading.classList.remove('hidden');
 
   try {
@@ -4874,18 +4874,23 @@ function openAiConfigModal(configuration, promptSource) {
 
   if (allRenames.length > 0) {
     html += `<div class="review-section">
-      <h3 class="review-section-title">Suggested Renames (${allRenames.length})</h3>`;
+      <h3 class="review-section-title">Suggested Renames (${allRenames.length})</h3>
+      <p class="ai-config-rename-explainer">These items will be renamed to better match your SOW context. Uncheck any you want to keep as-is.</p>`;
     allRenames.forEach((r, idx) => {
       const original = r.original || getOriginalText(r.type, r.id);
-      html += `<div class="review-item">
+      html += `<div class="review-item ai-config-rename-item">
         <label class="review-checkbox">
           <input type="checkbox" checked data-ai-type="rename" data-rename-idx="${idx}">
           <div class="review-item-content">
-            <span class="ai-config-badge ai-config-badge-rename">${escapeHtml(r.type.toUpperCase())}</span>
-            <div class="review-item-id">${escapeHtml(r.id)}</div>
-            <div class="ai-config-rename-from">${escapeHtml(original || '(unknown)')}</div>
-            <div class="ai-config-rename-arrow">&darr;</div>
-            <div class="ai-config-rename-to">${escapeHtml(r.proposed)}</div>
+            <div class="ai-config-rename-header">
+              <span class="ai-config-badge ai-config-badge-rename">${escapeHtml(r.type.toUpperCase())}</span>
+              <span class="review-item-id">${escapeHtml(r.id)}</span>
+            </div>
+            <div class="ai-config-rename-row">
+              <span class="ai-config-rename-from">${escapeHtml(original || '(unknown)')}</span>
+              <span class="ai-config-rename-arrow">&rarr;</span>
+              <span class="ai-config-rename-to">${escapeHtml(r.proposed)}</span>
+            </div>
           </div>
         </label>
       </div>`;
