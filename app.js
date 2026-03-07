@@ -2618,17 +2618,23 @@ function renderAgreements() {
     a.active !== false && a.active !== 'FALSE' && a.active !== 'false' &&
     (a.internal === false || a.internal === 'FALSE' || a.internal === 'false' || a.internal === ''));
 
+  // Check which agreements were updated by AI in this session
+  let aiUpdatedAgreementIds = [];
+  try { aiUpdatedAgreementIds = JSON.parse(sessionStorage.getItem('acm_ai_updated_agreements') || '[]'); } catch (e) { /* ignore */ }
+
   function renderCards(agreements) {
     if (agreements.length === 0) {
       return '<p class="agreement-empty">No agreements yet.</p>';
     }
     return agreements.map(ag => {
       const hasAnswer = ag.agreement && String(ag.agreement).trim();
+      const aiUpdated = aiUpdatedAgreementIds.includes(ag.id);
       const attribution = ag.added_by && ag.added_on
         ? `<div class="agreement-attribution">Added by ${escapeHtml(ag.added_by)} on ${escapeHtml(ag.added_on)}</div>`
         : '';
       return `<div class="agreement-card${hasAnswer ? ' answered' : ''}" data-agreement-id="${escapeHtml(ag.id)}">
         <button class="agreement-delete" data-agreement-id="${escapeHtml(ag.id)}" title="Remove">&times;</button>
+        ${aiUpdated ? '<span class="ai-new-badge agreement-ai-badge" title="Updated by AI processing">&#11088; New info!</span>' : ''}
         <div class="agreement-question" contenteditable="true" data-agreement-id="${escapeHtml(ag.id)}" data-field="question_agreed">${escapeHtml(ag.question_agreed || '')}</div>
         <div class="answer-field-wrap">
           <textarea class="answer-field agreement-answer" data-agreement-id="${escapeHtml(ag.id)}" placeholder="Agreement...">${escapeHtml(ag.agreement || '')}</textarea>
@@ -2928,27 +2934,52 @@ function applySelectedProposals() {
 
   // Apply checked agreement answers
   let agreementsChanged = false;
+  const aiUpdatedAgreementIds = new Set();
+  try {
+    JSON.parse(sessionStorage.getItem('acm_ai_updated_agreements') || '[]').forEach(id => aiUpdatedAgreementIds.add(id));
+  } catch (e) { /* ignore */ }
+
   if (pendingProposals.answered_agreements) {
     modal.querySelectorAll('[data-review-type="agreement"]').forEach(cb => {
       if (cb.checked) {
         const idx = parseInt(cb.dataset.reviewIdx);
         const aa = pendingProposals.answered_agreements[idx];
         const sourceDoc = aa.source_document || 'transcript';
+        const isInternal = aa.internal === true || aa.internal === 'true' || aa.internal === 'TRUE';
 
         if (aa.id === 'NEW') {
-          // Create a new agreement card
+          // Try to fill an existing empty card with matching internal/external type
+          const emptyCard = state.agreements.find(a =>
+            (a.active !== false && a.active !== 'FALSE' && a.active !== 'false') &&
+            !a.question_agreed && !a.agreement &&
+            ((isInternal && (a.internal === true || a.internal === 'TRUE' || a.internal === 'true')) ||
+             (!isInternal && (a.internal === false || a.internal === 'FALSE' || a.internal === 'false' || a.internal === '')))
+          );
+
           const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
-          const newAg = {
-            id: generateId('AG'),
-            question_agreed: aa.question_agreed || '',
-            agreement: aa.answer + attribution,
-            internal: aa.internal === true || aa.internal === 'true' || aa.internal === 'TRUE',
-            active: true,
-            added_by: 'AI',
-            added_on: todayStr
-          };
-          state.agreements.push(newAg);
-          queueWrite('addAgreement', newAg);
+          if (emptyCard) {
+            // Fill the empty card
+            emptyCard.question_agreed = aa.question_agreed || '';
+            emptyCard.agreement = aa.answer + attribution;
+            emptyCard.added_by = 'AI';
+            emptyCard.added_on = todayStr;
+            queueWrite('updateAgreement', { id: emptyCard.id, question_agreed: emptyCard.question_agreed, agreement: emptyCard.agreement, added_by: 'AI', added_on: todayStr });
+            aiUpdatedAgreementIds.add(emptyCard.id);
+          } else {
+            // No empty card available — create a new one
+            const newAg = {
+              id: generateId('AG'),
+              question_agreed: aa.question_agreed || '',
+              agreement: aa.answer + attribution,
+              internal: isInternal,
+              active: true,
+              added_by: 'AI',
+              added_on: todayStr
+            };
+            state.agreements.push(newAg);
+            queueWrite('addAgreement', newAg);
+            aiUpdatedAgreementIds.add(newAg.id);
+          }
           agreementsChanged = true;
         } else {
           // Update existing agreement
@@ -2971,12 +3002,14 @@ function applySelectedProposals() {
               updateData.added_on = todayStr;
             }
             queueWrite('updateAgreement', updateData);
+            aiUpdatedAgreementIds.add(aa.id);
             agreementsChanged = true;
           }
         }
       }
     });
   }
+  sessionStorage.setItem('acm_ai_updated_agreements', JSON.stringify(Array.from(aiUpdatedAgreementIds)));
   if (agreementsChanged) renderAgreements();
 
   // Track matched activities for the "New info!" badge

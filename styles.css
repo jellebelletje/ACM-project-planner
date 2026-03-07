@@ -2468,6 +2468,10 @@ body {
   color: var(--danger);
 }
 
+.agreement-ai-badge {
+  margin-bottom: 0.3rem;
+}
+
 .agreement-attribution {
   font-size: 0.72rem;
   color: var(--text-light);
