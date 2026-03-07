@@ -2777,25 +2777,9 @@ async function processAllTranscripts() {
 
 // ---- Agreements ----
 
-function seedBlankAgreements() {
-  const blanks = [];
-  for (let i = 0; i < 3; i++) {
-    blanks.push({ id: generateId('AG'), question_agreed: '', agreement: '', internal: true, active: true, added_by: '', added_on: '' });
-    blanks.push({ id: generateId('AG'), question_agreed: '', agreement: '', internal: false, active: true, added_by: '', added_on: '' });
-  }
-  blanks.forEach(b => {
-    state.agreements.push(b);
-    queueWrite('addAgreement', b);
-  });
-}
-
 function renderAgreements() {
   const container = document.getElementById('agreementsSection');
   if (!container) return;
-
-  // Auto-seed blank cards if no active agreements exist
-  const hasActive = state.agreements.some(a => a.active !== false && a.active !== 'FALSE' && a.active !== 'false');
-  if (!hasActive) seedBlankAgreements();
 
   const internalAgreements = state.agreements.filter(a =>
     a.active !== false && a.active !== 'FALSE' && a.active !== 'false' &&
@@ -3141,38 +3125,20 @@ function applySelectedProposals() {
         const isInternal = aa.internal === true || aa.internal === 'true' || aa.internal === 'TRUE';
 
         if (aa.id === 'NEW') {
-          // Try to fill an existing empty card with matching internal/external type
-          const emptyCard = state.agreements.find(a =>
-            (a.active !== false && a.active !== 'FALSE' && a.active !== 'false') &&
-            !a.question_agreed && !a.agreement &&
-            ((isInternal && (a.internal === true || a.internal === 'TRUE' || a.internal === 'true')) ||
-             (!isInternal && (a.internal === false || a.internal === 'FALSE' || a.internal === 'false' || a.internal === '')))
-          );
-
+          // Create a new agreement card
           const attribution = '\n\n[answered by AI on ' + todayStr + ' based on ' + sourceDoc + ']';
-          if (emptyCard) {
-            // Fill the empty card
-            emptyCard.question_agreed = aa.question_agreed || '';
-            emptyCard.agreement = aa.answer + attribution;
-            emptyCard.added_by = 'AI';
-            emptyCard.added_on = todayStr;
-            queueWrite('updateAgreement', { id: emptyCard.id, question_agreed: emptyCard.question_agreed, agreement: emptyCard.agreement, added_by: 'AI', added_on: todayStr });
-            aiUpdatedAgreementIds.add(emptyCard.id);
-          } else {
-            // No empty card available — create a new one
-            const newAg = {
-              id: generateId('AG'),
-              question_agreed: aa.question_agreed || '',
-              agreement: aa.answer + attribution,
-              internal: isInternal,
-              active: true,
-              added_by: 'AI',
-              added_on: todayStr
-            };
-            state.agreements.push(newAg);
-            queueWrite('addAgreement', newAg);
-            aiUpdatedAgreementIds.add(newAg.id);
-          }
+          const newAg = {
+            id: generateId('AG'),
+            question_agreed: aa.question_agreed || '',
+            agreement: aa.answer + attribution,
+            internal: isInternal,
+            active: true,
+            added_by: 'AI',
+            added_on: todayStr
+          };
+          state.agreements.push(newAg);
+          queueWrite('addAgreement', newAg);
+          aiUpdatedAgreementIds.add(newAg.id);
           agreementsChanged = true;
         } else {
           // Update existing agreement
