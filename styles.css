@@ -1080,6 +1080,22 @@ body {
   min-width: 0;
 }
 
+.card-rename-btn {
+  font-size: 0.65rem;
+  color: var(--accent);
+  background: var(--border-light);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.card-rename-btn:hover {
+  background: var(--accent);
+  color: white;
+}
+
 .card-id {
   font-size: 0.7rem;
   color: var(--text-light);
@@ -2852,6 +2868,56 @@ mark {
 .tc-edit { background: #fff3cd; color: #856404; }
 .tc-delete { background: #f8d7da; color: #721c24; }
 
+.tc-select-all {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+}
+.tc-group-header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin: 1rem 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.tc-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.tc-item:last-child { border-bottom: none; }
+.tc-item-content {
+  flex: 1;
+  min-width: 0;
+}
+.tc-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.tc-item-desc {
+  font-size: 0.85rem;
+  word-break: break-word;
+}
+.tc-item-diff {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 3px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.tc-old-value {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+.tc-arrow {
+  margin: 0 0.25rem;
+}
+.tc-new-value {
+  font-weight: 600;
+}
+
 /* ---- Settings Advanced ---- */
 .settings-advanced-toggle {
   cursor: pointer;
@@ -2864,14 +2930,49 @@ mark {
   display: none;
   margin-top: 0.5rem;
   padding: 0.75rem;
+}
+.settings-advanced-section.visible { display: block; }
+.settings-danger-box {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
   background: #fff5f5;
   border: 1px solid #fee2e2;
   border-radius: var(--radius-sm);
 }
-.settings-advanced-section.visible { display: block; }
 .settings-warning {
   font-size: 0.78rem;
   color: #991b1b;
   margin-bottom: 0.5rem;
   line-height: 1.4;
+}
+.btn-accent {
+  background: var(--accent);
+  color: white;
+  border: none;
+}
+.btn-accent:hover {
+  opacity: 0.9;
+}
+.btn-success {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+.btn-success:hover {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+/* ---- Prompt Editor ---- */
+.prompt-editor-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.prompt-editor-controls select {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.85rem;
 }

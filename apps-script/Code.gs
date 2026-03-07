@@ -181,6 +181,15 @@ function doPost(e) {
       case 'reseedTemplate':
         result = reseedTemplate(body.data);
         break;
+      case 'addPrompt':
+        result = addPrompt(body.data);
+        break;
+      case 'updatePrompt':
+        result = updatePrompt(body.data);
+        break;
+      case 'deletePrompt':
+        result = deletePrompt(body.data.key);
+        break;
       case 'seedAll':
         result = seedAll(body.data);
         break;
@@ -217,6 +226,7 @@ function getAll() {
     transcripts: getTranscriptsAll(),
     agreements: getAgreementsAll(),
     template_changes: getTemplateChangesAll(),
+    prompts: getPromptsAll(),
     config: config
   };
 }
@@ -345,6 +355,42 @@ function getAgreementsAll() {
     return rows;
   }
   catch (e) { return []; }
+}
+
+// ---- Prompts ----
+
+function getPromptsAll() {
+  try { return getSheetData(SHEET_NAMES.PROMPTS); }
+  catch (e) { return []; }
+}
+
+function addPrompt(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.PROMPTS);
+  if (!sheet) return { error: 'Prompts sheet not found' };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = headers.map(h => data[h] !== undefined ? data[h] : '');
+  sheet.appendRow(row);
+  return { success: true, key: data.key };
+}
+
+function updatePrompt(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.PROMPTS);
+  if (!sheet) return { error: 'Prompts sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, data.key);
+  if (rowIdx === -1) return { error: 'Prompt not found: ' + data.key };
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const valIdx = headers.indexOf('value');
+  if (valIdx !== -1) sheet.getRange(rowIdx, valIdx + 1).setValue(data.value);
+  return { success: true, key: data.key };
+}
+
+function deletePrompt(key) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.PROMPTS);
+  if (!sheet) return { error: 'Prompts sheet not found' };
+  const rowIdx = findRowIndex(sheet, 1, key);
+  if (rowIdx === -1) return { error: 'Prompt not found: ' + key };
+  sheet.deleteRow(rowIdx);
+  return { success: true, key: key };
 }
 
 // ---- Template Changes ----
@@ -1017,6 +1063,8 @@ function batchUpdate(operations) {
         case 'deleteAgreement': r = deleteAgreement(op.data.id); break;
         case 'addTemplateChange': r = addTemplateChange(op.data); break;
         case 'updateTemplateChange': r = updateTemplateChange(op.data); break;
+        case 'addPrompt': r = addPrompt(op.data); break;
+        case 'updatePrompt': r = updatePrompt(op.data); break;
         default: r = { error: 'Unknown batch action: ' + op.action };
       }
       results.push(r);

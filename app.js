@@ -68,7 +68,8 @@ const state = {
   transcripts: [],
   expandedTranscriptId: null,
   agreements: [],
-  templateChanges: []
+  templateChanges: [],
+  prompts: []
 };
 
 // ---- Debounce & Sync ----
@@ -133,6 +134,7 @@ function saveToLocalCache() {
     transcripts: state.transcripts,
     agreements: state.agreements,
     templateChanges: state.templateChanges,
+    prompts: state.prompts,
     config: state.config,
     timestamp: Date.now()
   };
@@ -158,6 +160,7 @@ function loadFromLocalCache() {
         transcripts: data.transcripts || [],
         agreements: data.agreements || [],
         templateChanges: data.templateChanges || [],
+        prompts: data.prompts || [],
         config: data.config || {}
       });
       normalizePhaseNames();
@@ -187,6 +190,7 @@ async function fetchAll() {
         state.transcripts = data.transcripts || [];
         state.agreements = data.agreements || [];
         state.templateChanges = data.template_changes || [];
+        state.prompts = data.prompts || [];
         state.config = data.config || {};
         normalizePhaseNames();
         normalizeAgreements();
@@ -209,6 +213,7 @@ async function fetchAll() {
       state.transcripts = data.transcripts || [];
       state.agreements = data.agreements || [];
       state.templateChanges = data.template_changes || [];
+      state.prompts = data.prompts || [];
       state.config = data.config || {};
       normalizePhaseNames();
       normalizeAgreements();
@@ -239,6 +244,7 @@ async function fetchAll() {
     state.transcripts = data.transcripts || [];
     state.agreements = data.agreements || [];
     state.templateChanges = data.template_changes || [];
+    state.prompts = data.prompts || [];
     state.config = typeof data.config === 'object' && !Array.isArray(data.config) ? data.config : {};
     if (localConfig) {
       Object.assign(state.config, localConfig);
@@ -1231,6 +1237,7 @@ function renderCard(act) {
     <div class="card-header">
       <span class="card-status-dot dot-${escapeHtml(act.status || 'not_started')}"></span>
       <span class="card-title">${isExpanded ? escapeHtml(act.title) : highlightText(act.title)}</span>
+      ${isExpanded ? `<button class="card-rename-btn" data-rename-id="${escapeHtml(act.id)}" title="Rename">Rename</button>` : ''}
       <span class="card-id">${escapeHtml(act.id)}</span>
       ${isMetaActivity(act) ? '<span class="card-type-badge meta-badge">Admin</span>' : ''}
       ${isExpanded ? `<button class="card-close-btn" data-close-id="${escapeHtml(act.id)}" title="Close">&times;</button>` : ''}
@@ -1741,8 +1748,50 @@ function attachExpandedEvents() {
     title.style.cursor = 'pointer';
     title.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (title.isContentEditable) return;
       const card = title.closest('.activity-card');
       if (card) expandActivity(card.dataset.activityId);
+    });
+  });
+
+  // Rename button on expanded card
+  container.querySelectorAll('.card-rename-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const actId = btn.dataset.renameId;
+      const card = btn.closest('.activity-card');
+      const titleEl = card.querySelector('.card-title');
+      if (!titleEl) return;
+      titleEl.contentEditable = 'true';
+      titleEl.style.cursor = 'text';
+      titleEl.focus();
+      // Select all text
+      const range = document.createRange();
+      range.selectNodeContents(titleEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      btn.style.display = 'none';
+
+      const save = () => {
+        titleEl.contentEditable = 'false';
+        titleEl.style.cursor = 'pointer';
+        const newTitle = titleEl.textContent.trim();
+        const act = getActivity(actId);
+        if (act && newTitle && act.title !== newTitle) {
+          const oldTitle = act.title;
+          act.title = newTitle;
+          queueWrite('updateActivity', { id: actId, title: newTitle });
+          trackTemplateChange('edit', 'Activities', actId, 'title', oldTitle, newTitle, 'Activity title renamed');
+        }
+        btn.style.display = '';
+      };
+
+      titleEl.addEventListener('blur', save, { once: true });
+      titleEl.addEventListener('keydown', (ke) => {
+        if (ke.key === 'Enter') { ke.preventDefault(); titleEl.blur(); }
+        if (ke.key === 'Escape') { titleEl.textContent = getActivity(actId)?.title || ''; titleEl.blur(); }
+      });
     });
   });
 
@@ -3166,25 +3215,32 @@ function openTemplateChangesModal() {
     groups[tc.item_type].push(tc);
   });
 
-  let html = `<label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;font-weight:600;">
-    <input type="checkbox" id="tcSelectAll" checked onchange="toggleAllTemplateChanges(this.checked)"> Select all (${pending.length})
-  </label>`;
+  let html = `<div class="tc-select-all">
+    <label class="review-checkbox"><input type="checkbox" id="tcSelectAll" checked onchange="toggleAllTemplateChanges(this.checked)"> Select all (${pending.length})</label>
+  </div>`;
 
   for (const [type, changes] of Object.entries(groups)) {
-    html += `<h3 style="margin:1rem 0 0.5rem;font-size:0.9rem;color:var(--text-light);">${escapeHtml(type)}</h3>`;
+    html += `<div class="tc-group-header">${escapeHtml(type)}</div>`;
     changes.forEach(tc => {
       const badgeClass = tc.change_type === 'add' ? 'tc-add' : tc.change_type === 'delete' ? 'tc-delete' : 'tc-edit';
-      html += `<label class="review-item" style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid var(--border);">
-        <input type="checkbox" class="tc-checkbox" data-tc-id="${tc.id}" checked>
-        <div style="flex:1;min-width:0;">
-          <span class="tc-type-badge ${badgeClass}">${escapeHtml(tc.change_type)}</span>
-          <span style="font-size:0.85rem;">${escapeHtml(tc.description || tc.field || tc.item_id)}</span>`;
+      const desc = tc.description || tc.field || tc.item_id;
+      html += `<div class="tc-item">
+        <label class="review-checkbox">
+          <input type="checkbox" class="tc-checkbox" data-tc-id="${tc.id}" checked>
+          <div class="tc-item-content">
+            <div class="tc-item-header">
+              <span class="tc-type-badge ${badgeClass}">${escapeHtml(tc.change_type)}</span>
+              <span class="tc-item-desc">${escapeHtml(desc)}</span>
+            </div>`;
       if (tc.change_type === 'edit' && tc.field) {
-        html += `<div style="font-size:0.75rem;color:var(--text-light);margin-top:2px;">
-          <strong>${escapeHtml(tc.field)}</strong>: ${escapeHtml(truncate(tc.old_value, 50))} &rarr; ${escapeHtml(truncate(tc.new_value, 50))}
-        </div>`;
+        html += `<div class="tc-item-diff">
+              <strong>${escapeHtml(tc.field)}:</strong>
+              <span class="tc-old-value">${escapeHtml(truncate(tc.old_value, 80))}</span>
+              <span class="tc-arrow">&rarr;</span>
+              <span class="tc-new-value">${escapeHtml(truncate(tc.new_value, 80))}</span>
+            </div>`;
       }
-      html += `</div></label>`;
+      html += `</div></label></div>`;
     });
   }
 
@@ -3317,6 +3373,180 @@ async function reseedTemplate() {
     renderNav();
 
     alert('Seed template has been reset to defaults.');
+    showSync('success');
+  } catch (e) {
+    alert('Network error: ' + e.message);
+    showSync('error');
+  }
+}
+
+// ---- Prompt Editor ----
+
+function openPromptEditor() {
+  const prefixSelect = document.getElementById('promptPrefix');
+  const versionSelect = document.getElementById('promptVersion');
+  const textarea = document.getElementById('promptEditorContent');
+  const status = document.getElementById('promptEditorStatus');
+
+  // Extract unique prefixes from prompt keys (strip _v{N} suffix)
+  const prefixes = [];
+  state.prompts.forEach(p => {
+    const match = String(p.key).match(/^(.+)_v\d+$/);
+    if (match && !prefixes.includes(match[1])) prefixes.push(match[1]);
+  });
+
+  if (prefixes.length === 0) {
+    prefixSelect.innerHTML = '<option value="">No prompts found</option>';
+    versionSelect.innerHTML = '';
+    textarea.value = '';
+    status.textContent = 'No prompts in the Prompts sheet.';
+    document.getElementById('promptEditorModal').style.display = 'flex';
+    return;
+  }
+
+  prefixSelect.innerHTML = prefixes.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+  selectPromptPrefix();
+  document.getElementById('promptEditorModal').style.display = 'flex';
+}
+
+function selectPromptPrefix() {
+  const prefix = document.getElementById('promptPrefix').value;
+  const versionSelect = document.getElementById('promptVersion');
+  if (!prefix) return;
+
+  // Find all versions for this prefix, sorted descending
+  const pattern = new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '_v(\\d+)$');
+  const versions = [];
+  state.prompts.forEach(p => {
+    const match = String(p.key).match(pattern);
+    if (match) versions.push({ key: p.key, version: parseInt(match[1], 10) });
+  });
+  versions.sort((a, b) => b.version - a.version);
+
+  versionSelect.innerHTML = versions.map(v =>
+    `<option value="${escapeHtml(v.key)}">v${v.version}${v === versions[0] ? ' (latest)' : ''}</option>`
+  ).join('');
+
+  selectPromptVersion();
+}
+
+function selectPromptVersion() {
+  const key = document.getElementById('promptVersion').value;
+  const textarea = document.getElementById('promptEditorContent');
+  const status = document.getElementById('promptEditorStatus');
+
+  const prompt = state.prompts.find(p => p.key === key);
+  textarea.value = prompt ? prompt.value : '';
+  status.textContent = key ? 'Editing: ' + key : '';
+
+  // Show delete button only for v2+ (never allow deleting v1)
+  const deleteBtn = document.getElementById('deletePromptBtn');
+  const versionMatch = key.match(/_v(\d+)$/);
+  const version = versionMatch ? parseInt(versionMatch[1], 10) : 1;
+  deleteBtn.style.display = version > 1 ? '' : 'none';
+}
+
+async function savePrompt() {
+  const key = document.getElementById('promptVersion').value;
+  const value = document.getElementById('promptEditorContent').value;
+  const status = document.getElementById('promptEditorStatus');
+
+  if (!key) { alert('No prompt selected.'); return; }
+
+  showSync('saving');
+  try {
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'updatePrompt', data: { key, value } })
+    });
+    const result = await resp.json();
+    if (result.error) { alert('Error: ' + result.error); showSync('error'); return; }
+
+    // Update local state
+    const prompt = state.prompts.find(p => p.key === key);
+    if (prompt) prompt.value = value;
+
+    status.textContent = 'Saved: ' + key;
+    showSync('success');
+  } catch (e) {
+    alert('Network error: ' + e.message);
+    showSync('error');
+  }
+}
+
+async function createNewPromptVersion() {
+  const prefix = document.getElementById('promptPrefix').value;
+  const value = document.getElementById('promptEditorContent').value;
+  const status = document.getElementById('promptEditorStatus');
+
+  if (!prefix) { alert('No prompt prefix selected.'); return; }
+
+  // Find max version for this prefix
+  const pattern = new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '_v(\\d+)$');
+  let maxVersion = 0;
+  state.prompts.forEach(p => {
+    const match = String(p.key).match(pattern);
+    if (match) maxVersion = Math.max(maxVersion, parseInt(match[1], 10));
+  });
+
+  const newKey = prefix + '_v' + (maxVersion + 1);
+  if (!confirm('Create ' + newKey + ' with the current content?')) return;
+
+  showSync('saving');
+  try {
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'addPrompt', data: { key: newKey, value } })
+    });
+    const result = await resp.json();
+    if (result.error) { alert('Error: ' + result.error); showSync('error'); return; }
+
+    // Add to local state
+    state.prompts.push({ key: newKey, value });
+
+    // Refresh dropdowns and select new version
+    selectPromptPrefix();
+    document.getElementById('promptVersion').value = newKey;
+    selectPromptVersion();
+
+    status.textContent = 'Created: ' + newKey;
+    showSync('success');
+  } catch (e) {
+    alert('Network error: ' + e.message);
+    showSync('error');
+  }
+}
+
+async function deletePromptVersion() {
+  const key = document.getElementById('promptVersion').value;
+  if (!key) { alert('No prompt selected.'); return; }
+
+  // Safety: never delete v1
+  const versionMatch = key.match(/_v(\d+)$/);
+  const version = versionMatch ? parseInt(versionMatch[1], 10) : 1;
+  if (version <= 1) { alert('Cannot delete the base version (v1).'); return; }
+
+  if (!confirm('Delete ' + key + '? This cannot be undone.')) return;
+
+  showSync('saving');
+  try {
+    const resp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'deletePrompt', data: { key } })
+    });
+    const result = await resp.json();
+    if (result.error) { alert('Error: ' + result.error); showSync('error'); return; }
+
+    // Remove from local state
+    state.prompts = state.prompts.filter(p => p.key !== key);
+
+    // Refresh dropdowns
+    selectPromptPrefix();
+
+    document.getElementById('promptEditorStatus').textContent = 'Deleted: ' + key;
     showSync('success');
   } catch (e) {
     alert('Network error: ' + e.message);

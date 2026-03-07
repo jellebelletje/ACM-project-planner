@@ -150,11 +150,14 @@
             Advanced Features &#9660;
           </div>
           <div class="settings-advanced-section">
-            <p class="settings-warning">
-              Use with caution. Resetting the seed template will revert all changes you have
-              made to the template. You will lose all your customisations.
-            </p>
-            <button class="btn-small btn-danger" onclick="reseedTemplate()">Reset Seed Template</button>
+            <button class="btn-small btn-accent" onclick="closeModal('settingsModal');openPromptEditor()">Edit Prompts</button>
+            <div class="settings-danger-box">
+              <p class="settings-warning">
+                Use with caution. Resetting the seed template will revert all changes you have
+                made to the template. You will lose all your customisations.
+              </p>
+              <button class="btn-small btn-danger" onclick="reseedTemplate()">Reset Seed Template</button>
+            </div>
           </div>
         </div>
       </div>
@@ -269,6 +272,31 @@
         </div>
         <div class="modal-body" id="templateChangesModalBody"></div>
         <div class="modal-footer" id="templateChangesModalActions" style="display:flex;justify-content:flex-end;gap:0.5rem;padding:0.75rem 1.25rem;border-top:1px solid var(--border);"></div>
+      </div>
+    </div>
+
+    <!-- Prompt Editor Modal -->
+    <div class="modal-overlay" id="promptEditorModal" style="display:none;" onclick="if(event.target===this)closeModal('promptEditorModal')">
+      <div class="modal" style="max-width:900px">
+        <div class="modal-header">
+          <h2>Prompt Editor</h2>
+          <button class="modal-close" onclick="closeModal('promptEditorModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="prompt-editor-controls">
+            <select id="promptPrefix" onchange="selectPromptPrefix()"></select>
+            <select id="promptVersion" onchange="selectPromptVersion()"></select>
+          </div>
+          <textarea id="promptEditorContent" rows="20" style="width:100%;resize:vertical;font-family:monospace;font-size:0.85rem;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);tab-size:2;"></textarea>
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.5rem;border-top:1px solid var(--border);">
+          <span id="promptEditorStatus" style="font-size:0.8rem;color:var(--text-light);"></span>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn-primary btn-danger" id="deletePromptBtn" onclick="deletePromptVersion()" style="display:none;">Delete This Version</button>
+            <button class="btn-primary btn-success" onclick="savePrompt()">Save This Version</button>
+            <button class="btn-primary" onclick="createNewPromptVersion()">Create New Version</button>
+          </div>
+        </div>
       </div>
     </div>
 
