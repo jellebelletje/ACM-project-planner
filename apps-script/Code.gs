@@ -246,25 +246,11 @@ function getAll() {
   // Check master sheet for Claude API key (never send the key itself to browser)
   config.has_claude_api_key = !!getClaudeApiKey(config);
 
-  return {
-    activities: getActivities(),
-    todos: getTodosAll(),
-    questions: getQuestionsAll(),
-    notes: getNotesLinksAll(),
-    milestones: getMilestones(),
-    timesheet: getTimesheetAll(),  // Legacy
-    time_spent: getTimeSpentAll(),
-    time_billed: getTimeBilledAll(),
-    sow: getSowAll(),
-    transcripts: getTranscriptsAll(),
-    agreements: getAgreementsAll(),
-    template_changes: getTemplateChangesAll(),
-    prompts: getPromptsAll(),
-    insights: getInsightsAll(),
-    project_notes: getProjectNotesAll(),
-    chat_log: getChatLogAll(),
-    config: config
-  };
+  // Batch-read all 16 data sheets with a single spreadsheet open
+  // (previously 16 separate getActiveSpreadsheet() RPCs)
+  var sheets = readAllSheets();
+  sheets.config = config;
+  return sheets;
 }
 
 /**
@@ -782,23 +768,36 @@ function deleteProjectNote(id) {
 }
 
 function processTranscripts(data) {
+  // Batch-read all needed sheets with a single spreadsheet open
+  var parseSheet = _batchReader();
+  var transcripts = parseSheet(SHEET_NAMES.TRANSCRIPTS);
+  var activities = parseSheet(SHEET_NAMES.ACTIVITIES);
+  var allQuestions = parseSheet(SHEET_NAMES.QUESTIONS);
+  var allTodos = parseSheet(SHEET_NAMES.TODOS);
+  var allAgreementsRaw = parseSheet(SHEET_NAMES.AGREEMENTS);
+
+  // Normalize agreements (replicates getAgreementsAll logic)
+  allAgreementsRaw.forEach(function(row, i) {
+    if (!row.id) row.id = 'AG_sheet_' + (i + 1);
+    if (row.active === undefined || row.active === '') row.active = true;
+    if (!row.added_by) row.added_by = '';
+    if (!row.added_on) row.added_on = '';
+  });
+
   // 1. Get all unprocessed entries
-  var transcripts = getTranscriptsAll();
   var unprocessed = transcripts.filter(function(t) {
     return !t.processed || t.processed === 'FALSE' || t.processed === false;
   });
   if (unprocessed.length === 0) return { error: 'No unprocessed entries found.' };
 
   // 2. Read context data
-  var activities = getActivities();
-  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
   var openQuestions = allQuestions.filter(function(q) {
     return !q.is_answered || q.is_answered === 'FALSE' || q.is_answered === false;
   });
   var answeredQuestions = allQuestions.filter(function(q) {
     return q.is_answered && q.is_answered !== 'FALSE' && q.is_answered !== false && q.answer;
   });
-  var todos = getSheetData(SHEET_NAMES.TODOS).filter(function(t) {
+  var todos = allTodos.filter(function(t) {
     return !t.is_done || t.is_done === 'FALSE' || t.is_done === false;
   });
 
@@ -835,9 +834,8 @@ function processTranscripts(data) {
     return t.id + ' (Activity ' + t.activity_id + '): ' + t.text;
   }).join('\n');
 
-  // Read agreements for AI context
-  var allAgreements = getAgreementsAll();
-  var activeAgreements = allAgreements.filter(function(ag) {
+  // Filter agreements for AI context (already batch-read above)
+  var activeAgreements = allAgreementsRaw.filter(function(ag) {
     return ag.active !== false && ag.active !== 'FALSE';
   });
   var agreementsContext = activeAgreements.map(function(ag) {
@@ -937,15 +935,25 @@ function processTranscripts(data) {
 // ---- Generate Insights (AI) ----
 
 function generateInsights(data) {
-  // 1. Gather all project data
-  var activities = getActivities();
-  var allTodos = getSheetData(SHEET_NAMES.TODOS);
-  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
-  var milestones = getMilestones();
-  var agreements = getAgreementsAll();
-  var sow = getSowAll();
+  // 1. Gather all project data (batch-read with single spreadsheet open)
+  var parseSheet = _batchReader();
+  var activities = parseSheet(SHEET_NAMES.ACTIVITIES);
+  var allTodos = parseSheet(SHEET_NAMES.TODOS);
+  var allQuestions = parseSheet(SHEET_NAMES.QUESTIONS);
+  var milestones = parseSheet(SHEET_NAMES.MILESTONES);
+  var sow = parseSheet(SHEET_NAMES.SOW);
+  var projectNotes = parseSheet(SHEET_NAMES.PROJECT_NOTES);
+  // Config uses key-value transform, kept as separate call
   var config = getConfig();
-  var projectNotes = getProjectNotesAll();
+
+  // Normalize agreements (replicates getAgreementsAll logic)
+  var agreements = parseSheet(SHEET_NAMES.AGREEMENTS);
+  agreements.forEach(function(row, i) {
+    if (!row.id) row.id = 'AG_sheet_' + (i + 1);
+    if (row.active === undefined || row.active === '') row.active = true;
+    if (!row.added_by) row.added_by = '';
+    if (!row.added_on) row.added_on = '';
+  });
 
   // 2. Compute summary statistics
   var doneTodos = allTodos.filter(function(t) {
@@ -1163,10 +1171,9 @@ function callClaudeForJson(apiKey, prompt, errorPrefix, systemPrompt) {
   return { success: true, data: JSON.parse(responseText) };
 }
 
-// Batch-read all project data needed by AI Config steps (minimises sheet API calls)
-// Instead of 5 separate getSheetData() calls (each opening the spreadsheet + 2 getRange calls),
-// this opens the spreadsheet once and reads all 5 sheets = ~10 getRange calls saved per step.
-function readAllProjectData() {
+// Batch-read sheets using a single spreadsheet open.
+// parseSheet is a local closure over `ss` to avoid repeated getActiveSpreadsheet() RPCs.
+function _batchReader() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
   function parseSheet(sheetName) {
@@ -1177,8 +1184,8 @@ function readAllProjectData() {
       if (lastRow < 2) return [];
       var lastCol = sheet.getLastColumn();
       var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-      var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
-      return data.map(function(row) {
+      var sheetData = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+      return sheetData.map(function(row) {
         var obj = {};
         headers.forEach(function(h, i) { obj[h] = row[i]; });
         return obj;
@@ -1188,6 +1195,15 @@ function readAllProjectData() {
     }
   }
 
+  return parseSheet;
+}
+
+// Batch-read all project data needed by AI Config steps (minimises sheet API calls)
+// Instead of 5 separate getSheetData() calls (each opening the spreadsheet + 2 getRange calls),
+// this opens the spreadsheet once and reads all 5 sheets = ~10 getRange calls saved per step.
+function readAllProjectData() {
+  var parseSheet = _batchReader();
+
   return {
     activities: parseSheet(SHEET_NAMES.ACTIVITIES),
     todos: parseSheet(SHEET_NAMES.TODOS),
@@ -1195,6 +1211,41 @@ function readAllProjectData() {
     sow: parseSheet(SHEET_NAMES.SOW),
     milestones: parseSheet(SHEET_NAMES.MILESTONES)
   };
+}
+
+// Batch-read ALL data sheets with a single spreadsheet open.
+// Used by getAll() to eliminate ~15 redundant getActiveSpreadsheet() calls.
+function readAllSheets() {
+  var parseSheet = _batchReader();
+
+  var sheets = {
+    activities: parseSheet(SHEET_NAMES.ACTIVITIES),
+    todos: parseSheet(SHEET_NAMES.TODOS),
+    questions: parseSheet(SHEET_NAMES.QUESTIONS),
+    notes: parseSheet(SHEET_NAMES.NOTES_LINKS),
+    milestones: parseSheet(SHEET_NAMES.MILESTONES),
+    timesheet: parseSheet(SHEET_NAMES.TIMESHEET),
+    time_spent: parseSheet(SHEET_NAMES.TIME_SPENT),
+    time_billed: parseSheet(SHEET_NAMES.TIME_BILLED),
+    sow: parseSheet(SHEET_NAMES.SOW),
+    transcripts: parseSheet(SHEET_NAMES.TRANSCRIPTS),
+    agreements: parseSheet(SHEET_NAMES.AGREEMENTS),
+    template_changes: parseSheet(SHEET_NAMES.TEMPLATE_CHANGES),
+    prompts: parseSheet(SHEET_NAMES.PROMPTS),
+    insights: parseSheet(SHEET_NAMES.INSIGHTS),
+    project_notes: parseSheet(SHEET_NAMES.PROJECT_NOTES),
+    chat_log: parseSheet(SHEET_NAMES.CHAT_LOG)
+  };
+
+  // Normalize agreements (replicates getAgreementsAll logic at line 381-393)
+  sheets.agreements.forEach(function(row, i) {
+    if (!row.id) row.id = 'AG_sheet_' + (i + 1);
+    if (row.active === undefined || row.active === '') row.active = true;
+    if (!row.added_by) row.added_by = '';
+    if (!row.added_on) row.added_on = '';
+  });
+
+  return sheets;
 }
 
 // Step 1: Prioritise activities (lightweight — no todo/question details)
@@ -1498,16 +1549,26 @@ function handleChatQuestion(data) {
   var userQuestion = data.question || '';
   if (!userQuestion.trim()) return { error: 'No question provided.' };
 
-  // 1. Gather all project data (same as generateInsights + transcripts)
-  var activities = getActivities();
-  var allTodos = getSheetData(SHEET_NAMES.TODOS);
-  var allQuestions = getSheetData(SHEET_NAMES.QUESTIONS);
-  var milestones = getMilestones();
-  var agreements = getAgreementsAll();
-  var sow = getSowAll();
+  // 1. Gather all project data (batch-read with single spreadsheet open)
+  var parseSheet = _batchReader();
+  var activities = parseSheet(SHEET_NAMES.ACTIVITIES);
+  var allTodos = parseSheet(SHEET_NAMES.TODOS);
+  var allQuestions = parseSheet(SHEET_NAMES.QUESTIONS);
+  var milestones = parseSheet(SHEET_NAMES.MILESTONES);
+  var sow = parseSheet(SHEET_NAMES.SOW);
+  var projectNotes = parseSheet(SHEET_NAMES.PROJECT_NOTES);
+  var transcripts = parseSheet(SHEET_NAMES.TRANSCRIPTS);
+  // Config uses key-value transform, kept as separate call
   var config = getConfig();
-  var projectNotes = getProjectNotesAll();
-  var transcripts = getTranscriptsAll();
+
+  // Normalize agreements (replicates getAgreementsAll logic)
+  var agreements = parseSheet(SHEET_NAMES.AGREEMENTS);
+  agreements.forEach(function(row, i) {
+    if (!row.id) row.id = 'AG_sheet_' + (i + 1);
+    if (row.active === undefined || row.active === '') row.active = true;
+    if (!row.added_by) row.added_by = '';
+    if (!row.added_on) row.added_on = '';
+  });
 
   // 2. Compute summary statistics
   var doneTodos = allTodos.filter(function(t) {

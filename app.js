@@ -1956,14 +1956,25 @@ function attachExpandedEvents() {
     });
   });
 
-  // Tab switching
+  // Tab switching — surgical re-render of just the expanded card's content
   container.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const actId = btn.dataset.actId;
       const tab = btn.dataset.tab;
       state.activeTab[actId] = tab;
-      // Re-render just the expanded card
+      // Try to replace only the expanded content instead of all phases
+      const card = container.querySelector(`[data-activity-id="${actId}"].expanded`);
+      if (card) {
+        const act = getActivity(actId);
+        const expandedEl = card.querySelector('.expanded-content');
+        if (act && expandedEl) {
+          expandedEl.outerHTML = renderExpandedContent(act);
+          attachExpandedEvents();
+          return;
+        }
+      }
+      // Fallback: full re-render if surgical update fails
       renderPhases();
       attachExpandedEvents();
     });
@@ -2008,8 +2019,7 @@ function attachExpandedEvents() {
       if (mins <= 0) return;
       const note = noteEl ? noteEl.value.trim() : '';
       addTimeSpentEntry(actId, mins, note);
-      clearCache();
-      renderPhases();
+      renderPhases();  // renderPhases() already calls clearCache() internally
       attachExpandedEvents();
     });
   });
@@ -2391,8 +2401,7 @@ function attachExpandedEvents() {
       state.timeSpent = state.timeSpent.filter(e => e.id !== entryId);
       queueWrite('deleteTimeSpentEntry', { id: entryId });
       recalcActualMinutes(actId);
-      clearCache();
-      renderPhases();
+      renderPhases();  // renderPhases() already calls clearCache() internally
       renderStatusBar();
       attachExpandedEvents();
     });
