@@ -120,6 +120,25 @@ body {
 .now-doing-toggle:hover {
   background: rgba(255,255,255,0.25);
 }
+/* Undo button */
+.undo-btn {
+  background: none;
+  border: none;
+  color: var(--text-on-dark);
+  opacity: 0.6;
+  font-size: 1.25rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition), background var(--transition);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.undo-btn:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.15);
+}
 
 .top-bar-left {
   display: flex;
@@ -3104,13 +3123,58 @@ mark {
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
+/* Prompts box - indigo */
+.settings-prompts-box {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: var(--radius-sm);
+}
+.settings-info-indigo {
+  font-size: 0.78rem;
+  color: #3730a3;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+/* Demo Data box - teal */
+.settings-demo-box {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: var(--radius-sm);
+}
+.settings-info-teal {
+  font-size: 0.78rem;
+  color: #115e59;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+/* Reset Project box - amber */
+.settings-reset-box {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-sm);
+}
+.settings-info-amber {
+  font-size: 0.78rem;
+  color: #92400e;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
 .btn-accent {
   background: var(--accent);
   color: white;
   border: none;
 }
 .btn-accent:hover {
-  opacity: 0.9;
+  background: var(--accent-hover);
 }
 .btn-success {
   background: #16a34a;

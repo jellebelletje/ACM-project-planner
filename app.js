@@ -179,6 +179,105 @@ function loadFromLocalCache() {
   return false;
 }
 
+// ---- Undo System ----
+const UNDO_MAX = 5;
+const undoStack = [];
+let _undoGroupKey = null;
+let _undoGroupTimer = null;
+let _undoInProgress = false;
+const UNDO_GROUP_TIMEOUT = 2000;
+
+function snapshotForUndo(label, groupKey) {
+  if (_undoInProgress) return;
+  if (groupKey) {
+    if (_undoGroupKey === groupKey) {
+      clearTimeout(_undoGroupTimer);
+      _undoGroupTimer = setTimeout(() => { _undoGroupKey = null; }, UNDO_GROUP_TIMEOUT);
+      return;
+    }
+    _undoGroupKey = groupKey;
+    clearTimeout(_undoGroupTimer);
+    _undoGroupTimer = setTimeout(() => { _undoGroupKey = null; }, UNDO_GROUP_TIMEOUT);
+  }
+  const snapshot = {
+    activities: JSON.parse(JSON.stringify(state.activities)),
+    todos: JSON.parse(JSON.stringify(state.todos)),
+    questions: JSON.parse(JSON.stringify(state.questions)),
+    agreements: JSON.parse(JSON.stringify(state.agreements)),
+    notes: JSON.parse(JSON.stringify(state.notes)),
+    milestones: JSON.parse(JSON.stringify(state.milestones)),
+    config: JSON.parse(JSON.stringify(state.config)),
+  };
+  undoStack.push({ label, snapshot, timestamp: Date.now() });
+  if (undoStack.length > UNDO_MAX) undoStack.shift();
+  renderUndoButton();
+}
+
+function generateDiffOps(snapshot) {
+  const ops = [];
+  const collections = [
+    { key: 'activities', add: 'addActivity', update: 'updateActivity', del: 'deleteActivity' },
+    { key: 'todos', add: 'addTodo', update: 'updateTodo', del: 'deleteTodo' },
+    { key: 'questions', add: 'addQuestion', update: 'updateQuestion', del: 'deleteQuestion' },
+    { key: 'agreements', add: 'addAgreement', update: 'updateAgreement', del: 'deleteAgreement' },
+    { key: 'notes', add: 'addNote', update: 'updateNote', del: 'deleteNote' },
+    { key: 'milestones', add: 'updateMilestone', update: 'updateMilestone', del: 'deleteMilestone' },
+  ];
+  collections.forEach(({ key, add, update, del }) => {
+    const snapMap = new Map((snapshot[key] || []).map(item => [item.id, item]));
+    const currMap = new Map((state[key] || []).map(item => [item.id, item]));
+    currMap.forEach((item, id) => { if (!snapMap.has(id)) ops.push({ action: del, data: { id } }); });
+    snapMap.forEach((snapItem, id) => {
+      const curItem = currMap.get(id);
+      if (!curItem) { ops.push({ action: add, data: snapItem }); }
+      else if (JSON.stringify(snapItem) !== JSON.stringify(curItem)) { ops.push({ action: update, data: snapItem }); }
+    });
+  });
+  if (JSON.stringify(snapshot.config) !== JSON.stringify(state.config)) {
+    ops.push({ action: 'updateConfig', data: snapshot.config });
+  }
+  return ops;
+}
+
+function undo() {
+  if (undoStack.length === 0) return;
+  const { label, snapshot } = undoStack.pop();
+  _undoGroupKey = null;
+  clearTimeout(_undoGroupTimer);
+  _undoInProgress = true;
+  pendingWrites.length = 0;
+  clearTimeout(debounceTimer);
+  const ops = generateDiffOps(snapshot);
+  state.activities = snapshot.activities;
+  state.todos = snapshot.todos;
+  state.questions = snapshot.questions;
+  state.agreements = snapshot.agreements;
+  state.notes = snapshot.notes;
+  state.milestones = snapshot.milestones;
+  state.config = snapshot.config;
+  ops.forEach(op => pendingWrites.push(op));
+  saveToLocalCache();
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(flushWrites, CONFIG.DEBOUNCE_MS);
+  clearCache();
+  renderAll();
+  attachExpandedEvents();
+  _undoInProgress = false;
+  renderUndoButton();
+  showSync('saving');
+}
+
+function renderUndoButton() {
+  const btn = document.getElementById('undoBtn');
+  if (!btn) return;
+  if (undoStack.length === 0) {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    btn.title = 'Undo: ' + undoStack[undoStack.length - 1].label;
+  }
+}
+
 // ---- Data Fetching ----
 async function fetchAll() {
   if (!CONFIG.API_URL) {
@@ -1100,13 +1199,16 @@ function renderNowDoing() {
   const toggle = document.getElementById('nowDoingToggle');
   const inProgress = state.activities.filter(a => a.status === 'in_progress');
 
+  row.style.display = 'flex';
+
   if (inProgress.length === 0) {
-    row.style.display = 'none';
+    content.innerHTML = '<strong>Now doing:</strong>&nbsp; <span style="opacity:0.5">No activities in progress</span>';
+    toggle.style.display = 'none';
+    row.classList.remove('expanded');
     updateMainOffset();
     return;
   }
 
-  row.style.display = 'flex';
   row.classList.remove('expanded');
   const titles = inProgress.map(a => escapeHtml(a.title)).join(' <span style="opacity:0.5">|</span> ');
   content.innerHTML = `<strong>Now doing:</strong>&nbsp; ${titles}`;
@@ -1814,6 +1916,7 @@ function attachExpandedEvents() {
         const newTitle = titleEl.textContent.trim();
         const act = getActivity(actId);
         if (act && newTitle && act.title !== newTitle) {
+          snapshotForUndo('Rename activity', 'title-' + actId);
           const oldTitle = act.title;
           act.title = newTitle;
           queueWrite('updateActivity', { id: actId, title: newTitle });
@@ -1874,6 +1977,7 @@ function attachExpandedEvents() {
       const value = el.value;
       const act = getActivity(actId);
       if (act) {
+        snapshotForUndo('Change ' + field);
         const oldValue = act[field];
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
@@ -1918,6 +2022,7 @@ function attachExpandedEvents() {
       const value = el.textContent.trim();
       const act = getActivity(actId);
       if (act && act[field] !== value) {
+        snapshotForUndo('Edit ' + field, 'actfield-' + actId + '-' + field);
         const oldValue = act[field];
         act[field] = value;
         queueWrite('updateActivity', { id: actId, [field]: value });
@@ -1955,6 +2060,7 @@ function attachExpandedEvents() {
         const newValue = textarea.value.trim();
         const act = getActivity(actId);
         if (act) {
+          snapshotForUndo('Edit guidance', 'guidance-' + actId);
           const oldValue = act.particularisation_guidance;
           act.particularisation_guidance = newValue;
           queueWrite('updateActivity', { id: actId, particularisation_guidance: newValue });
@@ -2011,6 +2117,7 @@ function attachExpandedEvents() {
       const todoId = cb.dataset.todoId;
       const todo = getTodo(todoId);
       if (todo) {
+        snapshotForUndo('Toggle todo');
         todo.is_done = cb.checked;
         todo.completed_at = cb.checked ? new Date().toISOString() : '';
         queueWrite('updateTodo', { id: todoId, is_done: cb.checked, completed_at: todo.completed_at });
@@ -2030,6 +2137,7 @@ function attachExpandedEvents() {
       const text = el.textContent.trim();
       const todo = getTodo(todoId);
       if (todo && todo.text !== text) {
+        snapshotForUndo('Edit todo text', 'todotext-' + todoId);
         const oldText = todo.text;
         todo.text = text;
         queueWrite('updateTodo', { id: todoId, text: text });
@@ -2045,6 +2153,7 @@ function attachExpandedEvents() {
       const todoId = btn.dataset.todoId;
       const todo = getTodo(todoId);
       if (todo) {
+        snapshotForUndo('Delete todo');
         trackTemplateChange('delete', 'Todos', todoId, '', todo.text, '', 'Todo deleted: ' + truncate(todo.text, 60));
         todo.active = false;
         queueWrite('updateTodo', { id: todoId, active: false });
@@ -2062,6 +2171,7 @@ function attachExpandedEvents() {
       const todoId = btn.dataset.todoId;
       const todo = getTodo(todoId);
       if (todo) {
+        snapshotForUndo('Restore todo');
         todo.active = true;
         queueWrite('updateTodo', { id: todoId, active: true });
         renderPhases();
@@ -2104,6 +2214,7 @@ function attachExpandedEvents() {
         sequence: getActivityTodos(btn.dataset.actId).length,
         active: true
       };
+      snapshotForUndo('Add todo');
       state.todos.push(todo);
       queueWrite('addTodo', todo);
       trackTemplateChange('add', 'Todos', todo.id, '', '', JSON.stringify(todo), 'Todo added: ' + truncate(text, 60));
@@ -2130,6 +2241,7 @@ function attachExpandedEvents() {
     ta.addEventListener('input', () => {
       clearTimeout(timer);
       autoSizeAnswer(ta);
+      snapshotForUndo('Edit answer', 'answer-' + ta.dataset.questionId);
       timer = setTimeout(() => {
         const qId = ta.dataset.questionId;
         const answer = ta.value;
@@ -2157,6 +2269,7 @@ function attachExpandedEvents() {
       const text = el.textContent.trim();
       const q = getQuestion(qId);
       if (q && q.question_text !== text) {
+        snapshotForUndo('Edit question text', 'qtext-' + qId);
         const oldText = q.question_text;
         q.question_text = text;
         queueWrite('updateQuestion', { id: qId, question_text: text });
@@ -2173,6 +2286,7 @@ function attachExpandedEvents() {
       if (text.startsWith('Ask: ')) text = text.substring(5);
       const q = getQuestion(qId);
       if (q && q.ask_whom !== text) {
+        snapshotForUndo('Edit ask whom', 'askwhom-' + qId);
         const oldAskWhom = q.ask_whom;
         q.ask_whom = text;
         queueWrite('updateQuestion', { id: qId, ask_whom: text });
@@ -2189,6 +2303,7 @@ function attachExpandedEvents() {
       const qId = btn.dataset.questionId;
       const question = getQuestion(qId);
       if (question) {
+        snapshotForUndo('Delete question');
         trackTemplateChange('delete', 'Questions', qId, '', question.question_text, '', 'Question deleted: ' + truncate(question.question_text, 60));
         question.active = false;
         queueWrite('updateQuestion', { id: qId, active: false });
@@ -2206,6 +2321,7 @@ function attachExpandedEvents() {
       const qId = btn.dataset.questionId;
       const question = getQuestion(qId);
       if (question) {
+        snapshotForUndo('Restore question');
         question.active = true;
         queueWrite('updateQuestion', { id: qId, active: true });
         renderPhases();
@@ -2232,6 +2348,7 @@ function attachExpandedEvents() {
         sequence: getActivityQuestions(btn.dataset.actId).length,
         active: true
       };
+      snapshotForUndo('Add question');
       state.questions.push(q);
       queueWrite('addQuestion', q);
       trackTemplateChange('add', 'Questions', q.id, '', '', JSON.stringify(q), 'Question added: ' + truncate(text, 60));
@@ -2257,6 +2374,7 @@ function attachExpandedEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const noteId = btn.dataset.noteId;
+      snapshotForUndo('Delete note');
       state.notes = state.notes.filter(n => n.id !== noteId);
       queueWrite('deleteNote', { id: noteId });
       renderPhases();
@@ -2288,6 +2406,7 @@ function attachExpandedEvents() {
       const value = el.textContent.trim();
       const note = getNote(noteId);
       if (note && note[field] !== value) {
+        snapshotForUndo('Edit note', 'note-' + noteId);
         note[field] = value;
         queueWrite('updateNote', { id: noteId, [field]: value });
       }
@@ -2306,6 +2425,7 @@ function attachExpandedEvents() {
         label: 'Note',
         date_added: new Date().toISOString()
       };
+      snapshotForUndo('Add note');
       state.notes.push(note);
       queueWrite('addNote', note);
       renderPhases();
@@ -2328,6 +2448,7 @@ function attachExpandedEvents() {
         label: label,
         date_added: new Date().toISOString()
       };
+      snapshotForUndo('Add link');
       state.notes.push(note);
       queueWrite('addNote', note);
       renderPhases();
@@ -2351,6 +2472,7 @@ function moveCard(actId, direction) {
   const idx = phaseActs.findIndex(a => a.id === actId);
   const swapIdx = idx + direction;
   if (swapIdx < 0 || swapIdx >= phaseActs.length) return;
+  snapshotForUndo('Reorder activities');
 
   // Swap sequences
   const mySeq = act.sequence;
@@ -2370,6 +2492,7 @@ function moveCard(actId, direction) {
 function setActivityStatus(actId, newStatus) {
   const act = getActivity(actId);
   if (!act) return;
+  snapshotForUndo('Change activity status');
   act.status = newStatus;
   queueWrite('updateActivity', { id: act.id, status: newStatus });
   checkPhaseAdvance();
@@ -2381,6 +2504,7 @@ function setActivityStatus(actId, newStatus) {
 function deleteActivity(actId) {
   const act = getActivity(actId);
   const actTitle = act ? act.title : actId;
+  snapshotForUndo('Delete activity');
   state.activities = state.activities.filter(a => a.id !== actId);
   state.todos = state.todos.filter(t => t.activity_id !== actId);
   state.questions = state.questions.filter(q => q.activity_id !== actId);
@@ -2413,6 +2537,7 @@ function addNewActivity(phase) {
     updated_at: new Date().toISOString()
   };
 
+  snapshotForUndo('Add activity');
   state.activities.push(act);
   queueWrite('addActivity', act);
   trackTemplateChange('add', 'Activities', act.id, '', '', JSON.stringify(act), 'Activity added: ' + truncate(title, 60));
@@ -2424,6 +2549,7 @@ function addNewActivity(phase) {
 }
 
 function renamePhase(oldName, newName) {
+  snapshotForUndo('Rename phase');
   state.activities.forEach(a => {
     if (a.pdca_phase === oldName) {
       a.pdca_phase = newName;
@@ -2471,6 +2597,7 @@ function openMilestoneModal(msId, timelineType) {
 function saveMilestone() {
   const name = document.getElementById('msName').value.trim();
   if (!name) return;
+  snapshotForUndo('Edit milestone');
 
   const data = {
     milestone_name: name,
@@ -2498,6 +2625,7 @@ function saveMilestone() {
 
 function deleteMilestoneAction() {
   if (!state.editingMilestoneId) return;
+  snapshotForUndo('Delete milestone');
   state.milestones = state.milestones.filter(m => m.id !== state.editingMilestoneId);
   queueWrite('deleteMilestone', { id: state.editingMilestoneId });
   closeModal('milestoneModal');
@@ -2859,6 +2987,7 @@ function attachAgreementEvents() {
     ta.addEventListener('input', () => {
       clearTimeout(timer);
       autoSizeAnswer(ta);
+      snapshotForUndo('Edit agreement', 'agreement-' + ta.dataset.agreementId);
       timer = setTimeout(() => {
         const agId = ta.dataset.agreementId;
         const agreement = ta.value;
@@ -2890,6 +3019,7 @@ function attachAgreementEvents() {
       const text = el.textContent.trim();
       const ag = getAgreement(agId);
       if (ag && ag.question_agreed !== text) {
+        snapshotForUndo('Edit agreement question', 'agq-' + agId);
         const oldText = ag.question_agreed;
         ag.question_agreed = text;
         queueWrite('updateAgreement', { id: agId, question_agreed: text });
@@ -2904,6 +3034,7 @@ function attachAgreementEvents() {
       const agId = btn.dataset.agreementId;
       const ag = getAgreement(agId);
       if (ag) {
+        snapshotForUndo('Delete agreement');
         trackTemplateChange('delete', 'Agreements', agId, '', ag.question_agreed || ag.agreement, '', 'Agreement deleted: ' + truncate(ag.question_agreed || ag.agreement, 60));
         ag.active = false;
         queueWrite('updateAgreement', { id: agId, active: false });
@@ -2925,6 +3056,7 @@ function attachAgreementEvents() {
         added_by: '',
         added_on: ''
       };
+      snapshotForUndo('Add agreement');
       state.agreements.push(newAg);
       queueWrite('addAgreement', newAg);
       trackTemplateChange('add', 'Agreements', newAg.id, '', '', JSON.stringify(newAg), 'Agreement added');
@@ -3069,6 +3201,7 @@ function openReviewModal(proposals, entryIds, promptSource) {
 
 function applySelectedProposals() {
   if (!pendingProposals || !pendingEntryIds) return;
+  snapshotForUndo('Apply transcript proposals');
 
   const modal = document.getElementById('reviewModal');
   const aiUpdatedIds = new Set();
@@ -4290,6 +4423,7 @@ function updateDurationHint() {
 }
 
 async function saveSettings() {
+  snapshotForUndo('Change settings');
   const newConfig = {
     project_name: document.getElementById('cfgProjectName').value.trim(),
     client_name: document.getElementById('cfgClientName').value.trim(),
@@ -4360,6 +4494,7 @@ function setupHeaderEditing() {
     const current = state.config.project_name || 'ACM Project';
     const newName = prompt('Project name:', current);
     if (newName !== null && newName.trim()) {
+      snapshotForUndo('Rename project');
       state.config.project_name = newName.trim();
       queueWrite('updateConfig', { project_name: newName.trim() });
       updateProjectHeader();
@@ -4370,6 +4505,7 @@ function setupHeaderEditing() {
     const current = state.config.client_name || '';
     const newName = prompt('Client name:', current);
     if (newName !== null) {
+      snapshotForUndo('Rename client');
       state.config.client_name = newName.trim();
       queueWrite('updateConfig', { client_name: newName.trim() });
       updateProjectHeader();
@@ -4455,6 +4591,90 @@ async function resetProjectData() {
   }
 }
 
+async function injectDummyData() {
+  if (!CONFIG.API_URL) {
+    alert('No API URL configured. Please set your API URL in Settings first.');
+    return;
+  }
+  if (!confirm('This will replace all project data with a CuraNova Healthcare Group demo project.\n\nAll existing activities, to-dos, questions, and agreements will be overwritten.\nSOW and transcripts will be added.\n\nContinue?')) {
+    return;
+  }
+
+  const loading = document.getElementById('loadingOverlay');
+  loading.innerHTML = '<div class="loading-spinner"></div><p>Loading demo data\u2026</p>';
+  loading.classList.remove('hidden');
+
+  try {
+    // 1. Load dummy data JSON
+    let dummyData;
+    try {
+      const resp = await fetch('dummy-data.json?v=' + Date.now());
+      dummyData = await resp.json();
+    } catch {
+      throw new Error('Could not load dummy-data.json. Make sure the file exists.');
+    }
+
+    // 2. Seed activities, todos, questions, agreements via seedAll (clears & replaces)
+    loading.querySelector('p').textContent = 'Seeding activities and questions\u2026';
+    const seedPayload = {
+      activities: dummyData.activities,
+      todos: dummyData.todos,
+      questions: dummyData.questions,
+      agreements: dummyData.agreements
+    };
+    if (dummyData.config) {
+      // Preserve the user's master_sheet_id and template_sheet_id — never overwrite these
+      const safeConfig = { ...dummyData.config };
+      delete safeConfig.master_sheet_id;
+      delete safeConfig.template_sheet_id;
+      seedPayload.config = safeConfig;
+    }
+
+    const seedResp = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'seedAll', data: seedPayload }),
+      redirect: 'follow'
+    });
+    const seedResult = await seedResp.json();
+    if (seedResult.error) throw new Error('Seed failed: ' + seedResult.error);
+
+    // 3. Add SOW + transcripts via batchUpdate (these sheets aren't cleared by seedAll)
+    loading.querySelector('p').textContent = 'Adding SOW and transcripts\u2026';
+    const batchOps = [];
+    if (dummyData.sow) {
+      batchOps.push({ action: 'addSowEntry', data: dummyData.sow });
+    }
+    if (dummyData.transcripts) {
+      dummyData.transcripts.forEach(t => batchOps.push({ action: 'addTranscriptEntry', data: t }));
+    }
+    if (batchOps.length > 0) {
+      const batchResp = await fetch(CONFIG.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'batchUpdate', data: batchOps }),
+        redirect: 'follow'
+      });
+      const batchResult = await batchResp.json();
+      if (batchResult.error) throw new Error('Batch failed: ' + batchResult.error);
+    }
+
+    // 4. Reload everything from the backend
+    loading.querySelector('p').textContent = 'Loading demo dashboard\u2026';
+    await fetchAll();
+
+    loading.classList.add('hidden');
+    renderAll();
+    attachExpandedEvents();
+    closeModal('settingsModal');
+
+  } catch (e) {
+    console.error('Demo data injection failed:', e);
+    loading.classList.add('hidden');
+    alert('Failed to inject demo data: ' + e.message);
+  }
+}
+
 // ---- Initialization ----
 
 async function init() {
@@ -4475,6 +4695,19 @@ async function init() {
       window.location.href = 'index.html';
     });
   }
+
+  // Undo button click
+  document.getElementById('undoBtn').addEventListener('click', undo);
+
+  // Ctrl+Z / Cmd+Z keyboard shortcut (only when not in a text field)
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
+      e.preventDefault();
+      undo();
+    }
+  });
 
   // Delegated event listeners on stable containers (registered once, not per-render)
 
@@ -4556,6 +4789,7 @@ async function init() {
       const actId = completeBtn.dataset.completeId;
       const act = getActivity(actId);
       if (act) {
+        snapshotForUndo('Toggle activity complete');
         const newStatus = act.status === 'completed' ? 'not_started' : 'completed';
         act.status = newStatus;
         queueWrite('updateActivity', { id: actId, status: newStatus });
@@ -4784,10 +5018,18 @@ async function startAiConfiguration() {
   loading.classList.remove('hidden');
 
   try {
+    // Read touch level directly from the dropdown (not state.config, which may not be saved yet
+    // because the "AI Configuration" button doesn't call saveSettings() first)
+    const touchSelect = document.getElementById('cfgAcmTouchLevel');
+    const touchLevel = touchSelect ? touchSelect.value : (state.config.acm_touch_level || 'full');
+    // Also persist it to state and sheet so it stays consistent
+    state.config.acm_touch_level = touchLevel;
+    queueWrite('updateConfig', { acm_touch_level: touchLevel });
+
     const resp = await fetch(CONFIG.API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'aiConfigure', data: { acm_touch_level: state.config.acm_touch_level || 'full' } }),
+      body: JSON.stringify({ action: 'aiConfigure', data: { acm_touch_level: touchLevel } }),
       redirect: 'follow'
     });
     const result = await resp.json();
@@ -5015,6 +5257,7 @@ function applyStep1FromModal() {
   const modal = document.getElementById('aiConfigModal');
   const configuration = aiWizard.step1Data;
   if (!configuration || !configuration.phases) return [];
+  snapshotForUndo('AI Config: prioritise activities');
 
   const prioritisedIds = [];
   aiConfigApplyStats.deprioritised = 0;
@@ -5117,6 +5360,7 @@ function applyStep2FromModal() {
   const modal = document.getElementById('aiConfigModal');
   const refinements = aiWizard.step2Data;
   if (!refinements) return;
+  snapshotForUndo('AI Config: refine todos/questions');
 
   const deactTodos = refinements.deactivate_todos || [];
   const deactQuestions = refinements.deactivate_questions || [];
@@ -5160,6 +5404,7 @@ function applyStep3FromModal() {
   const modal = document.getElementById('aiConfigModal');
   const tailoring = aiWizard.step3Data;
   if (!tailoring) return;
+  snapshotForUndo('AI Config: tailor names');
 
   const renames = tailoring.renames || [];
   aiConfigApplyStats.renamed = 0;

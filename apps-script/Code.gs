@@ -1129,7 +1129,15 @@ function generateInsights(data) {
 // ---- AI Configuration ----
 
 // Shared helper: call Claude and parse JSON response
-function callClaudeForJson(apiKey, prompt, errorPrefix) {
+function callClaudeForJson(apiKey, prompt, errorPrefix, systemPrompt) {
+  var payload = {
+    model: 'claude-sonnet-4-6',
+    max_tokens: 16384,
+    messages: [{ role: 'user', content: prompt }]
+  };
+  if (systemPrompt) {
+    payload.system = systemPrompt;
+  }
   var response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
     method: 'post',
     headers: {
@@ -1137,11 +1145,7 @@ function callClaudeForJson(apiKey, prompt, errorPrefix) {
       'anthropic-version': '2023-06-01',
       'content-type': 'application/json'
     },
-    payload: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 16384,
-      messages: [{ role: 'user', content: prompt }]
-    }),
+    payload: JSON.stringify(payload),
     muteHttpExceptions: true
   });
 
@@ -1243,10 +1247,16 @@ function aiConfigure(data) {
     prompt = 'You are an expert Adoption & Change Management (ACM) consultant.\n\n' +
       'TASK: Analyse the SOW and recommend which activities to prioritise, deprioritise, or add.\n' +
       'Do NOT suggest renames in this step — focus only on prioritisation.\n\n' +
-      'ACM ENGAGEMENT LEVEL: ' + acmTouchLevel + '\n' +
-      '- "full": Keep most/all activities.\n' +
-      '- "medium": Keep core diagnosis, design, deployment, measurement. Deprioritise advanced/specialist.\n' +
-      '- "light": Minimal ACM — typically only a plan and/or training. Be aggressive about deprioritising.\n\n' +
+      'ACM ENGAGEMENT LEVEL: ' + acmTouchLevel + '\n\n' +
+      'CRITICAL — The engagement level MUST control how many activities you keep vs deprioritise.\n' +
+      'A full ACM engagement typically has 32-34 activities. Use this as the baseline.\n\n' +
+      '- "full": Keep most/all activities (28-34). Only deprioritise truly irrelevant ones.\n' +
+      '- "medium": Keep 15-25 activities, deprioritise the rest (10-19). Cut advanced, specialist, nice-to-have. ' +
+      'Focus on stakeholder analysis, impact assessment, change plan, champion network, core comms, training, readiness, adoption measurement, handover.\n' +
+      '- "light": RUTHLESSLY deprioritise. Keep ONLY 8-12 activities total. The MAJORITY (20+) MUST be deprioritised. ' +
+      'Only keep: ACM plan, basic stakeholder analysis, core comms, training, and handover.\n\n' +
+      'YOU MUST FOLLOW THE ENGAGEMENT LEVEL. If "light", the majority MUST be deprioritised. If "medium", roughly a third should be deprioritised.\n' +
+      'Do NOT keep all activities — that would be ignoring the user\'s explicit instruction.\n\n' +
       'SOW:\n' + sowContent + '\n\n' +
       'TECHNICAL SUMMARY:\n' + (technicalSummary || '(none)') + '\n\n' +
       'ACTIVITIES:\n' + activitiesSummary + '\n\n' +
@@ -1261,13 +1271,69 @@ function aiConfigure(data) {
       '    "new_activities": [{ "title": "New activity", "intro_text": "Description", "rationale": "Why needed", "todos": ["Todo 1"], "questions": [{ "question_text": "...", "sub_topic": "...", "ask_whom": "..." }] }]\n' +
       '  }]\n}\n\n' +
       'IMPORTANT: Every existing activity must appear in either prioritised or deprioritised. ' +
+      'ENFORCE COUNTS — "light": 8-12 prioritised, 20+ deprioritised. "medium": 15-25 prioritised, 10-19 deprioritised. "full": 28-34.\n' +
+      'If you return more than 12 for "light" or more than 25 for "medium", you are doing it WRONG.\n' +
       'Phases: "Plan I: Diagnosis", "Plan II: Design + Activate Champions", "Do: Deployment", "Check: Analysis", "Act: Handover, Anchor & Learn"';
   }
 
+  // Count total activities so Claude knows the baseline
+  var totalActivityCount = activities.length;
+
+  // Build a system prompt with hard engagement-level constraints
+  // This runs regardless of what's in the sheet template, ensuring enforcement
+  var engagementRules = {
+    'light': {
+      keepMin: 8, keepMax: 12,
+      instruction: 'This is a LIGHT touch engagement. You MUST ruthlessly deprioritise. ' +
+        'There are ' + totalActivityCount + ' activities total. You must keep ONLY 8-12 and deprioritise ALL the rest (' + (totalActivityCount - 12) + '+). ' +
+        'Only keep the absolute essentials: project admin, basic stakeholder analysis, a change/ACM plan, core communications, training delivery, and handover. ' +
+        'Everything else — workshops, detailed assessments, champion programmes, resistance management, feedback loops, persona work — gets deprioritised.'
+    },
+    'medium': {
+      keepMin: 15, keepMax: 25,
+      instruction: 'This is a MEDIUM engagement. There are ' + totalActivityCount + ' activities total. ' +
+        'You must keep 15-25 and deprioritise the rest (' + Math.max(0, totalActivityCount - 25) + '-' + Math.max(0, totalActivityCount - 15) + '). ' +
+        'Cut advanced, specialist, and nice-to-have activities. Keep core diagnosis, design, deployment, measurement, and handover.'
+    },
+    'full': {
+      keepMin: 28, keepMax: totalActivityCount,
+      instruction: 'This is a FULL engagement. Keep most or all of the ' + totalActivityCount + ' activities. Only deprioritise truly irrelevant ones.'
+    }
+  };
+
+  var rules = engagementRules[acmTouchLevel] || engagementRules['full'];
+  var systemPrompt = 'You are an expert Adoption & Change Management (ACM) consultant. ' +
+    'You MUST follow the engagement level constraint precisely.\n\n' +
+    'ENGAGEMENT LEVEL: ' + acmTouchLevel.toUpperCase() + '\n' +
+    rules.instruction + '\n\n' +
+    'HARD CONSTRAINT: Your response must have between ' + rules.keepMin + ' and ' + rules.keepMax + ' total prioritised activities across all phases. ' +
+    'If you exceed ' + rules.keepMax + ' prioritised activities, your response is WRONG and violates the user\'s instruction. ' +
+    'Every activity not in "prioritised" MUST appear in "deprioritised". Do not omit any.';
+
   try {
-    var result = callClaudeForJson(apiKey, prompt, 'Step 1 failed');
+    var result = callClaudeForJson(apiKey, prompt, 'Step 1 failed', systemPrompt);
     if (result.error) return result;
-    return { success: true, configuration: result.data, prompt_source: promptSource };
+    // Return debug info so frontend can verify what was actually sent
+    var totalPrioritised = 0;
+    var totalDeprioritised = 0;
+    if (result.data && result.data.phases) {
+      result.data.phases.forEach(function(p) {
+        totalPrioritised += (p.prioritised || []).length;
+        totalDeprioritised += (p.deprioritised || []).length;
+      });
+    }
+    return {
+      success: true,
+      configuration: result.data,
+      prompt_source: promptSource,
+      debug: {
+        touch_level_received: acmTouchLevel,
+        total_activities_in_sheet: totalActivityCount,
+        ai_returned_prioritised: totalPrioritised,
+        ai_returned_deprioritised: totalDeprioritised,
+        system_prompt_preview: systemPrompt.substring(0, 300) + '...'
+      }
+    };
   } catch (err) {
     return { error: 'Step 1 failed: ' + err.message };
   }

@@ -4,9 +4,16 @@ TASK: Analyse the SOW and recommend which activities to prioritise, deprioritise
 Focus ONLY on activity-level prioritisation — do NOT suggest renames in this step.
 
 ACM ENGAGEMENT LEVEL: {{ACM_TOUCH_LEVEL}}
-- "full": Comprehensive ACM engagement. Keep most or all activities. Only deprioritise truly irrelevant ones.
-- "medium": Focus on core diagnosis, design, deployment, and measurement. Deprioritise advanced or specialist activities.
-- "light": Minimal ACM. Be aggressive about deprioritising. Typically only keep activities related to creating a plan, delivering training, and basic stakeholder communication.
+
+CRITICAL — The engagement level MUST control how many activities you keep vs deprioritise:
+
+A full ACM engagement typically has 32-34 activities across all phases. Use this as the baseline.
+
+- "full": Comprehensive ACM engagement. Keep most or all activities (28-34). Only deprioritise activities that are truly irrelevant to this specific SOW.
+- "medium": Balanced ACM engagement. Keep 15-25 activities and deprioritise the rest (typically 10-19 deprioritised). Cut advanced, specialist, or nice-to-have activities. Focus on: stakeholder analysis, impact assessment, change plan, champion network, core communications, training, readiness checks, adoption measurement, and handover. Deprioritise things like: detailed persona work, advanced resistance management, executive coaching, elaborate feedback loops, and specialist workshops.
+- "light": Minimal ACM engagement. RUTHLESSLY deprioritise. Keep ONLY 8-12 activities total — the absolute essentials. The MAJORITY of activities (20+ out of ~34) MUST go into the "deprioritised" array. Typically only keep: creating an ACM plan, basic stakeholder analysis, core communications, delivering training, and a handover activity. Everything else gets deprioritised.
+
+YOU MUST FOLLOW THE ENGAGEMENT LEVEL. If the level is "light", you MUST deprioritise the majority of activities. If "medium", roughly a third should be deprioritised. Do NOT keep all activities for "light" or "medium" — that would be ignoring the user's explicit instruction.
 
 STATEMENT OF WORK:
 {{SOW_CONTENT}}
@@ -23,16 +30,19 @@ MILESTONES:
 ---
 
 INSTRUCTIONS:
-1. Evaluate each activity's relevance given the SOW scope, project size, and ACM engagement level.
-2. Return a prioritised list per phase, ordered by importance for this specific SOW.
-3. Suggest new activities only if the SOW describes work clearly not covered by existing cards.
-4. Provide a brief rationale for each prioritisation/deprioritisation decision.
+1. FIRST, check the ACM engagement level above. This determines your deprioritisation aggressiveness.
+2. Evaluate each activity's relevance given the SOW scope, project size, and the engagement level.
+3. Return a prioritised list per phase, ordered by importance for this specific SOW.
+4. Suggest new activities only if the SOW describes work clearly not covered by existing cards.
+5. Provide a brief rationale for each prioritisation/deprioritisation decision.
 
 IMPORTANT RULES:
 - Every existing activity MUST appear in either "prioritised" or "deprioritised" — do not omit any.
 - Maintain original phase assignments. Do not move activities between phases.
 - The phases are: "Plan I: Diagnosis", "Plan II: Design + Activate Champions", "Do: Deployment", "Check: Analysis", "Act: Handover, Anchor & Learn"
-- For "light" touch: typically 8-12 activities total. For "medium": 15-25. For "full": most activities.
+- ENFORCE THESE COUNTS — For "light": 8-12 prioritised, 20+ deprioritised. For "medium": 15-25 prioritised. For "full": 28-34 prioritised.
+- If you return more than 12 prioritised activities for a "light" engagement, you are doing it WRONG.
+- If you return more than 25 prioritised activities for a "medium" engagement, you are doing it WRONG.
 - Use the activity title as-is (no renaming in this step).
 
 Return ONLY valid JSON (no markdown fencing, no text outside the JSON):

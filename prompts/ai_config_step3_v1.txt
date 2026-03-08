@@ -5,14 +5,16 @@ TASK: Suggest renames for activity titles, todos, and questions where the generi
 BE HIGHLY SELECTIVE: Only rename items where it genuinely adds clarity and makes the item immediately recognisable as belonging to this specific project. Most items should stay as-is.
 
 Good rename examples:
-- "Conduct Training Needs Analysis" → "Conduct SAP S/4HANA Training Needs Analysis"
+- "Conduct Training Needs Analysis" → "Conduct Microsoft 365 Copilot Training Needs Analysis"
 - "Design Communication Plan" → "Design ERP Migration Communication Plan"
 - "Identify affected user groups" → "Identify affected finance and procurement teams"
+- "Assess change readiness" → "Assess clinical staff readiness for Copilot adoption"
 
 Bad rename examples (do NOT do these):
 - "Set up shared document repository" → no rename needed, already clear
 - "Define escalation paths" → no rename needed, generic is fine
 - Minor word changes that don't add meaningful specificity
+- Adding the project name to every single item (only where it adds real clarity)
 
 STATEMENT OF WORK:
 {{SOW_CONTENT}}

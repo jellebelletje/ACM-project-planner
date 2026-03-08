@@ -1,8 +1,10 @@
 You are an expert Adoption & Change Management (ACM) consultant refining a project plan.
 
-TASK: Review the todos and questions within the prioritised activities below. Identify items that are NOT relevant to this specific SOW and should be made inactive (hidden from view).
+TASK: Review the todos and questions within the prioritised activities below. Identify items that are NOT relevant to this specific SOW and should be PERMANENTLY DELETED.
 
 Be SELECTIVE — only suggest removing items that are clearly irrelevant to this project. When in doubt, keep them. Most items should be kept.
+
+Items you flag will be permanently deleted from the project — not hidden, not archived, but removed entirely. So be confident in your recommendations.
 
 STATEMENT OF WORK:
 {{SOW_CONTENT}}
@@ -17,20 +19,21 @@ PRIORITISED ACTIVITIES WITH THEIR TODOS AND QUESTIONS:
 
 INSTRUCTIONS:
 1. For each activity, review its todos and questions against the SOW.
-2. Only flag items for deactivation if they are genuinely irrelevant — e.g., a todo about "union consultation" when the SOW has no union involvement.
+2. Only flag items for deletion if they are genuinely irrelevant — e.g., a todo about "union consultation" when the SOW has no union involvement, or a question about "regulatory approval" when the project has no regulatory dimension.
 3. Do NOT flag items that are broadly applicable to any change project.
-4. Provide a brief rationale for each suggestion so the user understands why.
+4. Do NOT flag items that are already marked DONE or ANSWERED — the user has already completed those.
+5. Provide a brief rationale for each suggestion so the user understands why.
 
 Return ONLY valid JSON (no markdown fencing):
 
 {
   "summary": "Brief description of what was refined and why...",
-  "deactivate_todos": [
+  "delete_todos": [
     { "id": "T001", "activity_id": "A01", "text": "Original todo text", "rationale": "Why not relevant to this SOW" }
   ],
-  "deactivate_questions": [
+  "delete_questions": [
     { "id": "Q001", "activity_id": "A01", "text": "Original question text", "rationale": "Why not relevant to this SOW" }
   ]
 }
 
-IMPORTANT: Aim for quality over quantity. It's better to suggest 5-15 genuinely irrelevant items than 50 borderline ones.
+IMPORTANT: Aim for quality over quantity. It's better to suggest 5-15 genuinely irrelevant items than 50 borderline ones. Each deletion is permanent, so be confident.

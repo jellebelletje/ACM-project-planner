@@ -37,7 +37,8 @@
           <button class="btn-icon" id="settingsBtn" title="Project Settings">&#9881;</button>
         </div>
       </div>
-      <div class="top-bar-row now-doing-row" id="nowDoingRow" style="display:none;">
+      <div class="top-bar-row now-doing-row" id="nowDoingRow">
+        <button class="undo-btn" id="undoBtn" style="display:none;" title="Undo">&#x21A9;</button>
         <div class="now-doing-content" id="nowDoing"></div>
         <button class="now-doing-toggle" id="nowDoingToggle" style="display:none;">+</button>
       </div>
@@ -146,15 +147,17 @@
             <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
           </div>
           <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border);">
-          <div class="modal-actions">
-            <button class="btn-danger" onclick="resetProjectData()" style="font-size:0.85rem;">Reset Project Data to Template</button>
-            <p style="font-size:0.75rem;color:var(--text-light);margin-top:0.5rem;">Resets all activities, to-dos, and questions to the standard template. Your project name and client are kept.</p>
-          </div>
           <div class="settings-advanced-toggle" onclick="this.nextElementSibling.classList.toggle('visible')">
             Advanced Features &#9660;
           </div>
           <div class="settings-advanced-section">
-            <button class="btn-small btn-accent" onclick="closeModal('settingsModal');openPromptEditor()">Edit Prompts</button>
+            <div class="settings-prompts-box">
+              <p class="settings-info-indigo">
+                View and edit the AI prompts used for transcript processing, insights, and configuration.
+                Customise how the AI interprets and responds to your project data.
+              </p>
+              <button class="btn-small btn-accent" onclick="closeModal('settingsModal');openPromptEditor()">Edit Prompts</button>
+            </div>
             <div class="settings-ai-config-box">
               <p class="settings-info">
                 Analyse your Statement of Work and get an AI-powered recommendation for which activities
@@ -170,12 +173,32 @@
               </div>
               <span class="field-hint" id="touchLevelHint" style="font-size:0.68rem;color:#9a3412;margin-top:0.3rem;display:block;">Full Programme: comprehensive ACM engagement across all activities</span>
             </div>
-            <div class="settings-danger-box">
-              <p class="settings-warning">
-                Use with caution. Resetting the seed template will revert all changes you have
-                made to the template. You will lose all your customisations.
+            <div class="settings-demo-box">
+              <p class="settings-info-teal">
+                Load a realistic demo project with pre-filled data for the CuraNova Healthcare Group.
+                Includes a Statement of Work, completed activities, answered questions, agreements, and
+                meeting transcripts. Great for demos and testing.
               </p>
-              <button class="btn-small btn-danger" onclick="reseedTemplate()">Reset Seed Template</button>
+              <button class="btn-small btn-success" onclick="injectDummyData()">Insert Demo Data</button>
+            </div>
+            <div class="settings-reset-box">
+              <p class="settings-info-amber">
+                Reset all activities, to-dos, and questions to the standard ACM template.
+                Your project name and client name will be kept. SOW and transcripts are not affected.
+              </p>
+              <button class="btn-small btn-danger" onclick="resetProjectData()">Reset Project Data to Template</button>
+            </div>
+            <div class="settings-advanced-toggle" onclick="this.nextElementSibling.classList.toggle('visible')" style="margin-top:1.25rem;">
+              Really Advanced Features &#9660;
+            </div>
+            <div class="settings-advanced-section">
+              <div class="settings-danger-box">
+                <p class="settings-warning">
+                  Use with caution. Resetting the seed template will revert all changes you have
+                  made to the template. You will lose all your customisations.
+                </p>
+                <button class="btn-small btn-danger" onclick="reseedTemplate()">Reset Seed Template</button>
+              </div>
             </div>
           </div>
         </div>
