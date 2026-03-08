@@ -4132,3 +4132,52 @@ mark {
 .cards-grid-deprioritised .activity-card:hover {
   opacity: 0.85;
 }
+
+/* ---- Restore Overlay for Deprioritised Cards ---- */
+.depri-restore-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: var(--radius);
+}
+.cards-grid-deprioritised .activity-card:hover .depri-restore-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.btn-restore-depri {
+  padding: 10px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  background: var(--accent);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+.btn-restore-depri:hover {
+  background: #2563eb;
+  transform: scale(1.05);
+}
+
+/* ---- Restore Button in Expanded Deprioritised Card ---- */
+.btn-restore-depri-expanded {
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  font-weight: 600;
+}
+.btn-restore-depri-expanded:hover {
+  background: var(--accent) !important;
+  color: white !important;
+}

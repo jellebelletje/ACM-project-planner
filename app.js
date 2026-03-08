@@ -1397,6 +1397,12 @@ function renderCard(act) {
         <button class="card-complete-btn${act.status === 'completed' ? ' is-completed' : ''}" data-complete-id="${escapeHtml(act.id)}" title="${act.status === 'completed' ? 'Mark as not started' : 'Mark as completed'}">${act.status === 'completed' ? '☑' : '☐'}</button>
       </span>
     </div>`;
+    // Restore overlay for collapsed deprioritised cards (appears on hover via CSS)
+    if (act.deprioritised) {
+      html += `<div class="depri-restore-overlay">
+        <button class="btn-restore-depri" data-restore-id="${escapeHtml(act.id)}">&#8634; Restore</button>
+      </div>`;
+    }
   } else {
     html += renderExpandedContent(act);
   }
@@ -1579,7 +1585,16 @@ function renderOverviewTab(act) {
       </select>
     </div>`;
 
-  if (act.status === 'inactive') {
+  if (act.deprioritised) {
+    html += `<div style="display:flex;gap:8px;align-items:flex-end;margin-left:auto;">
+      <button class="btn-small btn-restore-depri-expanded" data-restore-id="${escapeHtml(act.id)}">&#8634; Restore this card</button>`;
+    if (act.status === 'inactive') {
+      html += `<button class="btn-small btn-delete-activity" data-delete-id="${escapeHtml(act.id)}">&#128465; Delete permanently</button>`;
+    } else {
+      html += `<button class="btn-small btn-deactivate" data-deactivate-id="${escapeHtml(act.id)}">&#10005; Make inactive</button>`;
+    }
+    html += `</div>`;
+  } else if (act.status === 'inactive') {
     html += `<div style="display:flex;gap:8px;align-items:flex-end;margin-left:auto;">
       <button class="btn-small btn-reactivate" data-reactivate-id="${escapeHtml(act.id)}">&#9654; Reactivate this activity</button>
       <button class="btn-small btn-delete-activity" data-delete-id="${escapeHtml(act.id)}">&#128465; Delete this activity permanently</button>
@@ -1790,6 +1805,12 @@ function expandActivity(actId) {
   } else {
     state.expandedActivityId = actId;
     if (!state.activeTab[actId]) state.activeTab[actId] = 'overview';
+    // Auto-open deprioritised section if expanding a deprioritised card
+    const act = getActivity(actId);
+    if (act && act.deprioritised && act.pdca_phase) {
+      if (!state.showInactive) state.showInactive = {};
+      state.showInactive[act.pdca_phase] = true;
+    }
   }
   renderPhases();
   renderNav();
@@ -1953,6 +1974,14 @@ function attachExpandedEvents() {
       if (confirm('Permanently delete this activity and all its todos, questions, and notes? This cannot be undone.')) {
         deleteActivity(btn.dataset.deleteId);
       }
+    });
+  });
+
+  // Restore deprioritised (expanded card)
+  container.querySelectorAll('.btn-restore-depri-expanded').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      restoreDeprioritisedActivity(btn.dataset.restoreId);
     });
   });
 
@@ -2505,6 +2534,18 @@ function setActivityStatus(actId, newStatus) {
   act.status = newStatus;
   queueWrite('updateActivity', { id: act.id, status: newStatus });
   checkPhaseAdvance();
+  state.expandedActivityId = null;
+  renderAll();
+  attachExpandedEvents();
+}
+
+function restoreDeprioritisedActivity(actId) {
+  const act = getActivity(actId);
+  if (!act || !act.deprioritised) return;
+  snapshotForUndo('Restore deprioritised activity');
+  act.deprioritised = false;
+  if (act.status === 'inactive') act.status = 'not_started';
+  queueWrite('updateActivity', { id: act.id, deprioritised: false, status: act.status });
   state.expandedActivityId = null;
   renderAll();
   attachExpandedEvents();
@@ -4813,9 +4854,17 @@ async function init() {
     const logBtn = target.closest('.card-log-time-btn');
     if (logBtn) { e.stopPropagation(); openTimeEntryForActivity(logBtn.dataset.logTimeId); return; }
 
+    // Restore deprioritised card (collapsed overlay button)
+    const restoreBtn = target.closest('.btn-restore-depri');
+    if (restoreBtn) {
+      e.stopPropagation();
+      restoreDeprioritisedActivity(restoreBtn.dataset.restoreId);
+      return;
+    }
+
     // Card click to expand (only collapsed cards)
     const card = target.closest('.activity-card');
-    if (card && !card.classList.contains('expanded') && !target.closest('.card-move-btn') && !target.closest('.card-log-time-btn') && !target.closest('.card-complete-btn')) {
+    if (card && !card.classList.contains('expanded') && !target.closest('.card-move-btn') && !target.closest('.card-log-time-btn') && !target.closest('.card-complete-btn') && !target.closest('.btn-restore-depri')) {
       expandActivity(card.dataset.activityId);
       return;
     }
