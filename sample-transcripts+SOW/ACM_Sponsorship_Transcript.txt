@@ -1,0 +1,37 @@
+TRANSCRIPT: ACM TRAJECTORY SPONSORSHIP MEETING
+Date: October 14, 2024
+Participants: 
+- Alex (ACM Chapter Lead)
+- Sarah (Corporate Social Responsibility Lead at Nexus Tech)
+
+---
+
+Alex: Sarah, thank you for taking the time to discuss the upcoming ACM trajectory. Our students are incredibly excited about the training sessions and the regional competition.
+
+Sarah: It’s our pleasure, Alex. Nexus Tech has always valued the talent coming out of the ACM community. We’re happy to help facilitate this growth.
+
+Alex: That’s great to hear. To make sure we’re aligned, I have a few specific questions regarding the sponsorship. First, what specifically motivated Nexus Tech to sponsor this particular ACM trajectory over other programs?
+
+Sarah: Great question. For us, it’s about the bridge between theory and practice. The ACM trajectory isn't just about coding; it’s about high-level problem-solving under pressure. We see this as a way to foster the next generation of software architects who can handle complex, real-world constraints.
+
+Alex: That makes sense. Regarding the logistics, what does the actual support package look like? Is it strictly financial, or is there a resource component?
+
+Sarah: It’s a hybrid model. We are providing a $10,000 grant to cover travel and registration fees for the regionals. However, we’re also providing the team with access to our proprietary cloud sandbox environment so they can simulate high-load scenarios during their practice sessions.
+
+Alex: That cloud access will be a game-changer for their prep. Beyond tools, will the students have any direct interaction with your team, like a mentorship component?
+
+Sarah: Absolutely. We’ve dedicated four of our senior engineers to act as 'Technical Coaches.' They will hold bi-weekly office hours to review the students' algorithms and offer feedback on code efficiency. We want them to see how a professional team critiques work.
+
+Alex: That’s invaluable. Now, in terms of visibility, what are your expectations regarding branding and participation from our side?
+
+Sarah: We keep it fairly standard. We’d like the Nexus Tech logo on the team jerseys and the official chapter website. Additionally, we’d appreciate a 15-minute slot during your kickoff event to talk about the engineering challenges we’re currently solving at Nexus.
+
+Alex: We can definitely accommodate that. Finally, many students are curious about the long-term outlook. Is there a direct pipeline for internships or full-time roles for those who complete this trajectory?
+
+Sarah: That is one of our primary goals. Every student who completes the full trajectory and participates in the regional finals is guaranteed a first-round interview for our Summer Internship Program. We’ve found that ACM participants usually bypass the initial technical screening because their performance in this program already proves their capability.
+
+Alex: This sounds like a perfect fit. I'll get the formal agreement over to you by EOD.
+
+Sarah: Perfect. We’re looking forward to seeing what the team achieves.
+---
+END OF TRANSCRIPT

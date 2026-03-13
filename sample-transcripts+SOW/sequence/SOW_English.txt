@@ -1,0 +1,41 @@
+STATEMENT OF WORK
+SoW # 2026-VDS-088 – Secure Care Innovation: AI Integration & Clinical Adoption
+Version 1.0 | March 7, 2026
+
+1. INTRODUCTION
+This Statement of Work (SoW) is established between:
+CuraNova Healthcare Group, located at Medisch Park 12, 5612 AJ Eindhoven (hereinafter "CuraNova")
+and
+Vitalis Digital Solutions B.V., located at Stationsplein 45, 3511 ED Utrecht (hereinafter "Vitalis").
+
+This SoW is effective as of the date of last signature and is governed by the Vitalis Standard Terms and Conditions.
+
+2. PROJECT DESCRIPTION
+2.1 Client Request & Current Situation
+CuraNova aims to increase productivity for clinical and administrative staff through the deployment of Microsoft 365 Copilot. Due to strict medical regulations (GDPR and NEN 7510), an uncontrolled rollout is not feasible. 
+
+Current Status: 'Shadow AI' is prevalent, with staff using unsecured consumer AI for summarizing patient reports. The current Microsoft Purview setup is basic and not optimized for AI governance.
+
+Desired Situation: A secured AI environment preventing data exfiltration, where employees are demonstrably competent in using AI tools safely.
+
+2.2 Technical Solution (Build & Pilot)
+Vitalis will implement the technical foundations for a secure AI ecosystem:
+- Data Security Posture Management (DSPM): Setup of Purview AI Hub for real-time monitoring.
+- Patient Data Protection: Configuration of 10 sensitivity labels with auto-classification for medical records.
+- Endpoint & Cloud Security: Defender for Cloud Apps policies to block unapproved AI (e.g., ChatGPT Free).
+- Governance: SharePoint Advanced Management to manage 'oversharing' in clinical team sites.
+
+3. ADOPTION & CHANGE MANAGEMENT (ACM) DELIVERABLES
+Vitalis uses the VITAL methodology (Verify, Inspire, Train, Activate, Learn).
+- Stakeholder Impact Analysis: Detailed map of impact on nurses, doctors, and back-office.
+- AI-Awareness Toolkit: Videos, posters, and newsletters regarding "Safe AI in Healthcare."
+- CuraNova Champion Program: Training 15 'super-users' across departments.
+- Clinical Prompt Engineering: 3 interactive workshops focused on safe prompting without PII data.
+- Adoption Dashboard: PowerBI dashboard showing active usage and shadow AI reduction.
+- AI Etiquette Guide: A digital handbook for daily clinical use.
+
+4. INVESTMENT
+Total investment: Fixed Fee of € 68,500.- (excl. VAT).
+- 40% upon signature.
+- 40% after technical pilot completion.
+- 20% after completion of the 12-week ACM period.

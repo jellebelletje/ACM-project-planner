@@ -1,0 +1,28 @@
+INTERNAL PROJECT NOTES: "THE GOAT" INITIATIVE
+Consultant: Marcus
+Project Phase: Diagnosis / Design Transition
+
+---
+RE: SCAR TISSUE ASSESSMENT (ACTIVITY A05)
+- Interviewed long-tenured staff (Ref: T036). Major "ghosts" of the 2023 ERP failure still haunt the building. 
+- NOTE: Avoid the phrase "seamless integration." It was used in 2023 and is now a local trigger for "this will break everything."
+- Recommendation: Use "iterative deployment" to signal we are listening to feedback.
+
+RE: SPONSOR READINESS (ACTIVITY A01)
+- David (Ops) is supportive but "visibly busy." CLARC score for 'Active Participation' is currently low. 
+- Need to coach David on "walking the floor." He thinks an email is enough. It isn't.
+
+RE: RESISTANCE RISK PROFILE (ACTIVITY A07)
+- Identified a "silent resistor" cluster in the Compliance department. 
+- They aren't loud, but they are slow-walking the data access approvals. 
+- STRATEGY: Don't fight them on "adoption." Treat it as a "Governance Integration" issue (A16) and escalate to the Steering Committee if access isn't granted by Friday.
+
+RE: SYSTEMIC BARRIERS (ACTIVITY A28)
+- Tech barrier: The legacy VPN is throttling the new cloud sandbox. 
+- This isn't an "adoption" problem—it's an infra problem. If users hit 10-second lag, they will quit.
+- ACTION: Tag this as a "Critical Risk" in the RAID log. Do not launch training until latency is <200ms.
+
+RE: GOVERNANCE (A16)
+- Elena (Project Lead) agreed to give me a slot on the SteerCo. 
+- Note to self: Keep the adoption metrics high-level. They want "is it working?" not "how many clicks per user."
+---

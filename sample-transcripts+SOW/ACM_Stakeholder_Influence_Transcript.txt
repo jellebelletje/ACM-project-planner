@@ -1,0 +1,31 @@
+TRANSCRIPT: STAKEHOLDER MAPPING INTERVIEW (ACTIVITY A02)
+Date: November 5, 2026
+Participants: 
+- Marcus (ACM Specialist)
+- David (Director of Operations)
+
+---
+
+Marcus: David, thanks for the time. As we build out the influence map for the new workflow rollout, I want to look past the official org chart. I’ve seen the boxes and lines, but I’m interested in the "shadow" organization.
+
+David: I like that term. It’s certainly how things actually move around here.
+
+Marcus: Exactly. To start, when you express a view about a change—say, in a leadership meeting—who is really listening? [Ref: Q022]
+
+David: Well, the Finance team waits for my nod, but the Engineering leads usually look to see how Linda from Quality reacts. If she’s not on board, my view doesn't carry much weight with them.
+
+Marcus: That’s a vital connection. So, Linda is an informal gatekeeper. Along those same lines, are there other informal leaders in Operations whose opinion carries weight when things get uncertain? [Ref: Q024]
+
+David: Definitely "Big Pete" in the warehouse. He’s been here 20 years. He doesn't have a manager title, but if he tells the guys the new system is a waste of time, they won't even log in.
+
+Marcus: Good to know. We’ll need to engage Pete early. On a scale of 1–10, how supportive are you personally of this change right now? [Ref: Q021]
+
+David: I’m at a 7. I love the efficiency, but I’m worried about the learning curve for my veterans. If you can show me a simplified "cheat sheet" for the frontline, I’d be a 9. [AGREEMENT: Marcus to provide role-specific cheat sheets to move David to a 9].
+
+Marcus: I can do that. Last thing: who else should I be speaking to that I might have missed? [Ref: Q018]
+
+David: Talk to Maria in Compliance. She doesn't have a large team, but she can halt a rollout if the data audit trail isn't perfect.
+
+Marcus: Perfect. I’ll add her to the interview list.
+---
+END OF TRANSCRIPT

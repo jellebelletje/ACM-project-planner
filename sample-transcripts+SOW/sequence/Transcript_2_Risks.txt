@@ -1,0 +1,17 @@
+TRANSCRIPT 2: RISK PROFILE & CHANGE HISTORY
+Date: March 17, 2026
+Participants: Sarah (ACM Consultant, Vitalis), Dr. Mark (Project Sponsor, CuraNova)
+
+Sarah: Mark, I've analyzed the 'Resistance Risk Profile.' Looking at your change history, the failed implementation of the new scheduling software two years ago is still a major pain point. People are skeptical of new IT 'solutions.'
+
+Mark: That was a disaster. It added three steps to every nurse's workflow.
+
+Sarah: That’s the pattern. The biggest adoption risk here is the perception that AI is just 'more work' or 'another layer of monitoring.' We need to address this gap by showing immediate 'Time-Back' wins in our interventions.
+
+Mark: I want to make sure the staff feels supported. Could you also organize some evening sessions for the employees' families? They are curious about AI, and it might help build a positive culture at home too.
+
+Sarah: [Scope Management] While I love the enthusiasm, family-oriented workshops are outside the scope of this professional ACM project. Our 12-day allocation is strictly for clinical and administrative staff training and the Champion network. We need to keep our resources focused on the HIPAA/NEN 7510 compliance training.
+
+Mark: Understood. Let's keep it professional. What are the next steps for the 'Time-Back' analysis?
+
+Sarah: I’ll be interviewing the Ward Secretaries tomorrow to see exactly where Copilot can shave off 30 minutes of admin work.

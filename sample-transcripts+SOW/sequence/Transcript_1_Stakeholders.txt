@@ -1,0 +1,15 @@
+TRANSCRIPT 1: STAKEHOLDER DIAGNOSIS & SPONSORSHIP
+Date: March 10, 2026
+Participants: Sarah (ACM Consultant, Vitalis), Dr. Mark (Project Sponsor, CuraNova)
+
+Sarah: Thanks for meeting, Mark. We are in the 'Diagnosis' phase. I've drafted the stakeholder map. Based on the assessment, the 'Surgical Lead' group has the highest impact—they handle the most complex data—but the weakest engagement so far. They haven't attended the initial briefings.
+
+Mark: They are busy in the OR, Sarah. But they are the ones who need Copilot the most for their research summaries. 
+
+Sarah: Exactly. We need to prioritize a 1-on-1 with the Head of Surgery before we design the communication strategy. If we don't have the surgeons on board, the rest of the clinical staff will follow their lead in resisting.
+
+Mark: Agreed. By the way, while we are doing this, can your team also look at integrating the AI directly into our custom Electronic Medical Record (EMR) software? The doctors want a 'Summarize' button inside the patient file immediately.
+
+Sarah: [Scope Management] That's an interesting requirement, Mark. However, custom API development and EMR integration are currently out of scope for this SoW. Our focus is on the Microsoft 365 environment and Purview security. I'll note it as a future 'Phase 2' requirement, but for now, we'll focus on the M365 interface.
+
+Mark: Fair enough. Let's stick to the plan for the Surgeons first.
